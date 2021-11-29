@@ -4,8 +4,8 @@ const registerClass = ClassRegisterer()
 
 export interface ObservableValue<T> {
   get(): T
-  addListener(listener: ChangeListener<T>, weak?: boolean): void
-  removeListener(listener: ChangeListener<T>): void
+  addListener(listener: ChangeListener<T> | ChangeListenerClass<T>, weak?: boolean): void
+  removeListener(listener: ChangeListener<T> | ChangeListenerClass<T>): void
 }
 
 export type ChangeListenerFunc<T> = (observable: ObservableValue<T>) => void
@@ -111,11 +111,11 @@ export class Listeners<T> extends RegisteredClass {
     super()
     this[OnLoad]()
   }
-  [OnLoad]() {
+  [OnLoad](): void {
     setmetatable(this.listeners, { __mode: "kv" })
   }
 
-  addListener(listener: ChangeListener<T>, weak?: boolean) {
+  addListener(listener: ChangeListener<T>, weak?: boolean): void {
     const listeners = this.listeners
     if (listeners.has(listener)) {
       const key = {}
@@ -130,7 +130,7 @@ export class Listeners<T> extends RegisteredClass {
       }
     }
   }
-  removeListener(listener: ChangeListener<T>) {
+  removeListener(listener: ChangeListener<T>): void {
     const listeners = this.listeners
     if (listeners.has(listener)) {
       listeners.delete(listener)
@@ -163,10 +163,10 @@ export class SimpleProperty<T> extends ObservableValue<T> implements Property<T>
   }
   private readonly listeners = new Listeners<T>()
 
-  addListener(listener: ChangeListener<T>, weak?: boolean) {
+  addListener(listener: ChangeListener<T>, weak?: boolean): void {
     this.listeners.addListener(listener, weak)
   }
-  removeListener(listener: ChangeListener<T>) {
+  removeListener(listener: ChangeListener<T>): void {
     this.listeners.removeListener(listener)
   }
 
@@ -199,10 +199,10 @@ export class PropertyAdapter<T> extends ObservableValue<T> implements Property<T
 
   private readonly listeners = new Listeners<T>()
 
-  addListener(listener: ChangeListener<T>, weak?: boolean) {
+  addListener(listener: ChangeListener<T>, weak?: boolean): void {
     this.listeners.addListener(listener, weak)
   }
-  removeListener(listener: ChangeListener<T>) {
+  removeListener(listener: ChangeListener<T>): void {
     this.listeners.removeListener(listener)
   }
 
@@ -216,7 +216,7 @@ export class PropertyAdapter<T> extends ObservableValue<T> implements Property<T
       this.listeners.notify(this)
     }
   }
-  valueChanged() {
+  valueChanged(): void {
     this.listeners.notify(this)
   }
 
@@ -274,17 +274,17 @@ export abstract class Binding<T> extends ObservableValue<T> implements ChangeLis
   private valid = false
   private value!: T
 
-  addListener(listener: ChangeListener<T>, weak?: boolean) {
+  addListener(listener: ChangeListener<T>, weak?: boolean): void {
     this.listeners.addListener(listener, weak)
   }
-  removeListener(listener: ChangeListener<T>) {
+  removeListener(listener: ChangeListener<T>): void {
     this.listeners.removeListener(listener)
   }
 
   isValid(): boolean {
     return this.valid
   }
-  invalidate() {
+  invalidate(): void {
     this.__call()
   }
   __call(): void {
@@ -294,7 +294,7 @@ export abstract class Binding<T> extends ObservableValue<T> implements ChangeLis
   }
   declare call: this["__call"]
 
-  protected addDependencies(dependencies: ObservableValue<unknown>[]) {
+  protected addDependencies(dependencies: ObservableValue<unknown>[]): void {
     const listener = objAsFunc(this)
     for (const dependency of dependencies) {
       dependency.addListener(listener, true)
@@ -444,7 +444,7 @@ export namespace Bindings {
   )
   export const asString = BindingClass("tostring", (a) => tostring(a))
 
-  export function bindBidirectional<T>(property1: Property<T>, property2: Property<T>) {
+  export function bindBidirectional<T>(property1: Property<T>, property2: Property<T>): void {
     if (property1 === property2) error("Cannot bind property to itself")
     const binding = objAsFunc(new BidirectionalBinding(property1, property2))
     property1.set(property2.get())
@@ -452,7 +452,7 @@ export namespace Bindings {
     property2.addListener(binding)
   }
 
-  export function unbindBidirectional<T>(property1: Property<T>, property2: Property<T>) {
+  export function unbindBidirectional<T>(property1: Property<T>, property2: Property<T>): void {
     const binding = objAsFunc(new BidirectionalBinding(property1, property2))
     property1.removeListener(binding)
     property2.removeListener(binding)
