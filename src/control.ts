@@ -1,7 +1,10 @@
 import "./lib"
 
 if (script.active_mods.testorio) {
-  require("__testorio__/init")(["lib/events-test", "lib/references-test", "lib/value-test"], {
-    default_ticks_between_tests: 1,
-  })
+  require("__testorio__/init")(
+    ["lib/Events-test", "lib/references-test", "lib/value-test", "lib/gui/ElementInstance-test"],
+    {
+      default_ticks_between_tests: 1,
+    },
+  )
 }

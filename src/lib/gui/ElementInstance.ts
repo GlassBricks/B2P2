@@ -18,6 +18,7 @@ import { ChangeListener, ChangeListenerClass, getValue, ObservableValue } from "
 import { ClassRegisterer, objAsFunc, RegisteredClass } from "../references"
 import { addOnlyProps, addProps, commonAddProps, SpecProps } from "./types"
 
+// todo: global ref
 const registerClass = ClassRegisterer("gui:")
 
 @registerClass()
@@ -25,10 +26,10 @@ export class ElementInstance extends RegisteredClass {
   private element: LuaGuiElement | undefined
   private refs = new LuaTable<ChangeListener<unknown>, true>()
 
-  constructor(parent: LuaGuiElement, p: SpecProps<GuiElementType>) {
+  constructor(parent: LuaGuiElement, spec: SpecProps<GuiElementType>) {
     super()
-    const type: GuiElementType = p.type
-    const props = p as Record<string, unknown>
+    const type: GuiElementType = spec.type
+    const props = spec as Record<string, unknown>
     for (const [k] of pairs(addOnlyProps[type])) {
       if ((props[k] as unknown) instanceof ObservableValue) {
         error(`The property ${k} cannot be an observable value for gui element of type ${type}`)
