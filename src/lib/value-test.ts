@@ -1,11 +1,14 @@
 import { Binding, BindingClass, Bindings, ObservableValue, PropertyAdapter, SimpleProperty } from "./value"
-import { ClassRegisterer, Func, Functions, funcOn } from "./references"
+import { ClassRegisterer, Func, funcOn, Functions } from "./references"
 
 const registerClass = ClassRegisterer()
 
+let actions: string[]
+before_each(() => {
+  actions = []
+})
 describe("Simple property", () => {
   let property: SimpleProperty<number>
-  let actions: string[] = []
   const listener = {
     func() {
       actions.push("called")
@@ -17,7 +20,6 @@ describe("Simple property", () => {
   })
   before_each(() => {
     property = new SimpleProperty(0)
-    actions = []
   })
 
   test("get and set", () => {
@@ -184,10 +186,15 @@ test("Long expression chain", () => {
   const value1 = new SimpleProperty(0)
 
   const message = Bindings.concat(["There are ", value1.times(2).plus(1).times(3), " bananas!"])
+  message.addListener((() => {
+    actions.push("updated")
+  }) as any)
 
   assert.equal("There are 3 bananas!", message.get())
   value1.set(1)
+  assert.same(["updated"], actions)
   assert.equal("There are 9 bananas!", message.get())
+  assert.same(["updated"], actions)
 })
 
 describe("Bidirectional binding", () => {
