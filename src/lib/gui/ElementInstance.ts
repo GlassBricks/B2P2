@@ -15,7 +15,7 @@
 // some events are special
 
 import { ChangeListener, ChangeListenerClass, getValue, ObservableValue } from "../value"
-import { ClassRegisterer, objAsFunc, RegisteredClass } from "../references"
+import { ClassRegisterer, RegisteredClass } from "../classes"
 import { addOnlyProps, addProps, commonAddProps, SpecProps } from "./types"
 
 // todo: global ref
@@ -51,7 +51,7 @@ export class ElementInstance extends RegisteredClass {
         ;(element as any)[k] = getValue(v)
       }
       if (v instanceof ObservableValue) {
-        const listener = objAsFunc(new GuiUpdateListener(element, k as string))
+        const listener = new GuiUpdateListener(element, k as string)
         this.refs.set(listener, true)
         v.addListener(listener, true)
       }

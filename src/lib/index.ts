@@ -1,3 +1,5 @@
-import "./references"
+import "./registry"
+import "./classes"
+import "./func"
 import "./player-data"
 import "./gui"

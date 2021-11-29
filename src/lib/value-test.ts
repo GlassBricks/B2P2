@@ -1,5 +1,7 @@
 import { Binding, BindingClass, Bindings, ObservableValue, PropertyAdapter, SimpleProperty } from "./value"
-import { ClassRegisterer, Func, funcOn, Functions } from "./references"
+import { ClassRegisterer } from "./classes"
+import { Func, funcOn } from "./func"
+import { Functions } from "./registry"
 
 const registerClass = ClassRegisterer()
 
