@@ -15,15 +15,12 @@ import {
 const registerClass = ClassRegisterer()
 
 describe("Function registry", () => {
-  after_each(() => {
-    Functions.unregister("foo")
-  })
-
+  const testFuncName = " -- test -- func --" as FuncName
+  const func = () => {}
+  Functions.register(testFuncName, func)
   test("Can register function", () => {
-    const func = () => {}
-    Functions.register("foo", func)
-    assert.same(func, Functions.get("foo" as FuncName))
-    assert.same("foo", Functions.nameOf(func))
+    assert.same(func, Functions.get(testFuncName))
+    assert.same(testFuncName, Functions.nameOf(func))
   })
 
   test("error on duplicate func", () => {
@@ -32,9 +29,16 @@ describe("Function registry", () => {
       Functions.register("foo", () => {})
     })
   })
+
   test("error on nonexistent func", () => {
     assert.error(() => {
       Functions.get("foo" as FuncName)
+    })
+  })
+
+  test("Error when registering after load", () => {
+    assert.error(() => {
+      Functions.register("foo", func)
     })
   })
 })
@@ -102,6 +106,22 @@ describe("Classes", () => {
 
   test("Name registered correctly", () => {
     assert.equal("references-test::Foo", Metatables.nameOf(TestClass.prototype as LuaMetatable<TestClass>))
+  })
+
+  test("Error when registering after load", () => {
+    assert.error(() => {
+      @registerClass("Nope")
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      class TestClass extends RegisteredClass {}
+    })
+  })
+
+  test("Error when instantiating unregistered class", () => {
+    class TestClass extends RegisteredClass {}
+    assert.error(() => {
+      // eslint-disable-next-line no-new
+      new TestClass()
+    })
   })
 
   test("classes survives reload", () => {

@@ -1,4 +1,5 @@
 import Events from "./Events"
+import { checkIsBeforeLoad } from "./setup"
 
 // --- Functions ---
 export type AnyFunction = (this: any, ...args: any) => any
@@ -9,6 +10,7 @@ class Registry<T, N extends string = string> {
   constructor(private readonly itemName: string, private readonly debugInfo: (item: T) => string) {}
 
   register(name: string, item: T): T {
+    checkIsBeforeLoad()
     const existing: T = this.nameToItem[name as N]
     if (existing) {
       error(`${this.itemName} with the name ${name} is already registered, existing is: ${this.debugInfo(existing)}`)
@@ -25,10 +27,6 @@ class Registry<T, N extends string = string> {
   nameOf(item: T): N {
     return this.itemToName.get(item) ?? error(`The given ${this.itemName} was not registered: ${this.debugInfo(item)}`)
   }
-
-  unregister(name: string): void {
-    delete this.nameToItem[name as N]
-  }
 }
 
 export type FuncName = string & { _funcNameBrand: any }
@@ -42,19 +40,8 @@ declare const global: {
   // __nextInstanceId: InstanceId
 }
 
-interface Metatables {
-  "weak-key": LuaMetatable<object>
-}
-
-export type MetatableName = (string & { _metatableNameBrand: any }) | keyof Metatables
+export type MetatableName = string & { _metatableNameBrand: any }
 export const Metatables = new Registry<LuaMetatable<object>, MetatableName>("metatable", (tbl) => serpent.block(tbl))
-
-const metatables: Metatables = {
-  "weak-key": { __mode: "k" },
-}
-for (const [name, table] of pairs(metatables)) {
-  Metatables.register(name, table)
-}
 
 export const OnLoad: unique symbol = Symbol("Metatable OnLoad")
 export interface WithOnLoad {
@@ -73,7 +60,6 @@ Events.onAll({
     // global.__nextInstanceId = 1 as InstanceId
   },
   on_load() {
-    global.__metatables = global.__metatables || {}
     setmetatable(global.__metatables, { __mode: "k" })
     for (const [table, tableOrName] of pairs(global.__metatables)) {
       const metatable = Metatables.get(tableOrName)
@@ -119,11 +105,11 @@ export abstract class RegisteredClass implements WithOnLoad {
     const classInfo = (this.constructor as typeof RegisteredClass)[RegisteredClassInfo]
     if (!classInfo) {
       error(
-        `Class "${this.constructor.name}" inherits from RegisteredClass, but was not registered with @registerClass()`,
+        `Class "${this.constructor.name}" inherits from RegisteredClass, but was not registered with @registerClass().`,
       )
     }
     if (!game) {
-      error("Registered classes can only be instantiated during events, and not during on_load.")
+      error("Registered classes can only be instantiated during events and not during on_load.")
     }
     global.__metatables.set(this, classInfo.name)
     // this.__instanceId = global.__nextInstanceId
@@ -146,6 +132,7 @@ export function ClassRegisterer(prefix?: string): <T extends RegisteredType>(as?
   }
   return function registerClass<T extends RegisteredType>(as?: string) {
     return (clazz: T): void => {
+      checkIsBeforeLoad()
       const name = prefix + (as ?? clazz.name)
       const thisPrototype = clazz.prototype as LuaMetatable<T>
       Metatables.register(name, thisPrototype)

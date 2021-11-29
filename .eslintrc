@@ -54,6 +54,7 @@
         "allowWholeFile": true
       }
     ],
+    "@typescript-eslint/explicit-module-boundary-types": "error",
     "import/no-nodejs-modules": [
       "error", {
         "allow": ["util"]
