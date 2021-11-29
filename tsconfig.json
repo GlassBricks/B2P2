@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "none",
+    "moduleResolution": "node",
+    "types": ["typed-factorio/runtime", "testorio", "luassert-tstl"],
+    "plugins": [
+      {
+        "name": "typescript-tstl-plugin"
+      }
+    ],
+    "lib": ["esnext"],
+    "strict": true,
+    "experimentalDecorators": true,
+    "rootDir": "src",
+    "outDir": "src"
+  },
+  "tstl": {
+    "luaTarget": "5.2",
+    "noResolvePaths": ["__testorio__/init"]
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": []
+}
