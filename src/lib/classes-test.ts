@@ -17,7 +17,7 @@ class TestClass extends RegisteredClass {
 }
 
 test("Name registered correctly", () => {
-  assert.equal("references-test::Foo", TestClass[RClassInfo].name)
+  assert.equal("lib/classes-test::Foo", TestClass[RClassInfo].name)
 })
 
 test("Error when registering after load", () => {

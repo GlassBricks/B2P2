@@ -85,7 +85,7 @@ Events.onAll({
 })
 
 function getPrefix(upStack: number) {
-  return string.match(debug.getinfo(upStack + 2, "S")!.source!, "^.+/(.+)%.lua")[0] + "::"
+  return string.match(debug.getinfo(upStack + 2, "S")!.source!, "^.-/(.+)%.lua")[0] + "::"
 }
 
 export function ClassRegisterer(prefix?: string): <T extends RegisteredType>(as?: string) => (clazz: T) => void {
