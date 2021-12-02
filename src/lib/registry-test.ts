@@ -1,4 +1,4 @@
-import { FuncName, Functions } from "./registry"
+import { FuncName, Functions } from "./func"
 
 const testFuncName = " -- test -- func --" as FuncName
 const func = () => 0
@@ -10,8 +10,8 @@ test("Can register function", () => {
 
 test("error on duplicate func", () => {
   assert.error(() => {
-    Functions.register("foo", () => {})
-    Functions.register("foo", () => {})
+    Functions.register("foo", () => 0)
+    Functions.register("foo", () => 0)
   })
 })
 

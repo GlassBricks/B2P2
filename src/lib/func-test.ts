@@ -1,9 +1,7 @@
-import { Func, funcOn, funcRef } from "./func"
-import { AnyFunction, Functions } from "./registry"
+import { AnyFunction, Func, funcOn, funcRef, Functions } from "./func"
 
 declare const global: {
   __ref: Func<AnyFunction>
-  __refWithOverride: Func<AnyFunction>
   __tbl: object
 }
 function func(this: unknown, arg: any) {
@@ -19,15 +17,9 @@ test("Simple func ref", () => {
   global.__ref = funcRef(func)
   assert.same({ arg: "foo" }, global.__ref("foo"))
   assert.same({ this: 1, arg: "foo" }, global.__ref.call(1, "foo"))
-
-  global.__refWithOverride = funcRef(func, 0)
-  assert.same({ this: 0, arg: "foo" }, global.__refWithOverride("foo"))
-  assert.same({ this: 0, arg: "foo" }, global.__refWithOverride.call(1, "foo"))
 }).after_mod_reload(() => {
   assert.same({ arg: "foo" }, global.__ref("foo"))
   assert.same({ this: 1, arg: "foo" }, global.__ref.call(1, "foo"))
-  assert.same({ this: 0, arg: "foo" }, global.__refWithOverride("foo"))
-  assert.same({ this: 0, arg: "foo" }, global.__refWithOverride.call(1, "foo"))
 })
 
 test("Func ref on instance", () => {

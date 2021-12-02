@@ -1,6 +1,6 @@
+/*
 import { ClassRegisterer, OnLoad, RegisteredClass } from "./classes"
-import { Func, FuncClass, FuncOrClass } from "./func"
-import { AnyFunction } from "./registry"
+import { AnyFunction, Func, funcOn } from "./func"
 
 const registerClass = ClassRegisterer("value:")
 
@@ -12,10 +12,9 @@ export interface ObservableValue<T> {
 
 export type ListenerFunc<T> = (observable: ObservableValue<T>) => void
 export type ChangeListenerFunc<T> = Func<ListenerFunc<T>>
-export type ChangeListener<T> = FuncOrClass<ListenerFunc<T>>
+export type ChangeListener<T> = Func<ListenerFunc<T>>
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ChangeListenerClass<T> extends FuncClass<ListenerFunc<T>> {}
+export type ChangeListenerClass<T> = Func<ListenerFunc<T>>
 
 type Truthy<T> = T extends false | undefined ? never : T
 type Falsy<T> = T extends false | undefined ? T : never
@@ -277,6 +276,12 @@ export abstract class Binding<T> extends ObservableValue<T> implements ChangeLis
 
   private valid = false
   private value!: T
+  private observer: Func<() => void>
+
+  constructor() {
+    super()
+    this.observer = funcOn(this, "invalidate")
+  }
 
   addListener(listener: ChangeListener<T>, weakRef?: boolean): void {
     this.listeners.addListener(listener, weakRef)
@@ -289,18 +294,14 @@ export abstract class Binding<T> extends ObservableValue<T> implements ChangeLis
     return this.valid
   }
   invalidate(): void {
-    this.__call()
-  }
-  __call(): void {
     if (!this.valid) return
     this.valid = false
     this.listeners.notify(this)
   }
-  declare call: this["__call"]
 
   protected addDependencies(dependencies: ObservableValue<unknown>[]): void {
     for (const dependency of dependencies) {
-      dependency.addListener(this, true)
+      dependency.addListener(this.observer, true)
     }
   }
   protected abstract computeValue(): T
@@ -460,3 +461,4 @@ export namespace Bindings {
     property2.removeListener(binding)
   }
 }
+*/

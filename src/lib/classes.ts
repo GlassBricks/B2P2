@@ -1,6 +1,7 @@
 import Events from "./Events"
 import { checkIsBeforeLoad } from "./setup"
-import { AnyFunction, Functions, Registry } from "./registry"
+import { Registry } from "./registry"
+import { AnyFunction, Functions } from "./func"
 
 // --- Classes ---
 

@@ -24,9 +24,3 @@ export class Registry<T, N extends string = string> {
     return this.itemToName.get(item) ?? error(`The given ${this.itemName} was not registered: ${this.debugInfo(item)}`)
   }
 }
-
-// --- Functions ---
-export type AnyFunction = (this: any, ...args: any) => any
-
-export type FuncName = string & { _funcNameBrand: any }
-export const Functions = new Registry<AnyFunction, FuncName>("function", (func) => serpent.block(debug.getinfo(func)))
