@@ -1,4 +1,4 @@
-import { FuncName, Functions } from "./func"
+import { FuncName, Functions } from "./references"
 
 const testFuncName = " -- test -- func --" as FuncName
 const func = () => 0

@@ -1,4 +1,3 @@
 export * from "./registry"
-export * from "./classes"
-export * from "./func"
+export * from "./references"
 export * from "./player-data"

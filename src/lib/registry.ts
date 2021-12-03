@@ -3,6 +3,7 @@ import { checkIsBeforeLoad } from "./setup"
 export class Registry<T, N extends string = string> {
   private readonly nameToItem = {} as Record<N, T>
   private readonly itemToName = new LuaTable<T, N>()
+
   constructor(private readonly itemName: string, private readonly debugInfo: (item: T) => string) {}
 
   register(name: string, item: T): T {

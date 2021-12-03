@@ -47,6 +47,9 @@ let loaded = false
 Events.on_load(() => {
   loaded = true
 })
+Events.on_init(() => {
+  loaded = true
+})
 test("on_load", () => {
   assert(loaded)
 })
