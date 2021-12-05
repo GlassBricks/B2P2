@@ -1,20 +1,12 @@
-import {
-  AnyFunction,
-  ClassRegisterer,
-  Func,
-  funcOn,
-  funcRef,
-  Functions,
-  RClassInfo,
-  RegisteredClass,
-} from "./references"
+import { AnyFunction, bind, Classes, Func, funcOn, funcRef, Functions, RClassInfo, RegisteredClass } from "./references"
 
 declare const global: {
   __tbl: object
   __ref: Func<AnyFunction>
+  __boundRef: Func<AnyFunction>
 }
 describe("classes", () => {
-  const registerClass = ClassRegisterer()
+  const registerClass = Classes.registerer()
 
   @registerClass("Foo")
   class TestClass extends RegisteredClass {
@@ -33,7 +25,7 @@ describe("classes", () => {
 
   test("Error when registering after load", () => {
     assert.error(() => {
-      @registerClass("Nope")
+      @registerClass()
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       class TestClass extends RegisteredClass {}
     })
@@ -62,16 +54,24 @@ describe("classes", () => {
 })
 
 describe("functions", () => {
-  function func(this: void, arg: any) {
+  function func(arg: any) {
     return arg
   }
-  Functions.register("_test_-Func", func)
+  Functions.registerAs("@@ test func 1 @@", func)
+
+  function func2(this: unknown, arg: unknown) {
+    return [this, arg]
+  }
+  Functions.registerAs("@@ test func 2 @@", func2)
 
   test("Simple func ref", () => {
     global.__ref = funcRef(func)
+    global.__boundRef = bind(func2, 2)
     assert.same("foo", global.__ref("foo"))
+    assert.same([2, "foo"], global.__boundRef("foo"))
   }).after_mod_reload(() => {
     assert.same("foo", global.__ref("foo"))
+    assert.same([2, "foo"], global.__boundRef("foo"))
   })
 
   test("Func ref on instance", () => {

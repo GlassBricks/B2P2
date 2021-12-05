@@ -1,20 +1,53 @@
 import { checkIsBeforeLoad } from "./setup"
 
-export class Registry<T, N extends string = string> {
+function getCallerFile(): string {
+  return string.match(debug.getinfo(3, "S")!.source!, "^.-/(.+)%.lua")[0]
+}
+
+export interface Registerer<T> {
+  (this: unknown, as?: string): (this: unknown, item: T) => void
+}
+
+export abstract class Registry<T, N extends string> {
   private readonly nameToItem = {} as Record<N, T>
   private readonly itemToName = new LuaTable<T, N>()
 
-  constructor(private readonly itemName: string, private readonly debugInfo: (item: T) => string) {}
+  protected abstract getDefaultName(item: T): string
 
-  register(name: string, item: T): T {
+  protected abstract getDebugInfo(item: T): string
+
+  protected abstract onRegister(item: T, name: N): void
+
+  protected abstract itemName: string
+
+  registerAs(name: string, item: T): void {
+    const n = name as N
     checkIsBeforeLoad()
-    const existing: T = this.nameToItem[name as N]
+    const existing: T = this.nameToItem[n]
     if (existing) {
-      error(`${this.itemName} with the name ${name} is already registered, existing is: ${this.debugInfo(existing)}`)
+      error(`${this.itemName} with the name ${n} is already registered, existing is: ${this.getDebugInfo(existing)}`)
     }
-    this.nameToItem[name as N] = item
-    this.itemToName.set(item, name as N)
-    return item
+    this.nameToItem[n] = item
+    this.itemToName.set(item, n)
+    this.onRegister(item, n)
+  }
+
+  registerDefault(item: T): void {
+    this.registerAs((getCallerFile() + "::default") as N, item)
+  }
+
+  registerAll(...items: T[]): void {
+    const prefix = getCallerFile() + "::"
+    for (const item of items) {
+      this.registerAs((prefix + this.getDefaultName(item)) as N, item)
+    }
+  }
+
+  registerer(prefix?: string): Registerer<T> {
+    prefix = prefix ?? getCallerFile() + "::"
+    return (as) => (item) => {
+      this.registerAs((prefix + (as ?? this.getDefaultName(item))) as N, item)
+    }
   }
 
   get<V extends T>(name: N): V {
@@ -22,6 +55,8 @@ export class Registry<T, N extends string = string> {
   }
 
   nameOf(item: T): N {
-    return this.itemToName.get(item) ?? error(`The given ${this.itemName} was not registered: ${this.debugInfo(item)}`)
+    return (
+      this.itemToName.get(item) ?? error(`The given ${this.itemName} was not registered: ${this.getDebugInfo(item)}`)
+    )
   }
 }

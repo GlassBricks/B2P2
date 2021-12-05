@@ -2,7 +2,7 @@ import { FuncName, Functions } from "./references"
 
 const testFuncName = " -- test -- func --" as FuncName
 const func = () => 0
-Functions.register(testFuncName, func)
+Functions.registerAs(testFuncName, func)
 test("Can register function", () => {
   assert.same(func, Functions.get(testFuncName))
   assert.same(testFuncName, Functions.nameOf(func))
@@ -10,8 +10,8 @@ test("Can register function", () => {
 
 test("error on duplicate func", () => {
   assert.error(() => {
-    Functions.register("foo", () => 0)
-    Functions.register("foo", () => 0)
+    Functions.registerAs("foo", () => 0)
+    Functions.registerAs("foo", () => 0)
   })
 })
 
@@ -23,6 +23,6 @@ test("error on nonexistent func", () => {
 
 test("Error when registering after load", () => {
   assert.error(() => {
-    Functions.register("foo", func)
+    Functions.registerAs("foo", func)
   })
 })
