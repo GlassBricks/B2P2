@@ -36,10 +36,10 @@ export abstract class Registry<T, N extends string> {
     this.registerAs((getCallerFile() + "::default") as N, item)
   }
 
-  registerAll(...items: T[]): void {
+  register(items: Record<string, T>): void {
     const prefix = getCallerFile() + "::"
-    for (const item of items) {
-      this.registerAs((prefix + this.getDefaultName(item)) as N, item)
+    for (const [name, item] of pairs(items)) {
+      this.registerAs((prefix + name) as N, item)
     }
   }
 

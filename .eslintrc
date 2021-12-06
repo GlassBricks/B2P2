@@ -23,6 +23,7 @@
     "no-inner-declarations": "off",
     "no-use-before-define": "off",
     "class-methods-use-this": "off",
+    "no-invalid-this": "off",
     "@typescript-eslint/no-extra-semi": "off",
     "no-undef": "off",
     "@typescript-eslint/no-non-null-assertion": "off",

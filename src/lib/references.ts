@@ -141,11 +141,8 @@ export const Functions = new (class Functions extends Registry<Function, FuncNam
     return serpent.block(type(func) === "function" ? debug.getinfo(func) : func, { nocode: true })
   }
 
-  protected getDefaultName(item: Function): string {
-    const info = debug.getinfo(item, "N")
-    if (info.namewhat === undefined || info.namewhat === "")
-      error(`Could not get name of given function: ${this.getDebugInfo(item)}`)
-    return info.name!
+  protected getDefaultName(): string {
+    error("name must be explicitly given to register functions")
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -154,7 +151,13 @@ export const Functions = new (class Functions extends Registry<Function, FuncNam
   }
 })()
 
-const registerFuncClass = Classes.registerer("func:")
+const registerer = Classes.registerer("func:")
+const registerFuncClass =
+  (as?: string): ((this: unknown, type: RegisteredType<Func<any>>) => void) =>
+  (type) => {
+    registerer(as)(type)
+    __DebugAdapter?.stepIgnore((type.prototype as any).__call)
+  }
 
 @registerFuncClass()
 class RegisteredFunc extends Func<AnyFunction> {
