@@ -3,6 +3,7 @@ import { observe } from "../index"
 import { shallowCopy } from "../../_util"
 import pipe from "../pipe"
 import * as util from "util"
+import subscribe from "../subscribe"
 
 let results: unknown[] = []
 before_each(() => {
@@ -10,13 +11,16 @@ before_each(() => {
 })
 
 describe("root state", () => {
+  let s: State<number>
+  before_each(() => {
+    s = state(42)
+  })
+
   test("Initializes with given value", () => {
-    const s = state(42)
     assert.equal(42, s.get())
   })
 
   test("Emits initial value", () => {
-    const s = state(42)
     observe((v) => {
       results.push(v)
     })(s)
@@ -24,7 +28,6 @@ describe("root state", () => {
   })
 
   test("Tracks changes", () => {
-    const s = state(41)
     s.set(42)
     assert.equal(s.get(), 42)
     s.set(43)
@@ -32,14 +35,23 @@ describe("root state", () => {
   })
 
   test("Emits changes", () => {
-    const s = state(42)
     observe((v) => {
       results.push(v)
     })(s)
     s.set(43)
     s.set(44)
-    s.set(46)
-    assert.same([42, 43, 44, 46], results)
+    assert.same([42, 43, 44], results)
+  })
+
+  test("closes subscriptions", () => {
+    async(1)
+    pipe(
+      s,
+      subscribe({
+        complete: done,
+      }),
+    )
+    s.clear()
   })
 })
 
@@ -49,89 +61,140 @@ interface TestState {
 
 describe("sub state", () => {
   let parent: State<TestState>
+  let child: State<TestState["x"]>
   before_each(() => {
     parent = state({ x: 42 })
+    child = parent.sub("x")
   })
 
   test("Initializes with correct value", () => {
-    const s = parent.sub("x")
-    assert.same(42, s.get())
+    assert.same(42, child.get())
   })
 
   test("Emits initial value", () => {
-    const s = parent.sub("x")
     observe((v) => {
       results.push(v)
-    })(s)
+    })(child)
     assert.same([42], results)
   })
 
   test("Tracks changes", () => {
-    const s = parent.sub("x")
-    s.set(42)
-    assert.equal(42, s.get())
-    s.set(43)
-    assert.equal(43, s.get())
+    child.set(42)
+    assert.equal(42, child.get())
+    child.set(43)
+    assert.equal(43, child.get())
   })
 
   test("Tracks changes from parent", () => {
-    const s = parent.sub("x")
     parent.set({ x: 42 })
-    assert.equal(42, s.get())
+    assert.equal(42, child.get())
     parent.set({ x: 43 })
-    assert.equal(43, s.get())
+    assert.equal(43, child.get())
   })
 
   test("Parent tracks changes", () => {
-    const s = parent.sub("x")
-    s.set(42)
+    child.set(42)
     assert.same({ x: 42 }, parent.get())
-    s.set(43)
+    child.set(43)
     assert.same({ x: 43 }, parent.get())
   })
 
   test("Emits changes", () => {
-    const s = parent.sub("x")
     observe((v) => {
       results.push(v)
-    })(s)
-    s.set(43)
-    s.set(44)
-    s.set(46)
-    assert.same([42, 43, 44, 46], results)
+    })(child)
+    child.set(43)
+    child.set(44)
+    assert.same([42, 43, 44], results)
   })
 
   test("Emits changes from parent", () => {
-    const s = parent.sub("x")
     observe((v) => {
       results.push(v)
-    })(s)
+    })(child)
     parent.set({ x: 43 })
     parent.set({ x: 44 })
-    parent.set({ x: 46 })
-    assert.same([42, 43, 44, 46], results)
+    assert.same([42, 43, 44], results)
   })
 
   test("Parent emits changes", () => {
-    const s = parent.sub("x")
     pipe(
       parent,
       observe((v) => {
         results.push(shallowCopy(v))
       }),
     )
-    s.set(43)
-    s.set(44)
+    child.set(43)
+    child.set(44)
     assert.same([{ x: 42 }, { x: 43 }, { x: 44 }], results)
   })
 
   test("does not emit if no change", () => {
-    const s = parent.sub("x")
     observe((v) => {
       results.push(v)
-    })(s)
+    })(child)
     parent.set({ x: 42 })
     assert.same([42], results)
+  })
+
+  test("Closes subscriptions without ending parent", () => {
+    let parentClosed = false
+    let childClosed = false
+    pipe(
+      parent,
+      subscribe({
+        complete() {
+          parentClosed = true
+        },
+      }),
+    )
+
+    pipe(
+      child,
+      subscribe({
+        complete() {
+          childClosed = true
+        },
+      }),
+    )
+    assert.is_false(parentClosed)
+    assert.is_false(childClosed)
+    child.clear()
+    assert.is_false(parentClosed)
+    assert.is_true(childClosed)
+  })
+
+  test("Closes subscriptions without ending other subs", () => {
+    let aClosed = false
+    let bClosed = false
+    const b = parent.sub("x")
+    pipe(
+      child,
+      subscribe({
+        complete() {
+          aClosed = true
+        },
+      }),
+    )
+    pipe(
+      b,
+      subscribe({
+        complete() {
+          bClosed = true
+        },
+      }),
+    )
+    assert.is_false(aClosed)
+    assert.is_false(bClosed)
+    child.clear()
+    assert.is_true(aClosed)
+    assert.is_false(bClosed)
+  })
+
+  test("end parent closes sub ", () => {
+    async(1)
+    pipe(child, subscribe({ complete: done }))
+    parent.clear()
   })
 })
 
@@ -198,13 +261,15 @@ interface TestState3 {
 
 describe("Deep sub state", () => {
   let parent: State<TestState3>
+  let x: State<TestState3["x"]>
+  let s: State<TestState3["x"]["x"]>
   before_each(() => {
     parent = state({ x: { x: 42 } })
+    x = parent.sub("x")
+    s = x.sub("x")
   })
 
   test("Tracks changes", () => {
-    const x = parent.sub("x")
-    const s = x.sub("x")
     s.set(42)
     assert.equal(s.get(), 42)
     s.set(43)
@@ -212,8 +277,6 @@ describe("Deep sub state", () => {
   })
 
   test("Tracks changes from parents", () => {
-    const x = parent.sub("x")
-    const s = x.sub("x")
     parent.set({ x: { x: 43 } })
     assert.same(43, s.get())
     x.set({ x: 44 })
@@ -221,8 +284,6 @@ describe("Deep sub state", () => {
   })
 
   test("Parents track changes", () => {
-    const x = parent.sub("x")
-    const s = x.sub("x")
     s.set(42)
     assert.same({ x: { x: 42 } }, parent.get())
     assert.same({ x: 42 }, x.get())
@@ -232,8 +293,6 @@ describe("Deep sub state", () => {
   })
 
   test("Emits changes", () => {
-    const x = parent.sub("x")
-    const s = x.sub("x")
     observe((v) => {
       results.push(v)
     })(s)
@@ -243,8 +302,6 @@ describe("Deep sub state", () => {
   })
 
   test("Emits changes from parent", () => {
-    const x = parent.sub("x")
-    const s = x.sub("x")
     observe((v) => {
       results.push(v)
     })(s)
@@ -254,8 +311,6 @@ describe("Deep sub state", () => {
   })
 
   test("Parent emits changes", () => {
-    const x = parent.sub("x")
-    const s = x.sub("x")
     const results2: unknown[] = []
     pipe(
       parent,
@@ -275,9 +330,6 @@ describe("Deep sub state", () => {
   })
 
   test("does not emit if no change", () => {
-    const x = parent.sub("x")
-    const s = x.sub("x")
-
     observe((v) => {
       results.push(v)
     })(s)
@@ -290,5 +342,11 @@ describe("Deep sub state", () => {
 
     results = []
     assert.same([], results)
+  })
+
+  test("end parent closes sub ", () => {
+    async(1)
+    pipe(s, subscribe({ complete: done }))
+    parent.clear()
   })
 })
