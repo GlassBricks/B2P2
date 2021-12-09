@@ -3,7 +3,7 @@ export type DATA = 1
 export type END = 2
 
 export interface Source<T> {
-  (type: START, observer: Sink<T>): void
+  (type: START, sink: Sink<T>): void
 }
 
 export interface Sink<T> {
@@ -12,7 +12,24 @@ export interface Sink<T> {
   (type: END, err?: unknown): void
 }
 
+export type CallbagMsg = START | DATA | END
+
 export interface Talkback {
   (type: DATA): void
   (type: END): void
+}
+
+export type TbMsg = DATA | END
+
+export interface PushSink<T> {
+  (type: DATA, data: T): void
+  (type: END, err?: unknown): void
+}
+
+export type PushMsg = DATA | END
+
+export interface SinkSource<T> {
+  (type: START, sink: Sink<T>): void
+  (type: DATA, data: T): void
+  (type: END, err?: unknown): void
 }

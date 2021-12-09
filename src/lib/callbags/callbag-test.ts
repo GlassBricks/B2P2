@@ -5,11 +5,12 @@ import map from "./map"
 import { asFunc } from "../testUtil"
 import { Talkback } from "./callbag"
 import filter from "./filter"
+import observe from "./observe"
 
-describe("of and forEach", () => {
+describe("of and observe", () => {
   test("usage", () => {
     const results: number[] = []
-    forEach((x: number) => results.push(x))(of(1, 2, 3))
+    observe((x: number) => results.push(x))(of(1, 2, 3))
     assert.same([1, 2, 3], results)
   })
 

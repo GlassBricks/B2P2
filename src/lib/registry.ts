@@ -32,8 +32,10 @@ export abstract class Registry<T, N extends string> {
     this.onRegister(item, n)
   }
 
-  registerDefault(item: T): void {
-    this.registerAs((getCallerFile() + "::default") as N, item)
+  registerDefault(): (this: unknown, item: T) => void {
+    return (item) => {
+      this.registerAs((getCallerFile() + "::default") as N, item)
+    }
   }
 
   register(items: Record<string, T>): void {

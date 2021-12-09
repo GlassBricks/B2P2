@@ -7,10 +7,11 @@ if (script.active_mods.testorio) {
       "lib/registry-test",
       "lib/references-test",
       "lib/callbags/callbag-test",
+      "lib/callbags/state/state-test.ts",
       "lib/player-data-test",
     ],
     {
-      default_ticks_between_tests: 1,
+      tag_blacklist: ["after_mod_reload"],
     },
   )
 }
