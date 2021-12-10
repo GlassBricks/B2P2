@@ -2,12 +2,33 @@ import { bind, Classes, Func, Functions } from "../../references"
 import { CallbagMsg, PushSink, Sink, Source, START, Talkback, TbMsg } from "../callbag"
 import { shallowCopy } from "../../_util"
 
+export interface NullableState<T> extends Source<T | undefined> {
+  get(): T | undefined
+  set(value: T): void
+  end(): void
+
+  readonly changes: Downstream<T>
+
+  sub<T extends unknown[], K extends number>(this: State<T | undefined>, key: K): NullableState<T[number]>
+  sub<T, K extends keyof T>(this: State<T | undefined>, key: K): NullableState<T[K]>
+
+  /** Beware of differing indexes if using change */
+  subArray<T extends unknown[], K extends number>(this: State<T | undefined>, key: K): NullableState<T[K]>
+}
+
 export interface State<T> extends Source<T> {
   get(): T
   set(value: T): void
-  clear(): void
+  end(): void
 
+  readonly changes: Downstream<T>
+
+  sub<T, K extends number>(this: State<T[]>, key: K): NullableState<T>
   sub<K extends keyof T>(key: K): State<T[K]>
+  sub<T, K extends keyof T>(this: State<T | undefined>, key: K): NullableState<T[K]>
+
+  /** Beware of differing indexes if using change */
+  subArray<T extends unknown[], K extends number>(this: State<T | undefined>, key: K): NullableState<T[K]>
 }
 
 export interface ChangeTraceLeaf<T> {
@@ -105,26 +126,27 @@ export function postTrace<T>(change: Change<T>): Change<T> {
 }
 
 @Classes.registerDefault()
-class StateImpl<T> extends Func<State<T>> implements State<T> {
+class StateImpl<T> extends Func<any> implements State<T> {
   private value: T
   private sinks = new LuaTable<object, Sink<Change<T>>>()
 
-  private readonly parentDownstream: Downstream<T>
   private readonly upstream: Upstream<T>
   private dsTalkback?: Talkback
+  readonly changes: Downstream<T>
 
   constructor(initialValue: T)
   constructor(parent: StateImpl<Record<keyof any, T>>, key: keyof any)
 
-  constructor(first: T | StateImpl<Record<keyof any, T>>, key?: keyof any) {
+  constructor(first: T | StateImpl<Record<keyof any, T> | undefined>, key?: keyof any) {
     super()
+    let parentDownstream: Downstream<T | undefined>
     if (key !== undefined) {
-      const parent = first as StateImpl<Record<keyof any, T>>
-      this.value = parent.get()[key]
-      this.parentDownstream = bind(StateImpl.subDownstream, {
-        downstream: parent.ref("broadcastDownstream"),
+      const parent = first as StateImpl<Record<keyof any, T> | undefined>
+      this.value = parent.value?.[key] as T
+      parentDownstream = bind(StateImpl.subDownstream, {
+        parentChanges: parent.changes,
         key,
-        sub: this,
+        sub: this as StateImpl<T | undefined>,
       })
       this.upstream = bind(StateImpl.subUpstream, {
         key,
@@ -134,10 +156,11 @@ class StateImpl<T> extends Func<State<T>> implements State<T> {
       this.value = first as T
       const b = bind(bouncer, {})
       this.upstream = b
-      this.parentDownstream = b
+      parentDownstream = b
     }
 
-    this.parentDownstream(0, (this as StateImpl<T>).ref("parentDownstreamSink"))
+    parentDownstream(0, (this as StateImpl<T>).ref("parentDownstreamSink"))
+    this.changes = (this as StateImpl<T>).ref("downstream")
   }
 
   get(): T {
@@ -170,7 +193,7 @@ class StateImpl<T> extends Func<State<T>> implements State<T> {
     }
   }
 
-  broadcastDownstream(type: START, sink: Sink<Change<T>>) {
+  downstream(type: START, sink: Sink<Change<T>>) {
     if (type !== 0) return
     const key = {}
     this.sinks.set(key, sink)
@@ -189,17 +212,10 @@ class StateImpl<T> extends Func<State<T>> implements State<T> {
     }
   }
 
-  protected __call(start: START, sink: Sink<T>): void {
-    if (start !== 0) return
-    this.broadcastDownstream(0, bind(StateImpl.passValueSink, { state: this, sink }))
-  }
-
-  clear() {
-    this.upstream(2)
-    this.dsTalkback?.(2)
-    this.dsTalkback = undefined
-    this.broadcast(2)
-    this.sinks = new LuaTable()
+  protected __call(type: START, data: Sink<T>): void {
+    if (type === 0) {
+      this.downstream(0, bind(StateImpl.passValueSink, { state: this, sink: data }))
+    }
   }
 
   private static passValueSink<T>(
@@ -220,21 +236,33 @@ class StateImpl<T> extends Func<State<T>> implements State<T> {
     }
   }
 
+  end() {
+    this.upstream(2)
+    this.dsTalkback?.(2)
+    this.dsTalkback = undefined
+    this.broadcast(2)
+    this.sinks = new LuaTable()
+  }
+
   sub<K extends keyof T>(key: K): State<T[K]> {
     return new StateImpl(this as StateImpl<any>, key)
   }
 
+  subArray<T extends unknown[], K extends number>(this: State<T | undefined>, key: K): NullableState<T[K]> {
+    return this.sub(key + 1)
+  }
+
   private static subDownstream<T, K extends keyof T>(
     this: {
-      readonly downstream: Downstream<T>
+      readonly parentChanges: Downstream<T | undefined>
       readonly key: K
-      readonly sub: StateImpl<T[K]>
+      readonly sub: StateImpl<T[K] | undefined>
     },
     type: START,
-    sink: Sink<Change<T[K]>>,
+    sink: Sink<Change<T[K] | undefined>>,
   ) {
     if (type !== 0) return
-    this.downstream(
+    this.parentChanges(
       0,
       bind(StateImpl.subDownstreamSink, {
         sub: this.sub,
@@ -246,22 +274,22 @@ class StateImpl<T> extends Func<State<T>> implements State<T> {
 
   private static subDownstreamSink<T, K extends keyof T>(
     this: {
-      readonly sub: StateImpl<T[K]>
+      readonly sub: StateImpl<T[K] | undefined>
       readonly key: K
-      readonly sink: Sink<Change<T[K]>>
+      readonly sink: Sink<Change<T[K] | undefined>>
     },
     type: CallbagMsg,
     data?: any,
   ): void {
     if (type === 1) {
-      const { trace, value } = data as Change<T>
+      const { trace, value } = data as Change<T | undefined>
       const key = this.key
-      const selfValue = value[key]
+      const selfValue = value?.[key]
       const isLeafOrNone = !trace || isLeaf(trace)
-      if (isLeafOrNone ? selfValue !== this.sub.get() : key in trace.subs) {
+      if (isLeafOrNone ? selfValue !== this.sub.value : key in trace.subs!) {
         this.sink(1, {
           value: selfValue,
-          trace: isLeafOrNone ? undefined : trace!.subs[key],
+          trace: isLeafOrNone ? undefined : trace.subs![key],
         })
       }
     } else {
@@ -272,7 +300,7 @@ class StateImpl<T> extends Func<State<T>> implements State<T> {
   private static subUpstream<T, K extends keyof T>(
     this: {
       readonly key: K
-      readonly state: StateImpl<T>
+      readonly state: StateImpl<T | undefined>
     },
     type: CallbagMsg,
     data?: any,
@@ -281,12 +309,11 @@ class StateImpl<T> extends Func<State<T>> implements State<T> {
     const upstream = state.upstream
     if (type === 1) {
       const change = data as Change<T[K]>
-      const value = state.get()
+      const value = state.value
       const key = this.key
 
-      if (value) {
-        value[key] = change.value
-      }
+      if (value === undefined) return
+      value[key] = change.value
 
       upstream(1, {
         value,

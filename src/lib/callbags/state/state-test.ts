@@ -51,7 +51,7 @@ describe("root state", () => {
         complete: done,
       }),
     )
-    s.clear()
+    s.end()
   })
 })
 
@@ -159,7 +159,7 @@ describe("sub state", () => {
     )
     assert.is_false(parentClosed)
     assert.is_false(childClosed)
-    child.clear()
+    child.end()
     assert.is_false(parentClosed)
     assert.is_true(childClosed)
   })
@@ -186,7 +186,7 @@ describe("sub state", () => {
     )
     assert.is_false(aClosed)
     assert.is_false(bClosed)
-    child.clear()
+    child.end()
     assert.is_true(aClosed)
     assert.is_false(bClosed)
   })
@@ -194,7 +194,7 @@ describe("sub state", () => {
   test("end parent closes sub ", () => {
     async(1)
     pipe(child, subscribe({ complete: done }))
-    parent.clear()
+    parent.end()
   })
 })
 
@@ -347,6 +347,50 @@ describe("Deep sub state", () => {
   test("end parent closes sub ", () => {
     async(1)
     pipe(s, subscribe({ complete: done }))
-    parent.clear()
+    parent.end()
+  })
+})
+
+// null == undefined == nil for the purposes of these tests
+describe("Nullable sub", () => {
+  let parent: State<TestState | undefined>
+  let s: State<TestState["x"] | undefined>
+  before_each(() => {
+    parent = state(undefined)
+    s = parent.sub("x")
+  })
+
+  test("Nullable sub receives nullable", () => {
+    assert.is_nil(s.get())
+  })
+
+  test("setting from non-null to null changes to null", () => {
+    pipe(
+      s,
+      observe((x) => results.push(x ?? "nil")),
+    )
+
+    parent.set({ x: 3 })
+    assert.equals(3, s.get())
+    parent.set(undefined)
+    assert.is_nil(s.get())
+
+    assert.same(results, ["nil", 3, "nil"])
+  })
+
+  test("setting nullable parent has no effect", () => {
+    // todo: should this be an error instead
+    pipe(
+      parent,
+      observe((x) => results.push(x ?? "nil")),
+    )
+    pipe(
+      s,
+      observe((x) => results.push(x ?? "nil")),
+    )
+    s.set(3)
+    assert.is_nil(s.get())
+    assert.is_nil(parent.get())
+    assert.same(["nil", "nil"], results)
   })
 })
