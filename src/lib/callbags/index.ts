@@ -6,5 +6,7 @@ import of from "./of"
 import pipe from "./pipe"
 
 export * from "./callbag"
+export * from "./state"
+export * from "./testSource"
 
 export { pipe, of, forEach, filter, map, observe }
