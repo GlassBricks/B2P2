@@ -33,8 +33,9 @@ export abstract class Registry<T, N extends string> {
   }
 
   registerDefault(as: string = "default"): (this: unknown, item: T) => void {
+    const prefix = getCallerFile() + "::"
     return (item) => {
-      this.registerAs((getCallerFile() + "::" + as) as N, item)
+      this.registerAs((prefix + as) as N, item)
     }
   }
 

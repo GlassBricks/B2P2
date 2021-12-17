@@ -6,6 +6,8 @@ import { asFunc } from "../testUtil"
 import { Talkback } from "./callbag"
 import filter from "./filter"
 import observe from "./observe"
+import { testSource, TestSource } from "./testSource"
+import subscribe from "./subscribe"
 
 describe("of and observe", () => {
   test("usage", () => {
@@ -90,4 +92,61 @@ test("filter", () => {
     forEach((x) => results.push(x)),
   )
   assert.same([2, 4], results)
+})
+
+describe("testSource", () => {
+  let results!: number[]
+  let source!: TestSource<number>
+  before_each(() => {
+    results = []
+    source = testSource<number>()
+  })
+
+  test("Fires given values", () => {
+    pipe(
+      source,
+      observe<number>((x) => results.push(x)),
+    )
+    assert.is_false(source.ended)
+    assert.same([], results)
+    source(1, 1)
+    assert.is_false(source.ended)
+    assert.same([1], results)
+  })
+
+  test("ended when called on source", () => {
+    let ended = false
+    pipe(
+      source,
+      subscribe({
+        data(value) {
+          results.push(value as number)
+        },
+        complete() {
+          ended = true
+        },
+      }),
+    )
+    assert.is_false(source.ended)
+    assert.is_false(ended)
+    source(2)
+    assert.is_true(source.ended)
+    assert.is_true(ended)
+    source(1, 3)
+    assert.same([], results)
+  })
+
+  test("ends when called by sink tb", () => {
+    let tb!: Talkback
+    source(0, (type, data) => {
+      if (type === 0) tb = data as Talkback
+      else if (type === 1) results.push(data as number)
+    })
+
+    assert.is_false(source.ended)
+    tb(2)
+    assert.is_true(source.ended)
+    source(1, 3)
+    assert.same([], results)
+  })
 })
