@@ -99,6 +99,8 @@ interface Prop {
 type SpecDef = Record<string, Prop>
 
 const merged = {} as Record<GuiElementType, SpecDef>
+
+// read and process types from gui.d.ts
 {
   function mapDef(def: ts.InterfaceDeclaration, skipReadonly: boolean): TypeDef {
     const result: TypeDef = {}
@@ -149,6 +151,7 @@ const merged = {} as Record<GuiElementType, SpecDef>
   }
   rename(specs["choose-elem-button"], "filters", "elem_filters")
 
+  // inline attributes of "base" type
   function spreadBase(defs: Record<GuiElementType | "base", TypeDef>) {
     const baseDef = defs.base
     for (const [name, def] of Object.entries(defs)) {
@@ -160,6 +163,7 @@ const merged = {} as Record<GuiElementType, SpecDef>
   spreadBase(specs)
   spreadBase(elements)
 
+  // merge spec and element definitions
   for (const type of guiElementTypes) {
     const spec = specs[type]
     const element = elements[type]
@@ -219,9 +223,9 @@ async function printFile(filename: string, header: string, statements: ts.Statem
   )
 }
 
+// propTypes: Record< GuiElementType, Record<spec name, [ guiSpecProp, elementProp ]>>
 {
   const expressions: ts.Statement[] = []
-  // attr types
   const byType = {} as Record<GuiElementType, ts.ObjectLiteralExpression>
 
   function toStringLiteral(value: string | undefined): ts.Expression {
@@ -253,6 +257,7 @@ async function printFile(filename: string, header: string, statements: ts.Statem
   void printFile("propTypes.ts", "", expressions)
 }
 
+// Create ElementSpec.d.ts
 {
   function toPascalCase(str: string): string {
     return str
@@ -265,6 +270,7 @@ async function printFile(filename: string, header: string, statements: ts.Statem
 
   for (const type of guiElementTypes) {
     const members: ts.TypeElement[] = []
+    // all members
     for (const [name, attr] of Object.entries(merged[type])) {
       members.push(
         ts.factory.createPropertySignature(
@@ -275,6 +281,15 @@ async function printFile(filename: string, header: string, statements: ts.Statem
         ),
       )
     }
+    // children member
+    members.push(
+      ts.factory.createPropertySignature(
+        undefined,
+        "children",
+        ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+        ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode("ElementSpec")),
+      ),
+    )
     statements.push(
       ts.factory.createInterfaceDeclaration(
         undefined,
@@ -286,7 +301,7 @@ async function printFile(filename: string, header: string, statements: ts.Statem
       ),
     )
   }
-
+  // type ElementSpec = union of all types
   statements.push(
     ts.factory.createTypeAliasDeclaration(
       undefined,

@@ -16,6 +16,7 @@ export interface ChooseElemButtonElementSpec {
   location?: MaybeSource<GuiLocation | undefined>
   elem_value?: MaybeSource<(this["elem_type"] extends "signal" ? SignalID : string) | undefined>
   locked?: MaybeSource<boolean>
+  children?: ElementSpec[]
 }
 
 export interface DropDownElementSpec {
@@ -32,6 +33,7 @@ export interface DropDownElementSpec {
   items?: MaybeSource<LocalisedString[]>
   selected_index?: MaybeSource<uint>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface EmptyWidgetElementSpec {
@@ -47,6 +49,7 @@ export interface EmptyWidgetElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   location?: MaybeSource<GuiLocation | undefined>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
+  children?: ElementSpec[]
 }
 
 export interface EntityPreviewElementSpec {
@@ -62,6 +65,7 @@ export interface EntityPreviewElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   location?: MaybeSource<GuiLocation | undefined>
   entity?: MaybeSource<LuaEntity | undefined>
+  children?: ElementSpec[]
 }
 
 export interface ListBoxElementSpec {
@@ -78,6 +82,7 @@ export interface ListBoxElementSpec {
   items?: MaybeSource<LocalisedString[]>
   selected_index?: MaybeSource<uint>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface ScrollPaneElementSpec {
@@ -98,6 +103,7 @@ export interface ScrollPaneElementSpec {
     "auto" | "never" | "always" | "auto-and-reserve-space" | "dont-show-but-allow-scrolling"
   >
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface SpriteButtonElementSpec {
@@ -119,6 +125,7 @@ export interface SpriteButtonElementSpec {
   mouse_button_filter?: MaybeSource<MouseButtonFlags>
   location?: MaybeSource<GuiLocation | undefined>
   resize_to_sprite?: MaybeSource<boolean>
+  children?: ElementSpec[]
 }
 
 export interface TabbedPaneElementSpec {
@@ -134,6 +141,7 @@ export interface TabbedPaneElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   location?: MaybeSource<GuiLocation | undefined>
   selected_tab_index?: MaybeSource<uint | undefined>
+  children?: ElementSpec[]
 }
 
 export interface TextBoxElementSpec {
@@ -153,6 +161,7 @@ export interface TextBoxElementSpec {
   selectable?: MaybeSource<boolean>
   word_wrap?: MaybeSource<boolean>
   read_only?: MaybeSource<boolean>
+  children?: ElementSpec[]
 }
 
 export interface ButtonElementSpec {
@@ -168,6 +177,7 @@ export interface ButtonElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   mouse_button_filter?: MaybeSource<MouseButtonFlags>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface CameraElementSpec {
@@ -186,6 +196,7 @@ export interface CameraElementSpec {
   zoom?: MaybeSource<double>
   location?: MaybeSource<GuiLocation | undefined>
   entity?: MaybeSource<LuaEntity | undefined>
+  children?: ElementSpec[]
 }
 
 export interface CheckboxElementSpec {
@@ -201,6 +212,7 @@ export interface CheckboxElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   state: MaybeSource<boolean>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface FlowElementSpec {
@@ -217,6 +229,7 @@ export interface FlowElementSpec {
   direction?: "horizontal" | "vertical"
   location?: MaybeSource<GuiLocation | undefined>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
+  children?: ElementSpec[]
 }
 
 export interface FrameElementSpec {
@@ -234,6 +247,7 @@ export interface FrameElementSpec {
   location?: MaybeSource<GuiLocation | undefined>
   auto_center?: MaybeSource<boolean>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
+  children?: ElementSpec[]
 }
 
 export interface LabelElementSpec {
@@ -249,6 +263,7 @@ export interface LabelElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   location?: MaybeSource<GuiLocation | undefined>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
+  children?: ElementSpec[]
 }
 
 export interface LineElementSpec {
@@ -264,6 +279,7 @@ export interface LineElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   direction?: "horizontal" | "vertical"
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface MinimapElementSpec {
@@ -285,6 +301,7 @@ export interface MinimapElementSpec {
   location?: MaybeSource<GuiLocation | undefined>
   minimap_player_index?: MaybeSource<uint>
   entity?: MaybeSource<LuaEntity | undefined>
+  children?: ElementSpec[]
 }
 
 export interface ProgressbarElementSpec {
@@ -300,6 +317,7 @@ export interface ProgressbarElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   value?: MaybeSource<double>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface RadiobuttonElementSpec {
@@ -315,6 +333,7 @@ export interface RadiobuttonElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   state: MaybeSource<boolean>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface SliderElementSpec {
@@ -336,6 +355,7 @@ export interface SliderElementSpec {
   discrete_values?: boolean
   location?: MaybeSource<GuiLocation | undefined>
   slider_value?: MaybeSource<double>
+  children?: ElementSpec[]
 }
 
 export interface SpriteElementSpec {
@@ -352,6 +372,7 @@ export interface SpriteElementSpec {
   sprite?: MaybeSource<SpritePath>
   resize_to_sprite?: MaybeSource<boolean>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface SwitchElementSpec {
@@ -372,6 +393,7 @@ export interface SwitchElementSpec {
   right_label_caption?: MaybeSource<LocalisedString>
   right_label_tooltip?: MaybeSource<LocalisedString>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface TabElementSpec {
@@ -387,6 +409,7 @@ export interface TabElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   badge_text?: MaybeSource<LocalisedString>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export interface TableElementSpec {
@@ -407,6 +430,7 @@ export interface TableElementSpec {
   vertical_centering?: MaybeSource<boolean>
   location?: MaybeSource<GuiLocation | undefined>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
+  children?: ElementSpec[]
 }
 
 export interface TextfieldElementSpec {
@@ -428,6 +452,7 @@ export interface TextfieldElementSpec {
   lose_focus_on_confirm?: MaybeSource<boolean>
   clear_and_focus_on_right_click?: MaybeSource<boolean>
   location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
 }
 
 export type ElementSpec =

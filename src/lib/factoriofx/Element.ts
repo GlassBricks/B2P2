@@ -11,6 +11,7 @@ export interface ElementInstance {
 
 interface ElementInstanceInternal extends ElementInstance {
   readonly talkbacks: Record<string, Talkback>
+  children?: ElementInstance[]
 }
 
 function setValueSink(
@@ -24,6 +25,7 @@ function setValueSink(
   const instance = this.instance
   if (type === 0) {
     instance.talkbacks[this.key] = data as Talkback
+    ;(data as Talkback)(1)
   } else if (type === 1) {
     const element = instance.nativeElement
     if (!element.valid) {
@@ -45,6 +47,7 @@ export function create(parent: LuaGuiElement, spec: ElementSpec): ElementInstanc
   const type = spec.type
   const props = propTypes[type] ?? error("Unknown type " + type)
   for (const [key, value] of pairs(spec)) {
+    if (key === "children") continue
     const propProperties = props[key]
     const specProp = propProperties[0]
     const elemProp = propProperties[1]
@@ -72,15 +75,21 @@ export function create(parent: LuaGuiElement, spec: ElementSpec): ElementInstanc
       ;(nativeElement as any)[key] = value
     }
   }
+  const children = spec.children
+  if (children) {
+    instance.children = children.map((childSpec) => create(nativeElement, childSpec))
+  }
 
   return instance
 }
 
 export function destroy(element: ElementInstance): void {
-  const instance = element as ElementInstanceInternal
-  if (!instance.nativeElement.valid) error("already destroyed instance")
-  instance.nativeElement.destroy()
-  for (const [, talkback] of pairs(shallowCopy(instance.talkbacks))) {
+  const { nativeElement, talkbacks, children } = element as ElementInstanceInternal
+  if (children) {
+    children.forEach((child) => destroy(child))
+  }
+  for (const [, talkback] of pairs(shallowCopy(talkbacks))) {
     talkback(2)
   }
+  if (nativeElement.valid) nativeElement.destroy()
 }
