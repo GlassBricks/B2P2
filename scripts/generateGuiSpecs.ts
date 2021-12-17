@@ -318,7 +318,9 @@ async function printFile(filename: string, header: string, statements: ts.Statem
 }
 
 // todo:
-// property aliases
 // setters/getters virtual property
 // state
 // choose-elem-button state
+// style
+// ref
+// on_create

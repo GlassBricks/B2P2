@@ -4,14 +4,14 @@ import { bind, Func, Functions } from "../references"
 import { CallbagMsg, Source, Talkback } from "../callbags"
 import { shallowCopy } from "../_util"
 
-export interface ElementInstance {
-  readonly nativeElement: LuaGuiElement
+export interface ElementInstance<T extends GuiElementType> {
+  readonly nativeElement: Extract<LuaGuiElement, { type: T }>
   readonly _elementInstanceBrand: any
 }
 
-interface ElementInstanceInternal extends ElementInstance {
+interface ElementInstanceInternal extends ElementInstance<any> {
   readonly talkbacks: Record<string, Talkback>
-  children?: ElementInstance[]
+  children?: ElementInstanceInternal[]
 }
 
 function setValueSink(
@@ -40,7 +40,10 @@ function setValueSink(
 
 Functions.register({ setSink: setValueSink })
 
-export function create(parent: LuaGuiElement, spec: ElementSpec): ElementInstanceInternal {
+export function create<T extends GuiElementType>(
+  parent: LuaGuiElement,
+  spec: ElementSpec & { type: T },
+): ElementInstance<T> {
   const guiSpec: Record<string, any> = {}
   const toSetOnElem: Record<string, unknown> = {}
 
@@ -77,13 +80,13 @@ export function create(parent: LuaGuiElement, spec: ElementSpec): ElementInstanc
   }
   const children = spec.children
   if (children) {
-    instance.children = children.map((childSpec) => create(nativeElement, childSpec))
+    instance.children = children.map((childSpec) => create(nativeElement, childSpec) as ElementInstanceInternal)
   }
 
-  return instance
+  return instance as ElementInstance<any>
 }
 
-export function destroy(element: ElementInstance): void {
+export function destroy(element: ElementInstance<any>): void {
   const { nativeElement, talkbacks, children } = element as ElementInstanceInternal
   if (children) {
     children.forEach((child) => destroy(child))
