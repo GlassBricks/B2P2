@@ -5,8 +5,8 @@ const TestData = PlayerData<unknown>(__TestPlayerDataName, () => 1)
 
 test("Can get and set", () => {
   const player = getPlayer()
-  TestData[player.index] = 3
-  assert.equal(3, TestData[player.index])
+  TestData.data[player.index] = 3
+  assert.equal(3, TestData.data[player.index])
 })
 
 test("Update and delete on player created/removed", () => {
@@ -15,11 +15,11 @@ test("Update and delete on player created/removed", () => {
     name: defines.events.on_player_created,
     tick: game.tick,
   })
-  assert.equal(1, TestData[10000])
+  assert.equal(1, TestData.data[10000])
   script.get_event_handler(defines.events.on_player_removed)({
     player_index: 10000,
     name: defines.events.on_player_created,
     tick: game.tick,
   })
-  assert.is_nil(TestData[10000])
+  assert.is_nil(TestData.data[10000])
 })

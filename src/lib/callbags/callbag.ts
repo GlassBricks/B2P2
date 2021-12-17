@@ -33,3 +33,5 @@ export interface SinkSource<T> {
   (type: DATA, data: T): void
   (type: END, err?: unknown): void
 }
+
+export type MaybeSource<T> = T | Source<T>

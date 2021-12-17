@@ -1,9 +1,9 @@
 import { State, state } from "./state"
-import { observe } from "../index"
-import { shallowCopy } from "../../_util"
-import pipe from "../pipe"
+import { observe } from "./index"
+import { shallowCopy } from "../_util"
+import pipe from "./pipe"
 import * as util from "util"
-import subscribe from "../subscribe"
+import subscribe from "./subscribe"
 
 let results: unknown[] = []
 before_each(() => {

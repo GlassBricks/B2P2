@@ -1,6 +1,6 @@
-import { bind, Classes, Func, Functions } from "../../references"
-import { CallbagMsg, PushSink, Sink, Source, START, Talkback, TbMsg } from "../callbag"
-import { shallowCopy } from "../../_util"
+import { bind, Classes, Func, Functions } from "../references"
+import { CallbagMsg, PushSink, Sink, Source, START, Talkback, TbMsg } from "./callbag"
+import { shallowCopy } from "../_util"
 
 export interface NullableState<T> extends Source<T | undefined> {
   get(): T | undefined

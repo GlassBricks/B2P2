@@ -7,8 +7,9 @@ if (script.active_mods.testorio) {
       "lib/registry-test",
       "lib/references-test",
       "lib/callbags/callbag-test",
-      "lib/callbags/state/state-test.ts",
+      "lib/callbags/state-test.ts",
       "lib/player-data-test",
+      "lib/factoriofx/Element-test",
     ],
     {
       tag_blacklist: ["after_mod_reload"],

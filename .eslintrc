@@ -6,7 +6,7 @@
     "import/resolver": "typescript"
   },
   "parserOptions": {
-    "project": ["tsconfig.json"]
+    "project": ["tsconfig.json", "scripts/tsconfig.json"]
   },
   "extends": [
     "eslint:recommended",
@@ -62,5 +62,13 @@
         "allow": ["util"]
       }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["scripts/**/*.ts"],
+      "rules": {
+        "import/no-nodejs-modules": "off"
+      }
+    }
+  ]
 }
