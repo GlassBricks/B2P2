@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "none",
+    "module": "esnext",
     "moduleResolution": "node",
     "types": ["typed-factorio/runtime", "testorio", "luassert-tstl"],
     "plugins": [
@@ -13,7 +13,8 @@
     "strict": true,
     "experimentalDecorators": true,
     "rootDir": "src",
-    "outDir": "src"
+    "outDir": "src",
+    "resolveJsonModule": true
   },
   "tstl": {
     "luaTarget": "5.2",

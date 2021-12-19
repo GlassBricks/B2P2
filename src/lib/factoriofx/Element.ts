@@ -1,6 +1,6 @@
 import { ElementSpec } from "./ElementSpec"
-import propTypes from "./propTypes"
-import { bind, Func, Functions } from "../references"
+import * as propTypes from "./propTypes.json"
+import { bind, Func, funcRef, Functions } from "../references"
 import { CallbagMsg, Source, Talkback } from "../callbags"
 import { shallowCopy } from "../_util"
 
@@ -38,25 +38,77 @@ function setValueSink(
   }
 }
 
-Functions.register({ setSink: setValueSink })
+function callMethodSink(
+  this: {
+    readonly instance: ElementInstanceInternal
+    readonly key: string
+  },
+  type: CallbagMsg,
+  data?: unknown,
+) {
+  const instance = this.instance
+  if (type === 0) {
+    instance.talkbacks[this.key] = data as Talkback
+    ;(data as Talkback)(1)
+  } else if (type === 1) {
+    const element = instance.nativeElement
+    if (!element.valid) {
+      destroy(this.instance)
+      return
+    }
+    ;((element as any)[this.key] as (this: void, value: unknown) => void)(data)
+  } else if (type === 2) {
+    instance.talkbacks[this.key] = undefined!
+  }
+}
+
+function setSliderMinMaxSink(
+  this: {
+    readonly instance: ElementInstanceInternal
+    readonly key: "slider_minimum" | "slider_maximum"
+  },
+  type: CallbagMsg,
+  data?: unknown,
+) {
+  const instance = this.instance
+  if (type === 0) {
+    instance.talkbacks[this.key] = data as Talkback
+    ;(data as Talkback)(1)
+  } else if (type === 1) {
+    const element = instance.nativeElement as SliderGuiElementMembers
+    if (!element.valid) {
+      destroy(this.instance)
+      return
+    }
+    if (this.key === "slider_minimum") {
+      element.set_slider_minimum_maximum(data as number, element.get_slider_maximum())
+    } else {
+      element.set_slider_minimum_maximum(element.get_slider_minimum(), data as number)
+    }
+  } else if (type === 2) {
+    instance.talkbacks[this.key] = undefined!
+  }
+}
+
+Functions.register({ setValueSink, callMethodSink, setSliderMinMaxSink })
 
 export function create<T extends GuiElementType>(
   parent: LuaGuiElement,
   spec: ElementSpec & { type: T },
 ): ElementInstance<T> {
   const guiSpec: Record<string, any> = {}
-  const toSetOnElem: Record<string, unknown> = {}
+  const toSetOnElem = new LuaTable<string | [string], unknown>()
 
-  const type = spec.type
-  const props = propTypes[type] ?? error("Unknown type " + type)
-  for (const [key, value] of pairs(spec)) {
+  // eslint-disable-next-line prefer-const
+  for (let [key, value] of pairs(spec)) {
     if (key === "children") continue
-    const propProperties = props[key]
+    const propProperties = propTypes[key]
     const specProp = propProperties[0]
     const elemProp = propProperties[1]
+    if (typeof value === "function") value = funcRef(value)
     if (!specProp || value instanceof Func) {
       if (!elemProp) error(`${key} cannot be a source/value`)
-      toSetOnElem[elemProp] = value
+      toSetOnElem.set(elemProp, value)
     } else if (specProp) {
       guiSpec[specProp] = value
     }
@@ -73,7 +125,24 @@ export function create<T extends GuiElementType>(
       if (!getmetatable(value)?.__call) {
         error("Non-callbag class given to key " + key)
       }
-      ;(value as Source<any>)(0, bind(setValueSink, { instance, key }))
+      if (typeof key !== "object") {
+        ;(value as Source<unknown>)(0, bind(setValueSink, { instance, key }))
+        continue
+      }
+      const method = key[0]
+      if (method === "slider_minimum" || method === "slider_maximum") {
+        ;(value as Source<unknown>)(
+          0,
+          bind(setSliderMinMaxSink, {
+            instance,
+            key: method as "slider_minimum" | "slider_maximum",
+          }),
+        )
+      } else {
+        ;(value as Source<unknown>)(0, bind(callMethodSink, { instance, key: method }))
+      }
+    } else if (typeof key === "object") {
+      ;((nativeElement as any)[key[0]] as (this: void, value: unknown) => void)(value)
     } else {
       ;(nativeElement as any)[key] = value
     }
