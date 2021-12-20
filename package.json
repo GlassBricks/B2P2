@@ -25,14 +25,12 @@
     "typed-factorio": "^0.13.2",
     "typescript": "^4.5.4",
     "typescript-to-lua": "^1.2.0",
+    "luassert-tstl": "^0.2.3",
     "typescript-tstl-plugin": "^0.3.2"
   },
   "scripts": {
     "build": "tstl",
     "watch": "tstl --watch",
     "clean": "del \"**/*.lua\" \"!**/*.def.lua\" \"!**/node_modules/**\""
-  },
-  "dependencies": {
-    "luassert-tstl": "^0.2.3"
   }
 }
