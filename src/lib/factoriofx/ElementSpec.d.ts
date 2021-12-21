@@ -2,8 +2,8 @@
 
 import { MaybeSource } from "../callbags"
 
-export interface ChooseElemButtonElementSpec {
-  type: "choose-elem-button"
+export interface BaseElementSpec {
+  type: GuiElementType
   name?: MaybeSource<string>
   caption?: MaybeSource<LocalisedString>
   tooltip?: MaybeSource<LocalisedString>
@@ -13,438 +13,204 @@ export interface ChooseElemButtonElementSpec {
   style?: string
   tags?: MaybeSource<Tags>
   anchor?: MaybeSource<GuiAnchor | undefined>
+  location?: MaybeSource<GuiLocation | undefined>
+  children?: ElementSpec[]
+}
+
+export interface ChooseElemButtonElementSpec extends BaseElementSpec {
+  type: "choose-elem-button"
   elem_type: ChooseElemButtonType
   elem_filters?: MaybeSource<ChooseElemButtonFilters[this["elem_type"]] | undefined>
-  location?: MaybeSource<GuiLocation | undefined>
   elem_value?: MaybeSource<(this["elem_type"] extends "signal" ? SignalID : string) | undefined>
   locked?: MaybeSource<boolean>
   children?: ElementSpec[]
 }
 
-export interface DropDownElementSpec {
+export interface DropDownElementSpec extends BaseElementSpec {
   type: "drop-down"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   items?: MaybeSource<LocalisedString[]>
   selected_index?: MaybeSource<uint>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface EmptyWidgetElementSpec {
+export interface EmptyWidgetElementSpec extends BaseElementSpec {
   type: "empty-widget"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
-  location?: MaybeSource<GuiLocation | undefined>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
 }
 
-export interface EntityPreviewElementSpec {
+export interface EntityPreviewElementSpec extends BaseElementSpec {
   type: "entity-preview"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
-  location?: MaybeSource<GuiLocation | undefined>
   entity?: MaybeSource<LuaEntity | undefined>
   children?: ElementSpec[]
 }
 
-export interface ListBoxElementSpec {
+export interface ListBoxElementSpec extends BaseElementSpec {
   type: "list-box"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   items?: MaybeSource<LocalisedString[]>
   selected_index?: MaybeSource<uint>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface ScrollPaneElementSpec {
+export interface ScrollPaneElementSpec extends BaseElementSpec {
   type: "scroll-pane"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   horizontal_scroll_policy?: MaybeSource<
     "auto" | "never" | "always" | "auto-and-reserve-space" | "dont-show-but-allow-scrolling"
   >
   vertical_scroll_policy?: MaybeSource<
     "auto" | "never" | "always" | "auto-and-reserve-space" | "dont-show-but-allow-scrolling"
   >
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface SpriteButtonElementSpec {
+export interface SpriteButtonElementSpec extends BaseElementSpec {
   type: "sprite-button"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   sprite?: MaybeSource<SpritePath>
   hovered_sprite?: MaybeSource<SpritePath>
   clicked_sprite?: MaybeSource<SpritePath>
   number?: MaybeSource<double | undefined>
   show_percent_for_small_numbers?: MaybeSource<boolean>
   mouse_button_filter?: MaybeSource<MouseButtonFlags>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface TabbedPaneElementSpec {
+export interface TabbedPaneElementSpec extends BaseElementSpec {
   type: "tabbed-pane"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
-  location?: MaybeSource<GuiLocation | undefined>
   selected_tab_index?: MaybeSource<uint | undefined>
   children?: ElementSpec[]
 }
 
-export interface TextBoxElementSpec {
+export interface TextBoxElementSpec extends BaseElementSpec {
   type: "text-box"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   text?: MaybeSource<string>
   clear_and_focus_on_right_click?: MaybeSource<boolean>
-  location?: MaybeSource<GuiLocation | undefined>
   selectable?: MaybeSource<boolean>
   word_wrap?: MaybeSource<boolean>
   read_only?: MaybeSource<boolean>
   children?: ElementSpec[]
 }
 
-export interface ButtonElementSpec {
+export interface ButtonElementSpec extends BaseElementSpec {
   type: "button"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   mouse_button_filter?: MaybeSource<MouseButtonFlags>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface CameraElementSpec {
+export interface CameraElementSpec extends BaseElementSpec {
   type: "camera"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   position: MaybeSource<Position>
   surface_index?: MaybeSource<uint>
   zoom?: MaybeSource<double>
-  location?: MaybeSource<GuiLocation | undefined>
   entity?: MaybeSource<LuaEntity | undefined>
   children?: ElementSpec[]
 }
 
-export interface CheckboxElementSpec {
+export interface CheckboxElementSpec extends BaseElementSpec {
   type: "checkbox"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   state: MaybeSource<boolean>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface FlowElementSpec {
+export interface FlowElementSpec extends BaseElementSpec {
   type: "flow"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   direction?: "horizontal" | "vertical"
-  location?: MaybeSource<GuiLocation | undefined>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
 }
 
-export interface FrameElementSpec {
+export interface FrameElementSpec extends BaseElementSpec {
   type: "frame"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   direction?: "horizontal" | "vertical"
-  location?: MaybeSource<GuiLocation | undefined>
   auto_center?: MaybeSource<boolean>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
 }
 
-export interface LabelElementSpec {
+export interface LabelElementSpec extends BaseElementSpec {
   type: "label"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
-  location?: MaybeSource<GuiLocation | undefined>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
 }
 
-export interface LineElementSpec {
+export interface LineElementSpec extends BaseElementSpec {
   type: "line"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   direction?: "horizontal" | "vertical"
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface MinimapElementSpec {
+export interface MinimapElementSpec extends BaseElementSpec {
   type: "minimap"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   position?: MaybeSource<Position>
   surface_index?: MaybeSource<uint>
   chart_player_index?: uint
   force?: MaybeSource<string | undefined>
   zoom?: MaybeSource<double>
-  location?: MaybeSource<GuiLocation | undefined>
   minimap_player_index?: MaybeSource<uint>
   entity?: MaybeSource<LuaEntity | undefined>
   children?: ElementSpec[]
 }
 
-export interface ProgressBarElementSpec {
+export interface ProgressBarElementSpec extends BaseElementSpec {
   type: "progressbar"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   value?: MaybeSource<double>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface RadioButtonElementSpec {
+export interface RadioButtonElementSpec extends BaseElementSpec {
   type: "radiobutton"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   state: MaybeSource<boolean>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface SliderElementSpec {
+export interface SliderElementSpec extends BaseElementSpec {
   type: "slider"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   minimum_value?: MaybeSource<double>
   maximum_value?: MaybeSource<double>
   value_step?: MaybeSource<double>
   discrete_slider?: MaybeSource<double>
   discrete_values?: boolean
-  location?: MaybeSource<GuiLocation | undefined>
   slider_value?: MaybeSource<double>
   discrete_value?: MaybeSource<double>
   children?: ElementSpec[]
 }
 
-export interface SpriteElementSpec {
+export interface SpriteElementSpec extends BaseElementSpec {
   type: "sprite"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   sprite?: MaybeSource<SpritePath>
   resize_to_sprite?: MaybeSource<boolean>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface SwitchElementSpec {
+export interface SwitchElementSpec extends BaseElementSpec {
   type: "switch"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   switch_state?: MaybeSource<string>
   allow_none_state?: MaybeSource<boolean>
   left_label_caption?: MaybeSource<LocalisedString>
   left_label_tooltip?: MaybeSource<LocalisedString>
   right_label_caption?: MaybeSource<LocalisedString>
   right_label_tooltip?: MaybeSource<LocalisedString>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface TabElementSpec {
+export interface TabElementSpec extends BaseElementSpec {
   type: "tab"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   badge_text?: MaybeSource<LocalisedString>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 
-export interface TableElementSpec {
+export interface TableElementSpec extends BaseElementSpec {
   type: "table"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   column_count: uint
   draw_vertical_lines?: MaybeSource<boolean>
   draw_horizontal_lines?: MaybeSource<boolean>
   draw_horizontal_line_after_headers?: MaybeSource<boolean>
   vertical_centering?: MaybeSource<boolean>
-  location?: MaybeSource<GuiLocation | undefined>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
 }
 
-export interface TextFieldElementSpec {
+export interface TextFieldElementSpec extends BaseElementSpec {
   type: "textfield"
-  name?: MaybeSource<string>
-  caption?: MaybeSource<LocalisedString>
-  tooltip?: MaybeSource<LocalisedString>
-  enabled?: MaybeSource<boolean>
-  visible?: MaybeSource<boolean>
-  ignored_by_interaction?: MaybeSource<boolean>
-  style?: string
-  tags?: MaybeSource<Tags>
-  anchor?: MaybeSource<GuiAnchor | undefined>
   text?: MaybeSource<string>
   numeric?: MaybeSource<boolean>
   allow_decimal?: MaybeSource<boolean>
@@ -452,7 +218,6 @@ export interface TextFieldElementSpec {
   is_password?: MaybeSource<boolean>
   lose_focus_on_confirm?: MaybeSource<boolean>
   clear_and_focus_on_right_click?: MaybeSource<boolean>
-  location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
 }
 

@@ -44,7 +44,8 @@ function error(msg: string): never {
 }
 const defFile = program.getSourceFile(defFileName) ?? error("Could not find gui.d.ts")
 
-const guiElementTypes: GuiElementType[] = [
+const guiElementTypes: (GuiElementType | "base")[] = [
+  "base",
   "choose-elem-button",
   "drop-down",
   "empty-widget",
@@ -100,7 +101,7 @@ interface Prop {
 
 type SpecDef = Record<string, Prop>
 
-const merged = {} as Record<GuiElementType, SpecDef>
+const merged = {} as Record<GuiElementType | "base", SpecDef>
 
 // read and process types from gui.d.ts
 {
@@ -175,20 +176,8 @@ const merged = {} as Record<GuiElementType, SpecDef>
     optional: true,
   }
 
-  // inline attributes of "base" type
-  function spreadBase(defs: Record<GuiElementType | "base", TypeDef>) {
-    const baseDef = defs.base
-    for (const [name, def] of Object.entries(defs)) {
-      if (name === "base") continue
-      defs[name as GuiElementType] = Object.assign({}, baseDef, def)
-    }
-  }
-
-  spreadBase(specs)
-  spreadBase(elements)
-
   // merge spec and element definitions
-  for (const type of guiElementTypes) {
+  for (const type of ["base", ...guiElementTypes] as const) {
     const spec = specs[type]
     const element = elements[type]
     if (!spec) throw new Error(`Spec def for ${type} not found`)
@@ -279,7 +268,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   void writeFile("propTypes.json", JSON.stringify(result), "json")
 }
 
-// Create ElementSpec.d.ts
+// ElementSpec.d.ts
 {
   function toPascalCase(str: string): string {
     return (
@@ -315,13 +304,18 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
         ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode("ElementSpec")),
       ),
     )
+    // extends BaseElementSpec
+    const heritageClause = ts.factory.createHeritageClause(ts.SyntaxKind.ExtendsKeyword, [
+      ts.factory.createExpressionWithTypeArguments(ts.factory.createIdentifier("BaseElementSpec"), undefined),
+    ])
+
     statements.push(
       ts.factory.createInterfaceDeclaration(
         undefined,
         [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
         `${toPascalCase(type)}ElementSpec`,
         undefined,
-        undefined,
+        type !== "base" ? [heritageClause] : undefined,
         members,
       ),
     )
@@ -334,7 +328,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
       "ElementSpec",
       undefined,
       ts.factory.createUnionTypeNode(
-        guiElementTypes.map((type) => ts.factory.createTypeReferenceNode(`${toPascalCase(type)}ElementSpec`)),
+        guiElementTypes.slice(1).map((type) => ts.factory.createTypeReferenceNode(`${toPascalCase(type)}ElementSpec`)),
       ),
     ),
   )
