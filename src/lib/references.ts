@@ -134,7 +134,7 @@ export abstract class Func<F> extends RegisteredClass {
 Func.prototype = RegisteredClass.prototype as Func<AnyFunction>
 
 export type FuncName<F = Function> = string & { _funcNameBrand: F }
-export const Functions = new (class Functions extends Registry<Function, FuncName> {
+export const Functions: Registry<Function, FuncName> = new (class Functions extends Registry<Function, FuncName> {
   protected itemName = "function"
 
   protected getDebugInfo(func: Function): string {
@@ -145,8 +145,7 @@ export const Functions = new (class Functions extends Registry<Function, FuncNam
     error("name must be explicitly given to register functions")
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onRegister(item: Function): void {
+  protected onRegister(): void {
     // nothing
   }
 })()
