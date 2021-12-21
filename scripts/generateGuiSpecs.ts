@@ -71,6 +71,7 @@ const guiElementTypes: GuiElementType[] = [
   "table",
   "textfield",
 ]
+const capitalized: Record<string, string> = {}
 function normalizeName(name: string): string {
   return name.replace(/-/g, "").toLowerCase()
 }
@@ -130,6 +131,7 @@ const merged = {} as Record<GuiElementType, SpecDef>
       const matchName = match[1] || match[2]
       const elemType = normElemTypeNames[normalizeName(matchName)]
       if (!elemType) throw new Error("not recognized spec: " + match[0])
+      if (elemType !== "base") capitalized[elemType] = matchName
       specs[elemType] = mapDef(def, false)
       continue
     }
@@ -280,10 +282,13 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
 // Create ElementSpec.d.ts
 {
   function toPascalCase(str: string): string {
-    return str
-      .split(/[-_ ]/g)
-      .map((str) => str[0].toUpperCase() + str.slice(1))
-      .join("")
+    return (
+      capitalized[str] ??
+      str
+        .split(/[-_ ]/g)
+        .map((str) => str[0].toUpperCase() + str.slice(1))
+        .join("")
+    )
   }
 
   const statements: ts.Statement[] = []
