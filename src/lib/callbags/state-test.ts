@@ -29,9 +29,9 @@ describe("root state", () => {
 
   test("Tracks changes", () => {
     s.set(42)
-    assert.equal(s.get(), 42)
+    assert.equal(42, s.get())
     s.set(43)
-    assert.equal(s.get(), 43)
+    assert.equal(43, s.get())
   })
 
   test("Emits changes", () => {

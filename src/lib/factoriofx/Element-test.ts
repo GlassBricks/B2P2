@@ -20,7 +20,7 @@ describe("create", () => {
       type: "flow",
       direction: "vertical",
     }
-    element = create(parent, spec).nativeElement as FlowGuiElement
+    element = create(parent, spec).nativeElement
     assert.same("vertical", element.direction)
   })
 
@@ -30,7 +30,7 @@ describe("create", () => {
       elem_type: "item",
       locked: true,
     }
-    element = create(parent, spec).nativeElement as ChooseElemButtonGuiElement
+    element = create(parent, spec).nativeElement
     assert.is_true(element.locked)
   })
 
@@ -100,7 +100,7 @@ describe("create", () => {
     assert.equal(1, element.get_slider_minimum())
     assert.equal(5, element.get_slider_maximum())
     value.set(6)
-    assert.equal(1, element.get_slider_value_step())
+    assert.equal(1, element.get_slider_minimum())
     assert.equal(6, element.get_slider_maximum())
   })
 
@@ -150,7 +150,7 @@ describe("styleMod", () => {
         left_padding: 3,
       },
     }
-    element = create(parent, spec).nativeElement as FlowGuiElement
+    element = create(parent, spec).nativeElement
     assert.equals(3, element.style.left_padding)
   })
 
@@ -161,7 +161,7 @@ describe("styleMod", () => {
         padding: [3, 3],
       },
     }
-    element = create(parent, spec).nativeElement as FlowGuiElement
+    element = create(parent, spec).nativeElement
     assert.equals(3, element.style.left_padding)
   })
 
@@ -173,7 +173,7 @@ describe("styleMod", () => {
         padding: value,
       },
     }
-    element = create(parent, spec).nativeElement as FlowGuiElement
+    element = create(parent, spec).nativeElement
     assert.equals(1, element.style.left_padding)
     value.set(2)
     assert.equals(2, element.style.left_padding)
@@ -197,7 +197,7 @@ describe("destroy", () => {
       direction: "vertical",
     }
     const el = create(parent, spec)
-    element = el.nativeElement as FlowGuiElement
+    element = el.nativeElement
     destroy(el)
     assert.is_false(element.valid)
   })
