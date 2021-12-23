@@ -15,6 +15,7 @@ export interface BaseElementSpec {
   anchor?: MaybeSource<GuiAnchor | undefined>
   location?: MaybeSource<GuiLocation | undefined>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface ChooseElemButtonElementSpec extends BaseElementSpec {
@@ -24,6 +25,7 @@ export interface ChooseElemButtonElementSpec extends BaseElementSpec {
   elem_value?: MaybeSource<(this["elem_type"] extends "signal" ? SignalID : string) | undefined>
   locked?: MaybeSource<boolean>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface DropDownElementSpec extends BaseElementSpec {
@@ -31,18 +33,21 @@ export interface DropDownElementSpec extends BaseElementSpec {
   items?: MaybeSource<LocalisedString[]>
   selected_index?: MaybeSource<uint>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface EmptyWidgetElementSpec extends BaseElementSpec {
   type: "empty-widget"
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface EntityPreviewElementSpec extends BaseElementSpec {
   type: "entity-preview"
   entity?: MaybeSource<LuaEntity | undefined>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface ListBoxElementSpec extends BaseElementSpec {
@@ -50,6 +55,7 @@ export interface ListBoxElementSpec extends BaseElementSpec {
   items?: MaybeSource<LocalisedString[]>
   selected_index?: MaybeSource<uint>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface ScrollPaneElementSpec extends BaseElementSpec {
@@ -61,6 +67,7 @@ export interface ScrollPaneElementSpec extends BaseElementSpec {
     "auto" | "never" | "always" | "auto-and-reserve-space" | "dont-show-but-allow-scrolling"
   >
   children?: ElementSpec[]
+  styleMod?: ScrollPaneStyleMod
 }
 
 export interface SpriteButtonElementSpec extends BaseElementSpec {
@@ -72,12 +79,14 @@ export interface SpriteButtonElementSpec extends BaseElementSpec {
   show_percent_for_small_numbers?: MaybeSource<boolean>
   mouse_button_filter?: MaybeSource<MouseButtonFlags>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface TabbedPaneElementSpec extends BaseElementSpec {
   type: "tabbed-pane"
   selected_tab_index?: MaybeSource<uint | undefined>
   children?: ElementSpec[]
+  styleMod?: TabbedPaneStyleMod
 }
 
 export interface TextBoxElementSpec extends BaseElementSpec {
@@ -88,12 +97,14 @@ export interface TextBoxElementSpec extends BaseElementSpec {
   word_wrap?: MaybeSource<boolean>
   read_only?: MaybeSource<boolean>
   children?: ElementSpec[]
+  styleMod?: TextBoxStyleMod
 }
 
 export interface ButtonElementSpec extends BaseElementSpec {
   type: "button"
   mouse_button_filter?: MaybeSource<MouseButtonFlags>
   children?: ElementSpec[]
+  styleMod?: ButtonStyleMod
 }
 
 export interface CameraElementSpec extends BaseElementSpec {
@@ -103,12 +114,14 @@ export interface CameraElementSpec extends BaseElementSpec {
   zoom?: MaybeSource<double>
   entity?: MaybeSource<LuaEntity | undefined>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface CheckboxElementSpec extends BaseElementSpec {
   type: "checkbox"
   state: MaybeSource<boolean>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface FlowElementSpec extends BaseElementSpec {
@@ -116,6 +129,7 @@ export interface FlowElementSpec extends BaseElementSpec {
   direction?: "horizontal" | "vertical"
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
+  styleMod?: FlowStyleMod
 }
 
 export interface FrameElementSpec extends BaseElementSpec {
@@ -124,18 +138,21 @@ export interface FrameElementSpec extends BaseElementSpec {
   auto_center?: MaybeSource<boolean>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
+  styleMod?: FrameStyleMod
 }
 
 export interface LabelElementSpec extends BaseElementSpec {
   type: "label"
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
+  styleMod?: LabelStyleMod
 }
 
 export interface LineElementSpec extends BaseElementSpec {
   type: "line"
   direction?: "horizontal" | "vertical"
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface MinimapElementSpec extends BaseElementSpec {
@@ -148,18 +165,21 @@ export interface MinimapElementSpec extends BaseElementSpec {
   minimap_player_index?: MaybeSource<uint>
   entity?: MaybeSource<LuaEntity | undefined>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface ProgressBarElementSpec extends BaseElementSpec {
   type: "progressbar"
   value?: MaybeSource<double>
   children?: ElementSpec[]
+  styleMod?: ProgressBarStyleMod
 }
 
 export interface RadioButtonElementSpec extends BaseElementSpec {
   type: "radiobutton"
   state: MaybeSource<boolean>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface SliderElementSpec extends BaseElementSpec {
@@ -172,6 +192,7 @@ export interface SliderElementSpec extends BaseElementSpec {
   slider_value?: MaybeSource<double>
   discrete_value?: MaybeSource<double>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface SpriteElementSpec extends BaseElementSpec {
@@ -179,6 +200,7 @@ export interface SpriteElementSpec extends BaseElementSpec {
   sprite?: MaybeSource<SpritePath>
   resize_to_sprite?: MaybeSource<boolean>
   children?: ElementSpec[]
+  styleMod?: SpriteStyleMod
 }
 
 export interface SwitchElementSpec extends BaseElementSpec {
@@ -190,12 +212,14 @@ export interface SwitchElementSpec extends BaseElementSpec {
   right_label_caption?: MaybeSource<LocalisedString>
   right_label_tooltip?: MaybeSource<LocalisedString>
   children?: ElementSpec[]
+  styleMod?: BaseStyleMod
 }
 
 export interface TabElementSpec extends BaseElementSpec {
   type: "tab"
   badge_text?: MaybeSource<LocalisedString>
   children?: ElementSpec[]
+  styleMod?: TabStyleMod
 }
 
 export interface TableElementSpec extends BaseElementSpec {
@@ -207,6 +231,7 @@ export interface TableElementSpec extends BaseElementSpec {
   vertical_centering?: MaybeSource<boolean>
   drag_target?: MaybeSource<LuaGuiElement | undefined>
   children?: ElementSpec[]
+  styleMod?: TableStyleMod
 }
 
 export interface TextFieldElementSpec extends BaseElementSpec {
@@ -219,6 +244,7 @@ export interface TextFieldElementSpec extends BaseElementSpec {
   lose_focus_on_confirm?: MaybeSource<boolean>
   clear_and_focus_on_right_click?: MaybeSource<boolean>
   children?: ElementSpec[]
+  styleMod?: TextFieldStyleMod
 }
 
 export type ElementSpec =
@@ -247,3 +273,112 @@ export type ElementSpec =
   | TabElementSpec
   | TableElementSpec
   | TextFieldElementSpec
+
+export interface BaseStyleMod {
+  minimal_width?: MaybeSource<int>
+  maximal_width?: MaybeSource<int>
+  minimal_height?: MaybeSource<int>
+  maximal_height?: MaybeSource<int>
+  natural_width?: MaybeSource<int>
+  natural_height?: MaybeSource<int>
+  top_padding?: MaybeSource<int>
+  right_padding?: MaybeSource<int>
+  bottom_padding?: MaybeSource<int>
+  left_padding?: MaybeSource<int>
+  top_margin?: MaybeSource<int>
+  right_margin?: MaybeSource<int>
+  bottom_margin?: MaybeSource<int>
+  left_margin?: MaybeSource<int>
+  horizontal_align?: MaybeSource<"left" | "center" | "right">
+  vertical_align?: MaybeSource<"top" | "center" | "bottom">
+  font_color?: MaybeSource<Color>
+  font?: MaybeSource<string>
+  horizontally_stretchable?: MaybeSource<boolean>
+  vertically_stretchable?: MaybeSource<boolean>
+  horizontally_squashable?: MaybeSource<boolean>
+  vertically_squashable?: MaybeSource<boolean>
+  width?: MaybeSource<int>
+  height?: MaybeSource<int>
+  size?: MaybeSource<int | SizeArray>
+  padding?: MaybeSource<int | StyleValuesArray>
+  margin?: MaybeSource<int | StyleValuesArray>
+}
+
+export interface ScrollPaneStyleMod extends BaseStyleMod {
+  extra_top_padding_when_activated?: MaybeSource<int>
+  extra_bottom_padding_when_activated?: MaybeSource<int>
+  extra_left_padding_when_activated?: MaybeSource<int>
+  extra_right_padding_when_activated?: MaybeSource<int>
+  extra_top_margin_when_activated?: MaybeSource<int>
+  extra_bottom_margin_when_activated?: MaybeSource<int>
+  extra_left_margin_when_activated?: MaybeSource<int>
+  extra_right_margin_when_activated?: MaybeSource<int>
+  extra_padding_when_activated?: MaybeSource<int | StyleValuesArray>
+  extra_margin_when_activated?: MaybeSource<int | StyleValuesArray>
+}
+
+export interface TabbedPaneStyleMod extends BaseStyleMod {
+  vertical_spacing?: MaybeSource<int>
+}
+
+export interface TextBoxStyleMod extends BaseStyleMod {
+  rich_text_setting?: MaybeSource<defines.rich_text_setting>
+}
+
+export interface ButtonStyleMod extends BaseStyleMod {
+  hovered_font_color?: MaybeSource<Color>
+  clicked_font_color?: MaybeSource<Color>
+  disabled_font_color?: MaybeSource<Color>
+  pie_progress_color?: MaybeSource<Color>
+  clicked_vertical_offset?: MaybeSource<int>
+  selected_font_color?: MaybeSource<Color>
+  selected_hovered_font_color?: MaybeSource<Color>
+  selected_clicked_font_color?: MaybeSource<Color>
+  strikethrough_color?: MaybeSource<Color>
+}
+
+export interface FlowStyleMod extends BaseStyleMod {
+  horizontal_spacing?: MaybeSource<int>
+  vertical_spacing?: MaybeSource<int>
+}
+
+export interface FrameStyleMod extends BaseStyleMod {
+  use_header_filler?: MaybeSource<boolean>
+}
+
+export interface LabelStyleMod extends BaseStyleMod {
+  rich_text_setting?: MaybeSource<defines.rich_text_setting>
+  single_line?: MaybeSource<boolean>
+}
+
+export interface ProgressBarStyleMod extends BaseStyleMod {
+  bar_width?: MaybeSource<uint>
+  color?: MaybeSource<Color>
+}
+
+export interface SpriteStyleMod extends BaseStyleMod {
+  stretch_image_to_widget_size?: MaybeSource<boolean>
+}
+
+export interface TabStyleMod extends BaseStyleMod {
+  disabled_font_color?: MaybeSource<Color>
+  badge_font?: MaybeSource<string>
+  badge_horizontal_spacing?: MaybeSource<int>
+  default_badge_font_color?: MaybeSource<Color>
+  selected_badge_font_color?: MaybeSource<Color>
+  disabled_badge_font_color?: MaybeSource<Color>
+}
+
+export interface TableStyleMod extends BaseStyleMod {
+  top_cell_padding?: MaybeSource<int>
+  right_cell_padding?: MaybeSource<int>
+  bottom_cell_padding?: MaybeSource<int>
+  left_cell_padding?: MaybeSource<int>
+  horizontal_spacing?: MaybeSource<int>
+  vertical_spacing?: MaybeSource<int>
+  cell_padding?: MaybeSource<int>
+}
+
+export interface TextFieldStyleMod extends BaseStyleMod {
+  rich_text_setting?: MaybeSource<defines.rich_text_setting>
+}

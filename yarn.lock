@@ -2749,10 +2749,10 @@ type-fest@^1.0.1, type-fest@^1.2.1, type-fest@^1.2.2:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-1.4.0.tgz#e9fb813fe3bf1744ec359d55d1affefa76f14be1"
   integrity sha512-yGSza74xk0UG8k+pLh5oeoYirvIiWo5t0/o3zHHAO2tRDiZcxWP7fywNlXhqb6/r6sWvwi+RsyQMWhVLe4BVuA==
 
-typed-factorio@^0.14.0:
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/typed-factorio/-/typed-factorio-0.14.0.tgz#2c663def1b4ad0a002dda0badca5bd07eed8f476"
-  integrity sha512-9T9z7S3vmFbl2EHIHzAUEmujxkuAMWGe+DXDNLgVXewIgR1gx6REh7iy+qHtivzzDLq0XOjHQGTUibhNSONAig==
+typed-factorio@^0.14.1:
+  version "0.14.1"
+  resolved "https://registry.yarnpkg.com/typed-factorio/-/typed-factorio-0.14.1.tgz#765712eb5da6836ae1022315c0f66219b951030d"
+  integrity sha512-0ot54PB1/bvSz2dENYh2pdQSdGgBuxD4ZxRVBlp8R1AiurbU2yqRvn8JPX5oOMcJjRGHqnO8g0m4R3fRwI8qvQ==
 
 typescript-to-lua@^0.36.0:
   version "0.36.1"

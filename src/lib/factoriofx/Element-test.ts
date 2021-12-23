@@ -1,9 +1,9 @@
 import { getPlayer } from "../testUtil"
-import { ChooseElemButtonElementSpec, FlowElementSpec, SliderElementSpec } from "./ElementSpec"
+import { ChooseElemButtonElementSpec, FlowElementSpec, SliderElementSpec } from "./types"
 import { create, destroy } from "./Element"
 import { state, testSource } from "../callbags"
 
-describe("creating and destroying elements", () => {
+describe("create", () => {
   let parent: LuaGuiElement
   let element: LuaGuiElement | undefined
   before_each(() => {
@@ -115,7 +115,7 @@ describe("creating and destroying elements", () => {
     })
   })
 
-  test("Can specify children", () => {
+  test("can specify children", () => {
     const spec: FlowElementSpec = {
       type: "flow",
       children: [
@@ -129,7 +129,68 @@ describe("creating and destroying elements", () => {
     assert.equal("button", element.children[0].type)
     assert.equal("hi", element.children[0].caption)
   })
+})
 
+describe("styleMod", () => {
+  let parent: LuaGuiElement
+  let element: LuaGuiElement | undefined
+  before_each(() => {
+    parent = getPlayer().gui.screen
+    element = undefined
+  })
+  after_each(() => {
+    element?.destroy()
+    element = undefined
+  })
+
+  test("sets property", () => {
+    const spec: FlowElementSpec = {
+      type: "flow",
+      styleMod: {
+        left_padding: 3,
+      },
+    }
+    element = create(parent, spec).nativeElement as FlowGuiElement
+    assert.equals(3, element.style.left_padding)
+  })
+
+  test("sets setter property", () => {
+    const spec: FlowElementSpec = {
+      type: "flow",
+      styleMod: {
+        padding: [3, 3],
+      },
+    }
+    element = create(parent, spec).nativeElement as FlowGuiElement
+    assert.equals(3, element.style.left_padding)
+  })
+
+  test("listens to source property", () => {
+    const value = state(1)
+    const spec: FlowElementSpec = {
+      type: "flow",
+      styleMod: {
+        padding: value,
+      },
+    }
+    element = create(parent, spec).nativeElement as FlowGuiElement
+    assert.equals(1, element.style.left_padding)
+    value.set(2)
+    assert.equals(2, element.style.left_padding)
+  })
+})
+
+describe("destroy", () => {
+  let parent: LuaGuiElement
+  let element: LuaGuiElement | undefined
+  before_each(() => {
+    parent = getPlayer().gui.screen
+    element = undefined
+  })
+  after_each(() => {
+    element?.destroy()
+    element = undefined
+  })
   test("calling destroy destroys native element", () => {
     const spec: FlowElementSpec = {
       type: "flow",

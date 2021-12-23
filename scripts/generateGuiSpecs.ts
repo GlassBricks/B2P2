@@ -101,17 +101,19 @@ interface Prop {
 
 type SpecDef = Record<string, Prop>
 
-const merged = {} as Record<GuiElementType | "base", SpecDef>
+const elementSpecs = {} as Record<GuiElementType | "base", SpecDef>
+const styleMods = {} as Record<GuiElementType | "base", SpecDef>
 
 // read and process types from gui.d.ts
 {
   function mapDef(def: ts.InterfaceDeclaration, skipReadonly: boolean): TypeDef {
     const result: TypeDef = {}
     for (const member of def.members) {
-      if (!ts.isPropertySignature(member)) continue
+      if (!(ts.isPropertySignature(member) || ts.isSetAccessorDeclaration(member))) continue
       const name = (member.name as ts.Identifier).text
+      if (ts.isSetAccessorDeclaration(member) && name === "style") continue
       if (skipReadonly && member.modifiers?.some((x) => x.kind === ts.SyntaxKind.ReadonlyKeyword)) continue
-      const type = member.type!.getText(defFile)
+      const type = (ts.isPropertySignature(member) ? member.type : member.parameters[0].type)!.getText(defFile)
       const optional = member.questionToken !== undefined
       result[name] = {
         property: name,
@@ -124,26 +126,30 @@ const merged = {} as Record<GuiElementType | "base", SpecDef>
 
   const specs = {} as Record<GuiElementType | "base", TypeDef>
   const elements = {} as Record<GuiElementType | "base", TypeDef>
+  const styles = {} as Partial<Record<GuiElementType | "base", TypeDef>>
 
   for (const def of defFile.statements) {
     if (!ts.isInterfaceDeclaration(def)) continue
-    let match = def.name.text.match(/^(.+?)GuiSpec|^Base(ChooseElemButton)Spec/)
-    if (match) {
-      const matchName = match[1] || match[2]
-      const elemType = normElemTypeNames[normalizeName(matchName)]
-      if (!elemType) throw new Error("not recognized spec: " + match[0])
-      if (elemType !== "base") capitalized[elemType] = matchName
-      specs[elemType] = mapDef(def, false)
-      continue
-    }
+    const name = def.name.text
 
-    match = def.name.text.match(/^(.+?)GuiElement/)
-    if (match) {
-      const matchName = match[1]
+    const tryMatch = (
+      regExp: RegExp,
+      results: Partial<Record<GuiElementType | "base", TypeDef>>,
+      skipReadonly: boolean,
+    ) => {
+      const match = name.match(regExp)
+      if (!match) return
+      let matchName = match[1] || match[2]
+      if (matchName === "HorizontalFlow" || matchName === "VerticalFlow") return
+      if (matchName === "Image") matchName = "Sprite"
       const elemType = normElemTypeNames[normalizeName(matchName)]
-      if (!elemType) throw new Error("not recognized element: " + match[0])
-      elements[elemType] = mapDef(def, true)
+      if (!elemType) throw new Error(`not recognized spec: ${match[0]} (${matchName})`)
+      if (elemType !== "base") capitalized[elemType] = matchName
+      results[elemType] = mapDef(def, skipReadonly)
     }
+    tryMatch(/^(.+?)GuiSpec|^Base(ChooseElemButton)Spec/, specs, false)
+    tryMatch(/^(.+?)GuiElement/, elements, true)
+    tryMatch(/^(?!Lua)(.+?)Style/, styles, true)
   }
 
   // manual changes
@@ -177,7 +183,7 @@ const merged = {} as Record<GuiElementType | "base", SpecDef>
   }
 
   // merge spec and element definitions
-  for (const type of ["base", ...guiElementTypes] as const) {
+  for (const type of guiElementTypes) {
     const spec = specs[type]
     const element = elements[type]
     if (!spec) throw new Error(`Spec def for ${type} not found`)
@@ -208,7 +214,20 @@ const merged = {} as Record<GuiElementType | "base", SpecDef>
         element: attr.property,
       })
     }
-    merged[type] = result
+    elementSpecs[type] = result
+
+    const style = styles[type]
+    if (!style) continue
+
+    const styleResult: SpecDef = {}
+    for (const [name, attr] of Object.entries(style)) {
+      styleResult[name] = {
+        name,
+        type: `MaybeSource<${attr.type}>`,
+        optional: true,
+      }
+    }
+    styleMods[type] = styleResult
   }
 }
 
@@ -217,7 +236,7 @@ function getPropName(name: string): string | ts.StringLiteral {
 }
 
 function writeFile(filename: string, content: string, parser: prettier.Options["parser"]) {
-  return fs.promises.writeFile(
+  fs.writeFileSync(
     path.join(outDir, filename),
     prettier.format(content, {
       parser,
@@ -241,7 +260,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
     content += printer.printNode(ts.EmitHint.Unspecified, statement, defFile)
     content += "\n\n"
   }
-  return writeFile(filename, content, "typescript")
+  writeFile(filename, content, "typescript")
 }
 
 // propTypes: Record< GuiElementType, Record<spec name, [ guiSpecProp, elementProp ]>>
@@ -260,7 +279,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   }
 
   for (const type of guiElementTypes) {
-    for (const [name, attr] of Object.entries(merged[type])) {
+    for (const [name, attr] of Object.entries(elementSpecs[type])) {
       set(name, [attr.add, attr.element])
     }
   }
@@ -268,7 +287,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   void writeFile("propTypes.json", JSON.stringify(result), "json")
 }
 
-// ElementSpec.d.ts
+// types.d.ts
 {
   function toPascalCase(str: string): string {
     return (
@@ -282,45 +301,59 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
 
   const statements: ts.Statement[] = []
 
-  for (const type of guiElementTypes) {
-    const members: ts.TypeElement[] = []
-    // all members
-    for (const [name, attr] of Object.entries(merged[type])) {
-      members.push(
-        ts.factory.createPropertySignature(
+  // element spec
+  function createMembers(
+    name: string,
+    from: typeof elementSpecs,
+    manualFill: (type: GuiElementType | "base", def: SpecDef) => ts.TypeElement[],
+  ) {
+    for (const [type, def] of Object.entries(from)) {
+      const members: ts.TypeElement[] = []
+      // all members
+      for (const [name, attr] of Object.entries(def)) {
+        members.push(
+          ts.factory.createPropertySignature(
+            undefined,
+            getPropName(name),
+            attr.optional ? ts.factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
+            ts.factory.createTypeReferenceNode(attr.type),
+          ),
+        )
+      }
+      members.push(...manualFill(type as GuiElementType | "base", def))
+      // extends BaseElementSpec
+      const heritageClause = ts.factory.createHeritageClause(ts.SyntaxKind.ExtendsKeyword, [
+        ts.factory.createExpressionWithTypeArguments(ts.factory.createIdentifier("Base" + name), undefined),
+      ])
+
+      statements.push(
+        ts.factory.createInterfaceDeclaration(
           undefined,
-          getPropName(name),
-          attr.optional ? ts.factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
-          ts.factory.createTypeReferenceNode(attr.type),
+          [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+          toPascalCase(type) + name,
+          undefined,
+          type !== "base" ? [heritageClause] : undefined,
+          members,
         ),
       )
     }
-    // children member
-    members.push(
+  }
+  createMembers("ElementSpec", elementSpecs, (type) =>
+    [
       ts.factory.createPropertySignature(
         undefined,
         "children",
         ts.factory.createToken(ts.SyntaxKind.QuestionToken),
         ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode("ElementSpec")),
       ),
-    )
-    // extends BaseElementSpec
-    const heritageClause = ts.factory.createHeritageClause(ts.SyntaxKind.ExtendsKeyword, [
-      ts.factory.createExpressionWithTypeArguments(ts.factory.createIdentifier("BaseElementSpec"), undefined),
-    ])
-
-    statements.push(
-      ts.factory.createInterfaceDeclaration(
+      ts.factory.createPropertySignature(
         undefined,
-        [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-        `${toPascalCase(type)}ElementSpec`,
-        undefined,
-        type !== "base" ? [heritageClause] : undefined,
-        members,
+        "styleMod",
+        ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+        ts.factory.createTypeReferenceNode((type in styleMods ? toPascalCase(type) : "Base") + "StyleMod"),
       ),
-    )
-  }
-  // type ElementSpec = union of all types
+    ].filter((x) => !!x),
+  )
   statements.push(
     ts.factory.createTypeAliasDeclaration(
       undefined,
@@ -332,8 +365,9 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
       ),
     ),
   )
+  createMembers("StyleMod", styleMods, () => [])
 
-  void printFile("ElementSpec.d.ts", `import { MaybeSource } from "../callbags"\n\n`, statements)
+  printFile("types.d.ts", `import { MaybeSource } from "../callbags"\n\n`, statements)
 }
 
 // todo:

@@ -1,4 +1,4 @@
-import { ElementSpec } from "./ElementSpec"
+import { ElementSpec } from "./types"
 import * as propTypes from "./propTypes.json"
 import { bind, Func, funcRef, Functions } from "../references"
 import { CallbagMsg, Source, Talkback } from "../callbags"
@@ -17,24 +17,24 @@ interface ElementInstanceInternal extends ElementInstance<any> {
 function setValueSink(
   this: {
     readonly instance: ElementInstanceInternal
+    readonly value: { readonly valid: boolean }
     readonly key: string
   },
   type: CallbagMsg,
   data?: unknown,
 ) {
-  const instance = this.instance
   if (type === 0) {
-    instance.talkbacks[this.key] = data as Talkback
+    this.instance.talkbacks[this.key] = data as Talkback
     ;(data as Talkback)(1)
   } else if (type === 1) {
-    const element = instance.nativeElement
+    const element = this.value
     if (!element.valid) {
       destroy(this.instance)
       return
     }
     ;(element as any)[this.key] = data
   } else if (type === 2) {
-    instance.talkbacks[this.key] = undefined!
+    this.instance.talkbacks[this.key] = undefined!
   }
 }
 
@@ -98,10 +98,11 @@ export function create<T extends GuiElementType>(
 ): ElementInstance<T> {
   const guiSpec: Record<string, any> = {}
   const toSetOnElem = new LuaTable<string | [string], unknown>()
+  const styleMod = spec.styleMod
 
   // eslint-disable-next-line prefer-const
   for (let [key, value] of pairs(spec)) {
-    if (key === "children") continue
+    if (key === "children" || key === "styleMod") continue
     const propProperties = propTypes[key]
     const specProp = propProperties[0]
     const elemProp = propProperties[1]
@@ -114,6 +115,7 @@ export function create<T extends GuiElementType>(
     }
   }
   const nativeElement = parent.add(guiSpec as GuiSpec)
+  const style = nativeElement.style
   const instance: ElementInstanceInternal = {
     nativeElement,
     talkbacks: {},
@@ -122,11 +124,8 @@ export function create<T extends GuiElementType>(
 
   for (const [key, value] of pairs(toSetOnElem)) {
     if (value instanceof Func) {
-      if (!getmetatable(value)?.__call) {
-        error("Non-callbag class given to key " + key)
-      }
       if (typeof key !== "object") {
-        ;(value as Source<unknown>)(0, bind(setValueSink, { instance, key }))
+        ;(value as Source<unknown>)(0, bind(setValueSink, { instance, key, value: nativeElement }))
         continue
       }
       const method = key[0]
@@ -147,6 +146,17 @@ export function create<T extends GuiElementType>(
       ;(nativeElement as any)[key] = value
     }
   }
+
+  if (styleMod) {
+    for (const [key, value] of pairs(styleMod)) {
+      if (value instanceof Func) {
+        ;(value as Source<unknown>)(0, bind(setValueSink, { instance, key, value: style }))
+      } else {
+        ;(style as any)[key] = value as never
+      }
+    }
+  }
+
   const children = spec.children
   if (children) {
     instance.children = children.map((childSpec) => create(nativeElement, childSpec) as ElementInstanceInternal)
