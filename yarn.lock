@@ -221,10 +221,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.12.tgz#ac7fb693ac587ee182c3780c26eb65546a1a3c10"
   integrity sha512-+2Iggwg7PxoO5Kyhvsq9VarmPbIelXP070HMImEpbtGCoyWNINQj4wzjbQCXzdHTRXnqufutJb5KAURZANNBAw==
 
-"@types/node@^17.0.2":
-  version "17.0.2"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.2.tgz#a4c07d47ff737e8ee7e586fe636ff0e1ddff070a"
-  integrity sha512-JepeIUPFDARgIs0zD/SKPgFsJEAF0X5/qO80llx59gOxFTboS9Amv3S+QfB7lqBId5sFXJ99BN0J6zFRvL9dDA==
+"@types/node@^17.0.4":
+  version "17.0.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.4.tgz#fec0ce0526abb6062fd206d72a642811b887a111"
+  integrity sha512-6xwbrW4JJiJLgF+zNypN5wr2ykM9/jHcL7rQ8fZe2vuftggjzZeRSM4OwRc6Xk8qWjwJ99qVHo/JgOGmomWRog==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
@@ -2754,6 +2754,15 @@ typed-factorio@^0.14.1:
   resolved "https://registry.yarnpkg.com/typed-factorio/-/typed-factorio-0.14.1.tgz#765712eb5da6836ae1022315c0f66219b951030d"
   integrity sha512-0ot54PB1/bvSz2dENYh2pdQSdGgBuxD4ZxRVBlp8R1AiurbU2yqRvn8JPX5oOMcJjRGHqnO8g0m4R3fRwI8qvQ==
 
+typescript-to-lua@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/typescript-to-lua/-/typescript-to-lua-1.2.0.tgz#9e62d6923b601134e152386e41bee4e800435588"
+  integrity sha512-hbAagI6DgP4MjaPKqGlxtiD/rsZE5hO9ypIz96xukKIjzxp5c/TSItik0BMriX5yIIhRiYLfyAQBp+X1cO8MkQ==
+  dependencies:
+    enhanced-resolve "^5.8.2"
+    resolve "^1.15.1"
+    source-map "^0.7.3"
+
 typescript-to-lua@^0.36.0:
   version "0.36.1"
   resolved "https://registry.yarnpkg.com/typescript-to-lua/-/typescript-to-lua-0.36.1.tgz#d9ce5e7ba4ac52fe654db498d59bd31158e650fc"
@@ -2762,15 +2771,6 @@ typescript-to-lua@^0.36.0:
     resolve "^1.15.1"
     source-map "^0.7.3"
     typescript ">=4.0.2"
-
-typescript-to-lua@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/typescript-to-lua/-/typescript-to-lua-1.2.0.tgz#9e62d6923b601134e152386e41bee4e800435588"
-  integrity sha512-hbAagI6DgP4MjaPKqGlxtiD/rsZE5hO9ypIz96xukKIjzxp5c/TSItik0BMriX5yIIhRiYLfyAQBp+X1cO8MkQ==
-  dependencies:
-    enhanced-resolve "^5.8.2"
-    resolve "^1.15.1"
-    source-map "^0.7.3"
 
 typescript-tstl-plugin@^0.3.2:
   version "0.3.2"
