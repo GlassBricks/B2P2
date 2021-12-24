@@ -4,8 +4,8 @@ export function checkIsBeforeLoad(): void {
   }
 }
 
-export function checkIsAfterLoad(): void {
+export function checkCanModifyGameState(): void {
   if (!game) {
-    error("This operation can only be during an event")
+    error("This operation can only be done after script load.")
   }
 }
