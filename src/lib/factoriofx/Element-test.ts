@@ -1,18 +1,29 @@
 import { getPlayer } from "../testUtil"
 import { ChooseElemButtonElementSpec, FlowElementSpec, SliderElementSpec } from "./types"
-import { create, destroy } from "./Element"
+import { create, destroy, getInstance } from "./Element"
 import { state, testSource } from "../callbags"
 
+let parent: LuaGuiElement
+let element: LuaGuiElement | undefined | true
+before_each(() => {
+  parent = getPlayer().gui.screen
+  element = undefined
+})
+after_each(() => {
+  if (!element) error("element value not set")
+  if (element !== true) destroy(element)
+  element = undefined
+})
+
 describe("create", () => {
-  let parent: LuaGuiElement
-  let element: LuaGuiElement | undefined
-  before_each(() => {
-    parent = getPlayer().gui.screen
-    element = undefined
-  })
-  after_each(() => {
-    element?.destroy()
-    element = undefined
+  test("Creates gettable instance", () => {
+    const spec: FlowElementSpec = {
+      type: "flow",
+      direction: "vertical",
+    }
+    const el = create(parent, spec)
+    element = el.nativeElement
+    assert.equal(el, getInstance(element))
   })
 
   test("Sets spec property", () => {
@@ -110,6 +121,7 @@ describe("create", () => {
       type: "flow",
       direction: v as any,
     }
+    element = true
     assert.error(() => {
       element = create(parent, spec).nativeElement
     })
@@ -132,17 +144,6 @@ describe("create", () => {
 })
 
 describe("styleMod", () => {
-  let parent: LuaGuiElement
-  let element: LuaGuiElement | undefined
-  before_each(() => {
-    parent = getPlayer().gui.screen
-    element = undefined
-  })
-  after_each(() => {
-    element?.destroy()
-    element = undefined
-  })
-
   test("sets property", () => {
     const spec: FlowElementSpec = {
       type: "flow",
@@ -181,16 +182,17 @@ describe("styleMod", () => {
 })
 
 describe("destroy", () => {
-  let parent: LuaGuiElement
-  let element: LuaGuiElement | undefined
-  before_each(() => {
-    parent = getPlayer().gui.screen
-    element = undefined
+  test("calling destroy sets invalid to false", () => {
+    const spec: FlowElementSpec = {
+      type: "flow",
+      direction: "vertical",
+    }
+    const el = create(parent, spec)
+    element = el.nativeElement
+    destroy(el)
+    assert.is_false(el.valid)
   })
-  after_each(() => {
-    element?.destroy()
-    element = undefined
-  })
+
   test("calling destroy destroys native element", () => {
     const spec: FlowElementSpec = {
       type: "flow",
@@ -202,6 +204,18 @@ describe("destroy", () => {
     assert.is_false(element.valid)
   })
 
+  test("can call destroy on native element", () => {
+    const spec: FlowElementSpec = {
+      type: "flow",
+      direction: "vertical",
+    }
+    const el = create(parent, spec)
+    element = el.nativeElement
+    destroy(element)
+    assert.is_false(element.valid)
+    assert.is_false(el.valid)
+  })
+
   test("calling destroy ends subscriptions", () => {
     const source = testSource<string>()
     const spec: FlowElementSpec = {
@@ -209,6 +223,7 @@ describe("destroy", () => {
       caption: source,
     }
     const el = create(parent, spec)
+    element = el.nativeElement
     assert.is_false(source.ended)
     destroy(el)
     assert.is_true(source.ended)
@@ -231,6 +246,7 @@ describe("destroy", () => {
       ],
     }
     const el = create(parent, spec)
+    element = el.nativeElement
     assert.is_false(source.ended)
     destroy(el)
     assert.is_true(source.ended)

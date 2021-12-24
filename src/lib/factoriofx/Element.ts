@@ -3,17 +3,23 @@ import * as propTypes from "./propTypes.json"
 import { bind, Func, funcRef, Functions } from "../references"
 import { CallbagMsg, Source, Talkback } from "../callbags"
 import { shallowCopy } from "../_util"
+import { PlayerData } from "../player-data"
 
 export interface ElementInstance<T extends GuiElementType> {
   readonly nativeElement: Extract<LuaGuiElement, { type: T }>
+  readonly playerIndex: number
+  readonly index: number
   readonly _elementInstanceBrand: any
+  readonly valid: boolean
 }
 
 interface ElementInstanceInternal extends ElementInstance<any> {
   readonly talkbacks: Record<string, Talkback>
   children?: ElementInstanceInternal[]
+  valid: boolean
 }
 
+// sinks
 function setValueSink(
   this: {
     readonly instance: ElementInstanceInternal
@@ -92,6 +98,9 @@ function setSliderMinMaxSink(
 
 Functions.register({ setValueSink, callMethodSink, setSliderMinMaxSink })
 
+type GuiUnitNumber = number
+const Elements = PlayerData<Record<GuiUnitNumber, ElementInstanceInternal>>("gui:Elements", () => ({}))
+
 export function create<T extends GuiElementType>(
   parent: LuaGuiElement,
   spec: ElementSpec & { type: T },
@@ -120,7 +129,11 @@ export function create<T extends GuiElementType>(
     nativeElement,
     talkbacks: {},
     _elementInstanceBrand: undefined,
+    playerIndex: nativeElement.player_index,
+    index: nativeElement.index,
+    valid: true,
   }
+  Elements[nativeElement.player_index][nativeElement.index] = instance
 
   for (const [key, value] of pairs(toSetOnElem)) {
     if (value instanceof Func) {
@@ -165,13 +178,35 @@ export function create<T extends GuiElementType>(
   return instance as ElementInstance<any>
 }
 
-export function destroy(element: ElementInstance<any>): void {
-  const { nativeElement, talkbacks, children } = element as ElementInstanceInternal
+export function destroy(element: ElementInstance<any> | LuaGuiElement): void {
+  if (!element.valid) return
+  if (rawget(element as any, "__self")) {
+    // is lua gui element
+    const instance = getInstance(element as LuaGuiElement)
+    if (!instance) {
+      ;(element as LuaGuiElement).destroy()
+      return
+    }
+    element = instance
+  }
+  const internalInstance = element as ElementInstanceInternal
+  internalInstance.valid = false
+  const { nativeElement, talkbacks, children, playerIndex, index } = internalInstance
   if (children) {
-    children.forEach((child) => destroy(child))
+    for (const child of children) {
+      destroy(child)
+    }
   }
   for (const [, talkback] of pairs(shallowCopy(talkbacks))) {
     talkback(2)
   }
   if (nativeElement.valid) nativeElement.destroy()
+  Elements[playerIndex][index] = undefined!
+}
+
+export function getInstance<T extends GuiElementType>(
+  element: LuaGuiElement & { type: T },
+): ElementInstance<T> | undefined {
+  if (!element.valid) return undefined
+  return Elements[element.player_index][element.index] as ElementInstance<any> | undefined
 }
