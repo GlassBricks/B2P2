@@ -1,17 +1,16 @@
-import { getPlayer } from "../testUtil"
-import { ChooseElemButtonElementSpec, FlowElementSpec, SliderElementSpec } from "./types"
+import { asFunc, getPlayer } from "../testUtil"
+import { ButtonElementSpec, ChooseElemButtonElementSpec, FlowElementSpec, SliderElementSpec } from "./spec-types"
 import { create, destroy, getInstance } from "./Element"
 import { state, testSource } from "../callbags"
 
 let parent: LuaGuiElement
-let element: LuaGuiElement | undefined | true
+let element: LuaGuiElement | undefined
 before_each(() => {
   parent = getPlayer().gui.screen
   element = undefined
 })
 after_each(() => {
-  if (!element) error("element value not set")
-  if (element !== true) destroy(element)
+  if (element) destroy(element)
   element = undefined
 })
 
@@ -55,22 +54,6 @@ describe("create", () => {
     assert.equal("one", element.caption)
     v.set("two")
     assert.equal("two", element.caption)
-  })
-
-  test("aliased property", () => {
-    const elemFilters: ItemPrototypeFilter[] = [
-      {
-        filter: "name",
-        name: "iron-plate",
-      },
-    ]
-    const spec: ChooseElemButtonElementSpec = {
-      type: "choose-elem-button",
-      elem_type: "item",
-      elem_filters: elemFilters,
-    }
-    element = create(parent, spec).nativeElement
-    assert.same(elemFilters, element.elem_filters)
   })
 
   test("Call method property", () => {
@@ -121,7 +104,6 @@ describe("create", () => {
       type: "flow",
       direction: v as any,
     }
-    element = true
     assert.error(() => {
       element = create(parent, spec).nativeElement
     })
@@ -250,5 +232,45 @@ describe("destroy", () => {
     assert.is_false(source.ended)
     destroy(el)
     assert.is_true(source.ended)
+  })
+})
+describe("events", () => {
+  const actions: unknown[] = []
+  const func = (e: unknown) => {
+    actions.push(e)
+  }
+  test("click event", () => {
+    const spec: ButtonElementSpec = {
+      type: "button",
+      on_gui_click: asFunc(func),
+      on_gui_opened: asFunc(func),
+    }
+    const el = create(parent, spec)
+    element = el.nativeElement
+
+    assert.same([], actions)
+
+    const fakeClickEvent: OnGuiClickEvent = {
+      element,
+      name: defines.events.on_gui_click,
+      player_index: element.player_index,
+      tick: game.tick,
+      alt: false,
+      button: defines.mouse_button_type.left,
+      control: false,
+      shift: false,
+    }
+    script.get_event_handler(defines.events.on_gui_click)(fakeClickEvent)
+    assert.same([fakeClickEvent], actions)
+
+    const fakeOpenEvent: OnGuiOpenedEvent = {
+      element,
+      name: defines.events.on_gui_opened,
+      player_index: element.player_index,
+      tick: game.tick,
+      gui_type: defines.gui_type.custom,
+    }
+    script.get_event_handler(defines.events.on_gui_opened)(fakeOpenEvent)
+    assert.same([fakeClickEvent, fakeOpenEvent], actions)
   })
 })

@@ -30,19 +30,21 @@ type GuiElementType =
   | "table"
   | "textfield"
 
-const indexFileName = path.resolve(__dirname, "../node_modules/typed-factorio/index.d.ts")
-const defFileName = path.resolve(__dirname, "../node_modules/typed-factorio/generated/classes.d.ts")
 const outDir = path.resolve(__dirname, "../src/lib/factoriofx")
+const indexFileName = path.resolve(__dirname, "../node_modules/typed-factorio/index.d.ts")
+const classesFileName = path.resolve(__dirname, "../node_modules/typed-factorio/generated/classes.d.ts")
+const guiEventsFileName = path.resolve(outDir, "gui-event-types.d.ts")
 
 const program = ts.createProgram({
-  rootNames: [defFileName, indexFileName],
+  rootNames: [classesFileName, indexFileName, guiEventsFileName],
   options: {},
 })
 
 function error(msg: string): never {
   throw new Error(msg)
 }
-const defFile = program.getSourceFile(defFileName) ?? error("Could not find gui.d.ts")
+const classesFile = program.getSourceFile(classesFileName) ?? error("Could not find classes.d.ts")
+const guiEventsFile = program.getSourceFile(guiEventsFileName) ?? error("Could not find gui-event-types.d.ts")
 
 const guiElementTypes: (GuiElementType | "base")[] = [
   "base",
@@ -84,7 +86,7 @@ for (const type of guiElementTypes) {
 normElemTypeNames.base = "base"
 
 interface PropDef {
-  property: string | [string]
+  setter?: string
   type: string
   optional: boolean
 }
@@ -95,17 +97,19 @@ interface Prop {
   name: string
   type: string
   optional: boolean
-  add?: string | [string]
-  element?: string | [string]
+  add?: boolean
+  element?: boolean | string
 }
 
 type SpecDef = Record<string, Prop>
 
 const elementSpecs = {} as Record<GuiElementType | "base", SpecDef>
 const styleMods = {} as Record<GuiElementType | "base", SpecDef>
+const events = {} as Record<GuiElementType, string[]>
 
-// read and process types from gui.d.ts
+// read and process types
 {
+  // from gui.d.ts
   function mapDef(def: ts.InterfaceDeclaration, skipReadonly: boolean): TypeDef {
     const result: TypeDef = {}
     for (const member of def.members) {
@@ -113,10 +117,9 @@ const styleMods = {} as Record<GuiElementType | "base", SpecDef>
       const name = (member.name as ts.Identifier).text
       if (ts.isSetAccessorDeclaration(member) && name === "style") continue
       if (skipReadonly && member.modifiers?.some((x) => x.kind === ts.SyntaxKind.ReadonlyKeyword)) continue
-      const type = (ts.isPropertySignature(member) ? member.type : member.parameters[0].type)!.getText(defFile)
+      const type = (ts.isPropertySignature(member) ? member.type : member.parameters[0].type)!.getText(classesFile)
       const optional = member.questionToken !== undefined
       result[name] = {
-        property: name,
         type,
         optional,
       }
@@ -128,7 +131,7 @@ const styleMods = {} as Record<GuiElementType | "base", SpecDef>
   const elements = {} as Record<GuiElementType | "base", TypeDef>
   const styles = {} as Partial<Record<GuiElementType | "base", TypeDef>>
 
-  for (const def of defFile.statements) {
+  for (const def of classesFile.statements) {
     if (!ts.isInterfaceDeclaration(def)) continue
     const name = def.name.text
 
@@ -155,31 +158,46 @@ const styleMods = {} as Record<GuiElementType | "base", SpecDef>
   // manual changes
   delete specs.base.index
   delete specs.slider.value // use element slider_value instead
+  delete elements.base.tags // make set-only/read-only; else logic with gui events too complicated
   const sliderElem = elements.slider
   sliderElem.value_step = {
-    property: ["set_slider_value_step"],
+    setter: "set_slider_value_step",
     type: "double",
     optional: true,
   }
   sliderElem.discrete_slider = {
-    property: ["set_slider_discrete_slider"],
+    setter: "set_slider_discrete_slider",
     type: "double",
     optional: true,
   }
   sliderElem.discrete_value = {
-    property: ["set_slider_discrete_value"],
+    setter: "set_slider_discrete_value",
     type: "double",
     optional: true,
   }
   sliderElem.minimum_value = {
-    property: ["slider_minimum"],
+    setter: "slider_minimum",
     type: "double",
     optional: true,
   }
   sliderElem.maximum_value = {
-    property: ["slider_maximum"],
+    setter: "slider_maximum",
     type: "double",
     optional: true,
+  }
+
+  // gui events
+
+  for (const def of guiEventsFile.statements) {
+    if (!ts.isInterfaceDeclaration(def)) continue
+    const name = def.name.text
+
+    const match = name.match(/^(.+?)Events/)
+    if (!match) continue
+    const matchName = match[1]
+    const elemType = normElemTypeNames[normalizeName(matchName)]
+    if (!elemType || elemType === "base") throw new Error(`not recognized spec: ${match[0]} (${matchName})`)
+    events[elemType] = def.members.map((x) => (x.name as ts.Identifier).text)
   }
 
   // merge spec and element definitions
@@ -200,7 +218,7 @@ const styleMods = {} as Record<GuiElementType | "base", SpecDef>
       merge(name, {
         ...attr,
         name,
-        add: attr.property,
+        add: true,
       })
     }
 
@@ -211,7 +229,7 @@ const styleMods = {} as Record<GuiElementType | "base", SpecDef>
         name,
         type,
         optional: !specAttr || specAttr.optional,
-        element: attr.property,
+        element: attr.setter ?? true,
       })
     }
     elementSpecs[type] = result
@@ -257,21 +275,24 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
     newLine: ts.NewLineKind.LineFeed,
   })
   for (const statement of statements) {
-    content += printer.printNode(ts.EmitHint.Unspecified, statement, defFile)
+    content += printer.printNode(ts.EmitHint.Unspecified, statement, classesFile)
     content += "\n\n"
   }
   writeFile(filename, content, "typescript")
 }
 
-// propTypes: Record< GuiElementType, Record<spec name, [ guiSpecProp, elementProp ]>>
+// propTypes: Record<property, [guiSpecProp, elementProp] | "event">
 {
-  const result: Record<string, unknown[]> = {}
+  const result: Record<string, unknown> = {}
 
-  function set(name: string, value: unknown[]) {
+  function set(name: string, value: unknown) {
     if (name in result) {
       if (JSON.stringify(value) !== JSON.stringify(result[name]))
         console.error(
-          "Different prop typings for different values: " + JSON.stringify(value) + JSON.stringify(result[name]),
+          "Different prop attributes for different gui element types: " +
+            JSON.stringify(value) +
+            ", " +
+            JSON.stringify(result[name]),
         )
     } else {
       result[name] = value
@@ -282,12 +303,16 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
     for (const [name, attr] of Object.entries(elementSpecs[type])) {
       set(name, [attr.add, attr.element])
     }
+    if (type === "base") continue
+    for (const event of events[type]) {
+      set(event, "event")
+    }
   }
 
   void writeFile("propTypes.json", JSON.stringify(result), "json")
 }
 
-// types.d.ts
+// spec-types.d.ts
 {
   function toPascalCase(str: string): string {
     return (
@@ -306,6 +331,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
     name: string,
     from: typeof elementSpecs,
     manualFill: (type: GuiElementType | "base", def: SpecDef) => ts.TypeElement[],
+    genHeritageClause?: (type: GuiElementType | "base", def: SpecDef) => ts.ExpressionWithTypeArguments[] | undefined,
   ) {
     for (const [type, def] of Object.entries(from)) {
       const members: ts.TypeElement[] = []
@@ -321,10 +347,18 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
         )
       }
       members.push(...manualFill(type as GuiElementType | "base", def))
+
       // extends BaseElementSpec
-      const heritageClause = ts.factory.createHeritageClause(ts.SyntaxKind.ExtendsKeyword, [
+      const superTypes = [
         ts.factory.createExpressionWithTypeArguments(ts.factory.createIdentifier("Base" + name), undefined),
-      ])
+      ]
+      if (genHeritageClause) {
+        const typeElements = genHeritageClause(type as GuiElementType | "base", def)
+        if (typeElements) {
+          superTypes.push(...typeElements)
+        }
+      }
+      const heritageClause = ts.factory.createHeritageClause(ts.SyntaxKind.ExtendsKeyword, superTypes)
 
       statements.push(
         ts.factory.createInterfaceDeclaration(
@@ -338,8 +372,10 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
       )
     }
   }
-  createMembers("ElementSpec", elementSpecs, (type) =>
-    [
+  createMembers(
+    "ElementSpec",
+    elementSpecs,
+    (type) => [
       ts.factory.createPropertySignature(
         undefined,
         "children",
@@ -352,7 +388,12 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
         ts.factory.createToken(ts.SyntaxKind.QuestionToken),
         ts.factory.createTypeReferenceNode((type in styleMods ? toPascalCase(type) : "Base") + "StyleMod"),
       ),
-    ].filter((x) => !!x),
+    ],
+    (type) => [
+      ts.factory.createExpressionWithTypeArguments(ts.factory.createIdentifier("GuiEventProps"), [
+        ts.factory.createTypeReferenceNode(toPascalCase(type) + "Events"),
+      ]),
+    ],
   )
   statements.push(
     ts.factory.createTypeAliasDeclaration(
@@ -367,7 +408,15 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   )
   createMembers("StyleMod", styleMods, () => [])
 
-  printFile("types.d.ts", `import { MaybeSource } from "../callbags"\n\n`, statements)
+  const allEvents = guiElementTypes
+    .filter((x) => x !== "base")
+    .map((x) => toPascalCase(x) + "Events")
+    .join()
+  const header = `import { MaybeSource } from "../callbags"
+import { GuiEventProps, ${allEvents} } from "./gui-event-types"
+
+`
+  printFile("spec-types.d.ts", header, statements)
 }
 
 // todo:
