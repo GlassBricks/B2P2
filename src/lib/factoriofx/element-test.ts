@@ -1,10 +1,16 @@
 import { asFunc, getPlayer } from "../testUtil"
-import { ButtonElementSpec, ChooseElemButtonElementSpec, FlowElementSpec, SliderElementSpec } from "./spec-types"
-import { create, destroy, getInstance } from "./Element"
+import {
+  ButtonElementSpec,
+  ChooseElemButtonElementSpec,
+  FlowElementSpec,
+  SliderElementSpec,
+  TextBoxElementSpec,
+} from "./spec-types"
+import { create, destroy, getInstance } from "./element"
 import { state, testSource } from "../callbags"
 
 let parent: LuaGuiElement
-let element: LuaGuiElement | undefined
+let element: GuiElementMembers | undefined
 before_each(() => {
   parent = getPlayer().gui.screen
   element = undefined
@@ -234,6 +240,7 @@ describe("destroy", () => {
     assert.is_true(source.ended)
   })
 })
+
 describe("events", () => {
   const actions: unknown[] = []
   const func = (e: unknown) => {
@@ -251,7 +258,7 @@ describe("events", () => {
     assert.same([], actions)
 
     const fakeClickEvent: OnGuiClickEvent = {
-      element,
+      element: element as LuaGuiElement,
       name: defines.events.on_gui_click,
       player_index: element.player_index,
       tick: game.tick,
@@ -264,7 +271,7 @@ describe("events", () => {
     assert.same([fakeClickEvent], actions)
 
     const fakeOpenEvent: OnGuiOpenedEvent = {
-      element,
+      element: element as LuaGuiElement,
       name: defines.events.on_gui_opened,
       player_index: element.player_index,
       tick: game.tick,
@@ -272,5 +279,35 @@ describe("events", () => {
     }
     script.get_event_handler(defines.events.on_gui_opened)(fakeOpenEvent)
     assert.same([fakeClickEvent, fakeOpenEvent], actions)
+  })
+})
+
+describe("state", () => {
+  test("state event", () => {
+    const val = state("one")
+    const spec: TextBoxElementSpec = {
+      type: "text-box",
+      text: val,
+    }
+    const el = create(parent, spec)
+    element = el.nativeElement
+
+    assert.same("one", val.get())
+    assert.same("one", element.text)
+
+    element.text = "two"
+    const fakeEvent: OnGuiTextChangedEvent = {
+      element: element as LuaGuiElement,
+      name: defines.events.on_gui_text_changed,
+      player_index: element.player_index,
+      tick: game.tick,
+      text: element.text,
+    }
+    script.get_event_handler(defines.events.on_gui_text_changed)(fakeEvent)
+
+    assert.same("two", val.get())
+
+    val.set("three")
+    assert.same("three", element.text)
   })
 })

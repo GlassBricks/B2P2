@@ -2,6 +2,7 @@ import * as ts from "typescript"
 import * as path from "path"
 import * as fs from "fs"
 import * as prettier from "prettier"
+import assert = require("node:assert")
 
 type GuiElementType =
   | "choose-elem-button"
@@ -105,7 +106,8 @@ type SpecDef = Record<string, Prop>
 
 const elementSpecs = {} as Record<GuiElementType | "base", SpecDef>
 const styleMods = {} as Record<GuiElementType | "base", SpecDef>
-const events = {} as Record<GuiElementType, string[]>
+const events = {} as Record<GuiElementType, Record<string, true | string>>
+const stateProps = {} as Record<GuiElementType, Record<string, string>>
 
 // read and process types
 {
@@ -197,7 +199,23 @@ const events = {} as Record<GuiElementType, string[]>
     const matchName = match[1]
     const elemType = normElemTypeNames[normalizeName(matchName)]
     if (!elemType || elemType === "base") throw new Error(`not recognized spec: ${match[0]} (${matchName})`)
-    events[elemType] = def.members.map((x) => (x.name as ts.Identifier).text)
+
+    events[elemType] = {}
+    stateProps[elemType] = {}
+    const evs = events[elemType]
+    const evProps = stateProps[elemType]
+    for (const member of def.members) {
+      assert(ts.isPropertySignature(member))
+      assert(ts.isLiteralTypeNode(member.type!))
+      const name = (member.name as ts.Identifier).text
+      if (ts.isStringLiteral(member.type.literal)) {
+        const text = member.type.literal.text
+        evs[name] = text
+        evProps[text] = name
+      } else {
+        evs[name] = true
+      }
+    }
   }
 
   // merge spec and element definitions
@@ -224,10 +242,11 @@ const events = {} as Record<GuiElementType, string[]>
 
     for (const [name, attr] of Object.entries(element)) {
       const specAttr = spec[name]
-      const type = `MaybeSource<${attr.type}>`
+      const typeName =
+        type !== "base" && stateProps[type][name] ? `MaybeSinkSource<${attr.type}>` : `MaybeSource<${attr.type}>`
       merge(name, {
         name,
-        type,
+        type: typeName,
         optional: !specAttr || specAttr.optional,
         element: attr.setter ?? true,
       })
@@ -281,7 +300,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   writeFile(filename, content, "typescript")
 }
 
-// propTypes: Record<property, [guiSpecProp, elementProp] | "event">
+// propTypes: Record<property, [guiSpecProp, elementProp, event?] | "event">
 {
   const result: Record<string, unknown> = {}
 
@@ -289,7 +308,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
     if (name in result) {
       if (JSON.stringify(value) !== JSON.stringify(result[name]))
         console.error(
-          "Different prop attributes for different gui element types: " +
+          `Different prop attributes for different gui element types: ${name}` +
             JSON.stringify(value) +
             ", " +
             JSON.stringify(result[name]),
@@ -301,10 +320,14 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
 
   for (const type of guiElementTypes) {
     for (const [name, attr] of Object.entries(elementSpecs[type])) {
-      set(name, [attr.add, attr.element])
+      const value = [attr.add, attr.element]
+      if (type !== "base" && stateProps[type][name]) {
+        value.push(stateProps[type][name])
+      }
+      set(name, value)
     }
     if (type === "base") continue
-    for (const event of events[type]) {
+    for (const event of Object.keys(events[type])) {
       set(event, "event")
     }
   }
@@ -331,7 +354,8 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
     name: string,
     from: typeof elementSpecs,
     manualFill: (type: GuiElementType | "base", def: SpecDef) => ts.TypeElement[],
-    genHeritageClause?: (type: GuiElementType | "base", def: SpecDef) => ts.ExpressionWithTypeArguments[] | undefined,
+    events?: Record<GuiElementType, Record<string, string | true>>,
+    // genHeritageClause?: (type: GuiElementType | "base", def: SpecDef) => ts.ExpressionWithTypeArguments[] | undefined,
   ) {
     for (const [type, def] of Object.entries(from)) {
       const members: ts.TypeElement[] = []
@@ -346,18 +370,53 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
           ),
         )
       }
+      // events
+      if (events && type !== "base")
+        for (const [name, value] of Object.entries(events[type as GuiElementType])) {
+          if (value !== true) continue
+          const type = ts.factory.createFunctionTypeNode(
+            undefined,
+            [
+              ts.factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                undefined,
+                "this",
+                undefined,
+                ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
+              ),
+              ts.factory.createParameterDeclaration(
+                undefined,
+                undefined,
+                undefined,
+                "event",
+                undefined,
+                ts.factory.createTypeReferenceNode(toPascalCase(name) + "Event"),
+              ),
+            ],
+            ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
+          )
+          members.push(
+            ts.factory.createPropertySignature(
+              undefined,
+              getPropName(name),
+              ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+              type,
+            ),
+          )
+        }
       members.push(...manualFill(type as GuiElementType | "base", def))
 
       // extends BaseElementSpec
       const superTypes = [
         ts.factory.createExpressionWithTypeArguments(ts.factory.createIdentifier("Base" + name), undefined),
       ]
-      if (genHeritageClause) {
-        const typeElements = genHeritageClause(type as GuiElementType | "base", def)
-        if (typeElements) {
-          superTypes.push(...typeElements)
-        }
-      }
+      // if (genHeritageClause) {
+      //   const typeElements = genHeritageClause(type as GuiElementType | "base", def)
+      //   if (typeElements) {
+      //     superTypes.push(...typeElements)
+      //   }
+      // }
       const heritageClause = ts.factory.createHeritageClause(ts.SyntaxKind.ExtendsKeyword, superTypes)
 
       statements.push(
@@ -389,11 +448,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
         ts.factory.createTypeReferenceNode((type in styleMods ? toPascalCase(type) : "Base") + "StyleMod"),
       ),
     ],
-    (type) => [
-      ts.factory.createExpressionWithTypeArguments(ts.factory.createIdentifier("GuiEventProps"), [
-        ts.factory.createTypeReferenceNode(toPascalCase(type) + "Events"),
-      ]),
-    ],
+    events,
   )
   statements.push(
     ts.factory.createTypeAliasDeclaration(
@@ -408,20 +463,11 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   )
   createMembers("StyleMod", styleMods, () => [])
 
-  const allEvents = guiElementTypes
-    .filter((x) => x !== "base")
-    .map((x) => toPascalCase(x) + "Events")
-    .join()
-  const header = `import { MaybeSource } from "../callbags"
-import { GuiEventProps, ${allEvents} } from "./gui-event-types"
-
-`
+  const header = `import { MaybeSource, MaybeSinkSource } from "../callbags"\n\n`
   printFile("spec-types.d.ts", header, statements)
 }
 
 // todo:
-// state
-// style
 // ref
 // on_create
 // tabs

@@ -14,7 +14,7 @@ export interface SpriteButtonEvents {
 
 export interface CheckboxEvents {
   on_gui_click: true
-  on_gui_checked_state_changed: true
+  on_gui_checked_state_changed: "state"
   on_gui_opened: true
   on_gui_closed: true
 }
@@ -59,14 +59,14 @@ export interface TableEvents {
 export interface TextFieldEvents {
   on_gui_click: true
   on_gui_confirmed: true
-  on_gui_text_changed: true
+  on_gui_text_changed: "text"
   on_gui_opened: true
   on_gui_closed: true
 }
 
 export interface RadioButtonEvents {
   on_gui_click: true
-  on_gui_checked_state_changed: true
+  on_gui_checked_state_changed: "state"
   on_gui_opened: true
   on_gui_closed: true
 }
@@ -85,14 +85,14 @@ export interface ScrollPaneEvents {
 
 export interface DropDownEvents {
   on_gui_click: true
-  on_gui_selection_state_changed: true
+  on_gui_selection_state_changed: "selected_index"
   on_gui_opened: true
   on_gui_closed: true
 }
 
 export interface ListBoxEvents {
   on_gui_click: true
-  on_gui_selection_state_changed: true
+  on_gui_selection_state_changed: "selected_index"
   on_gui_opened: true
   on_gui_closed: true
 }
@@ -105,7 +105,7 @@ export interface CameraEvents {
 
 export interface ChooseElemButtonEvents {
   on_gui_click: true
-  on_gui_elem_changed: true
+  on_gui_elem_changed: "elem_value"
   on_gui_opened: true
   on_gui_closed: true
 }
@@ -113,14 +113,14 @@ export interface ChooseElemButtonEvents {
 export interface TextBoxEvents {
   on_gui_click: true
   on_gui_confirmed: true
-  on_gui_text_changed: true
+  on_gui_text_changed: "text"
   on_gui_opened: true
   on_gui_closed: true
 }
 
 export interface SliderEvents {
   on_gui_click: true
-  on_gui_value_changed: true
+  on_gui_value_changed: "slider_value"
   on_gui_opened: true
   on_gui_closed: true
 }
@@ -145,7 +145,7 @@ export interface EmptyWidgetEvents {
 
 export interface TabbedPaneEvents {
   on_gui_click: true
-  on_gui_selected_tab_changed: true
+  on_gui_selected_tab_changed: "selected_tab_index"
   on_gui_opened: true
   on_gui_closed: true
 }
@@ -158,7 +158,7 @@ export interface TabEvents {
 
 export interface SwitchEvents {
   on_gui_click: true
-  on_gui_switch_state_changed: true
+  on_gui_switch_state_changed: "switch_state"
   on_gui_opened: true
   on_gui_closed: true
 }

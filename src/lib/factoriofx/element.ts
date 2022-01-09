@@ -1,7 +1,7 @@
 import { ElementSpec } from "./spec-types"
 import * as propTypes from "./propTypes.json"
 import { bind, Func, funcRef, Functions } from "../references"
-import { CallbagMsg, Source, Talkback } from "../callbags"
+import { CallbagMsg, SinkSource, Source, Talkback } from "../callbags"
 import { shallowCopy } from "../_util"
 import { PlayerData } from "../player-data"
 import { GuiEventName } from "./gui-event-types"
@@ -9,10 +9,9 @@ import { PRecord } from "../util-types"
 import Events from "../Events"
 
 export interface ElementInstance<T extends GuiElementType> {
-  readonly nativeElement: Extract<LuaGuiElement, { type: T }>
+  readonly nativeElement: Extract<GuiElementMembers, { type: T }>
   readonly playerIndex: number
   readonly index: number
-  readonly _elementInstanceBrand: any
   readonly valid: boolean
 }
 
@@ -100,7 +99,12 @@ function setSliderMinMaxSink(
   }
 }
 
-Functions.register({ setValueSink, callMethodSink, setSliderMinMaxSink })
+function notifySink(this: { key: string; state: SinkSource<unknown> }, event: { element: LuaGuiElement }) {
+  const key = this.key
+  this.state(1, (event as any)[key] || event.element[key])
+}
+
+Functions.register({ setValueSink, callMethodSink, setSliderMinMaxSink, notifySink })
 
 type GuiUnitNumber = number
 const Elements = PlayerData<Record<GuiUnitNumber, ElementInstanceInternal>>("gui:Elements", () => ({}))
@@ -126,10 +130,17 @@ export function create<T extends GuiElementType>(
     }
     const isSpecProp = propProperties[0]
     const isElemProp: string | boolean | null = propProperties[1]
+    const event = propProperties[2] as GuiEventName | null
     if (!isSpecProp || value instanceof Func) {
       if (!isElemProp) error(`${key} cannot be a source value`)
       if (typeof isElemProp === "string") toSetOnElem.set([isElemProp], value)
       else toSetOnElem.set(key, value)
+      if (event) {
+        events[event] = bind(notifySink, {
+          key,
+          state: value as SinkSource<unknown>,
+        })
+      }
     } else if (isSpecProp) {
       guiSpec[key] = value
     }
@@ -138,7 +149,6 @@ export function create<T extends GuiElementType>(
   const nativeElement = parent.add(guiSpec as GuiSpec)
   const style = nativeElement.style
   const instance: ElementInstanceInternal = {
-    _elementInstanceBrand: undefined,
     nativeElement,
     valid: true,
     talkbacks: {},
@@ -196,7 +206,7 @@ export function create<T extends GuiElementType>(
   return instance as ElementInstance<any>
 }
 
-export function destroy(element: ElementInstance<any> | LuaGuiElement): void {
+export function destroy(element: ElementInstance<any> | GuiElementMembers): void {
   if (!element.valid) return
   if (rawget(element as any, "__self")) {
     // is lua gui element
@@ -223,7 +233,7 @@ export function destroy(element: ElementInstance<any> | LuaGuiElement): void {
 }
 
 export function getInstance<T extends GuiElementType>(
-  element: LuaGuiElement & { type: T },
+  element: GuiElementMembers & { type: T },
 ): ElementInstance<T> | undefined {
   if (!element.valid) return undefined
   return Elements[element.player_index][element.index] as ElementInstance<any> | undefined
@@ -250,10 +260,12 @@ const guiEventNameMapping: Record<GuiEventId, GuiEventName> = {}
 for (const [guiEventName] of pairs(guiEventNames)) {
   guiEventNameMapping[defines.events[guiEventName]] = guiEventName
 }
+
+const _getInstance = getInstance
 for (const [id, name] of pairs(guiEventNameMapping)) {
   Events.on(id, (e) => {
     const element = e.element
     if (!element) return
-    ;(getInstance(element) as ElementInstanceInternal)?.events[name]?.(e)
+    ;(_getInstance(element) as ElementInstanceInternal)?.events[name]?.(e)
   })
 }

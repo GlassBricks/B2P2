@@ -40,3 +40,4 @@ export interface SinkSource<T> {
 }
 
 export type MaybeSource<T> = T | Source<T>
+export type MaybeSinkSource<T> = T | SinkSource<T>

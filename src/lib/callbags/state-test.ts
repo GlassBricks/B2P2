@@ -120,7 +120,7 @@ describe("sub state", () => {
   test("Parent emits changes", () => {
     pipe(
       parent,
-      observe((v) => {
+      observe((v: TestState) => {
         results.push(shallowCopy(v))
       }),
     )
@@ -356,7 +356,7 @@ describe("Nullable sub", () => {
   let parent: State<TestState | undefined>
   let s: State<TestState["x"] | undefined>
   before_each(() => {
-    parent = state(undefined)
+    parent = state<TestState | undefined>(undefined)
     s = parent.sub("x")
   })
 

@@ -1,8 +1,8 @@
 import { bind, Classes, Func, Functions } from "../references"
-import { CallbagMsg, PushSink, Sink, Source, START, Talkback, TbMsg } from "./callbag"
+import { CallbagMsg, PushSink, Sink, SinkSource, Source, START, Talkback, TbMsg } from "./callbag"
 import { shallowCopy } from "../_util"
 
-export interface NullableState<T> extends Source<T | undefined> {
+export interface NullableState<T> extends SinkSource<T | undefined> {
   get(): T | undefined
   set(value: T): void
   end(): void
@@ -16,7 +16,7 @@ export interface NullableState<T> extends Source<T | undefined> {
   subArray<T extends unknown[], K extends number>(this: State<T | undefined>, key: K): NullableState<T[K]>
 }
 
-export interface State<T> extends Source<T> {
+export interface State<T> extends SinkSource<T> {
   get(): T
   set(value: T): void
   end(): void
@@ -212,9 +212,13 @@ class StateImpl<T> extends Func<any> implements State<T> {
     }
   }
 
-  protected __call(type: START, data: Sink<T>): void {
+  protected __call(type: CallbagMsg, data?: any): void {
     if (type === 0) {
       this.downstream(0, bind(StateImpl.passValueSink, { state: this, sink: data }))
+    } else if (type === 1) {
+      this.set(data)
+    } else if (type === 2) {
+      this.end()
     }
   }
 
