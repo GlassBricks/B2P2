@@ -1,5 +1,5 @@
-import Events from "./Events"
 import "./callbags"
+import Events from "./Events"
 import "./factoriojsx"
 
 export * from "./references"

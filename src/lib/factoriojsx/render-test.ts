@@ -1,4 +1,8 @@
+import { state, testSource } from "../callbags"
+import { Classes } from "../references"
 import { asFunc, getPlayer } from "../testUtil"
+import { destroy, getInstance, render, renderElement } from "./render"
+import { ClassComponentSpec, Component, FCSpec } from "./spec"
 import {
   ButtonElementSpec,
   ChooseElemButtonElementSpec,
@@ -6,10 +10,6 @@ import {
   SliderElementSpec,
   TextBoxElementSpec,
 } from "./spec-types"
-import { destroy, getInstance, render, renderElement } from "./render"
-import { state, testSource } from "../callbags"
-import { ClassComponentSpec, Component, FCSpec } from "./spec"
-import { Classes } from "../references"
 
 let parent: LuaGuiElement
 let element: GuiElementMembers | undefined
@@ -245,7 +245,7 @@ describe("destroy", () => {
 
 test("events", () => {
   const actions: unknown[] = []
-  const func = (e: unknown) => {
+  const func = function (this: unknown, e: unknown) {
     actions.push(e)
   }
   const spec: ButtonElementSpec = {
@@ -325,7 +325,7 @@ test("onCreate", () => {
 
 test("function component", () => {
   const results: unknown[] = []
-  function Component(props: { cb: (this: void, element: GuiElementMembers) => void }): FlowElementSpec {
+  function Component(props: { cb: (element: GuiElementMembers) => void }): FlowElementSpec {
     results.push("called")
     return {
       type: "flow",
@@ -347,13 +347,11 @@ test("function component", () => {
   assert.same(["called", "flow"], results)
 })
 
-const register = Classes.registerer()
-
 describe("Class component", () => {
   const results: unknown[] = []
 
-  @register()
-  class Foo extends Component<{ cb: (this: void, element: GuiElementMembers) => void }> {
+  @Classes.register()
+  class Foo extends Component<{ cb: (element: GuiElementMembers) => void }> {
     constructor() {
       super()
       results.push("constructed")

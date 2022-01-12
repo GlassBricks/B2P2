@@ -1,19 +1,19 @@
-import { ElementSpec } from "./spec-types"
-import * as propTypes from "./propTypes.json"
-import { bind, Func, funcRef, Functions } from "../references"
+import { shallowCopy } from "../util"
 import { CallbagMsg, SinkSource, Source, Talkback } from "../callbags"
-import { shallowCopy } from "../_util"
-import { PlayerData } from "../player-data"
-import { PRecord } from "../util-types"
 import Events from "../Events"
+import { PlayerData } from "../player-data"
+import { bind, Func, funcRef, Functions, isCallable } from "../references"
+import { PRecord } from "../util-types"
+import * as propTypes from "./propTypes.json"
 import { ClassComponentSpec, Element, FCSpec } from "./spec"
+import { ElementSpec } from "./spec-types"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 
 export interface ElementInstance<T extends GuiElementType = GuiElementType> {
   readonly nativeElement: Extract<LuaGuiElement, { type: T }>
-  readonly playerIndex: number
-  readonly index: number
+  readonly playerIndex: PlayerIndex
+  readonly index: GuiElementIndex
   readonly valid: boolean
 }
 
@@ -106,7 +106,7 @@ function notifySink(this: { key: string; state: SinkSource<unknown> }, event: { 
   this.state(1, (event as any)[key] || event.element[key])
 }
 
-Functions.register({ setValueSink, callMethodSink, setSliderMinMaxSink, notifySink })
+Functions.registerAll({ setValueSink, callMethodSink, setSliderMinMaxSink, notifySink })
 
 type GuiUnitNumber = number
 const Elements = PlayerData<Record<GuiUnitNumber, ElementInstanceInternal>>("gui:Elements", () => ({}))
@@ -139,16 +139,16 @@ export function renderElement<T extends GuiElementType>(
   for (let [key, value] of pairs(spec)) {
     const propProperties = propTypes[key]
     if (!propProperties) continue
-    if (typeof value === "function") value = funcRef(value)
+    if (typeof value === "function") value = funcRef(value) as any
     if (propProperties === "event") {
-      if (!(value instanceof Func)) error("Gui event handlers must be a function")
+      if (!isCallable(value)) error("Gui event handlers must be a function")
       events[key as GuiEventName] = value
       continue
     }
     const isSpecProp = propProperties[0]
     const isElemProp: string | boolean | null = propProperties[1]
     const event = propProperties[2] as GuiEventName | null
-    if (!isSpecProp || value instanceof Func) {
+    if (!isSpecProp || isCallable(value)) {
       if (!isElemProp) error(`${key} cannot be a source value`)
       if (typeof isElemProp === "string") elemProps.set([isElemProp], value)
       else elemProps.set(key, value)
@@ -175,7 +175,7 @@ export function renderElement<T extends GuiElementType>(
   Elements[nativeElement.player_index][nativeElement.index] = instance
 
   for (const [key, value] of pairs(elemProps)) {
-    if (value instanceof Func) {
+    if (isCallable(value)) {
       if (typeof key !== "object") {
         // simple source
         ;(value as Source<unknown>)(0, bind(setValueSink, { instance, key, value: nativeElement }))
@@ -208,7 +208,7 @@ export function renderElement<T extends GuiElementType>(
   if (styleMod) {
     const style = nativeElement.style
     for (const [key, value] of pairs(styleMod)) {
-      if (value instanceof Func) {
+      if (isCallable(value)) {
         ;(value as Source<unknown>)(0, bind(setValueSink, { instance, key, value: style }))
       } else {
         ;(style as any)[key] = value as never

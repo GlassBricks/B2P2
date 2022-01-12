@@ -36,7 +36,7 @@ export interface EventsObj extends ShorthandRegister {
   on<E extends string>(event: E | E[], f: (data: CustomInputEvent) => void): void
   on<E extends EventId<any, any> | string>(event: E | E[], f: (data: EventDataOf<E>) => void): void
   /**
-   * Registers multiple event handlers by name. Only game and script events can be registered here by name. For custom
+   * Registers multiple event handlers by name. Only game and script events can be registered here. For custom
    * events/input events, use `register` instead.
    *
    * @param handlers A table of event name -> event handler function
@@ -115,14 +115,15 @@ const Events = {
   clearHandlers: clear,
 } as EventsObj
 
-for (const [name, id] of pairs(defines.events)) {
-  Events[name] = (handler: AnyHandler) => {
-    registerInternal(id, handler)
-  }
-}
-for (const [name, id] of pairs(scriptEvents)) {
-  Events[name] = (handler: AnyHandler) => {
-    registerInternal(id, handler)
-  }
-}
+setmetatable(Events, {
+  __index(this: EventsObj, key: keyof any) {
+    const id = scriptEvents[key as keyof ScriptEvents] ?? defines.events[key as keyof typeof defines.events]
+    if (id !== undefined) {
+      return (handler: AnyHandler) => {
+        registerInternal(id, handler)
+      }
+    }
+  },
+})
+
 export default Events

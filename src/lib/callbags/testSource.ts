@@ -1,17 +1,20 @@
-import { CallbagMsg, DATA, END, Sink, SinkSource } from "./callbag"
+// noinspection JSUnusedLocalSymbols
 
-import { Classes, Func } from "../references"
+import { bound, Classes } from "../references"
+import { CallbagMsg, DATA, END, Sink, SinkSource } from "./callbag"
 
 export interface TestSource<T> extends SinkSource<T> {
   readonly ended: boolean
 }
 
-@Classes.registerDefault()
-class TestSourceImpl<T> extends Func<any> implements TestSource<T> {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface TestSourceImpl<T> extends SinkSource<T> {}
+@Classes.register()
+class TestSourceImpl<T> implements TestSource<T> {
   private sink?: Sink<T>
   ended = false
 
-  protected __call(type: CallbagMsg, data?: any): void {
+  protected __call(thisArg: unknown, type: CallbagMsg, data?: any): void {
     if (type === 0) {
       if (this.ended) {
         error("Test source already ended")
@@ -20,7 +23,7 @@ class TestSourceImpl<T> extends Func<any> implements TestSource<T> {
         error("duplicate subscription to testSource")
       }
       this.sink = data ?? error("No sink provided")
-      const func = (this as TestSourceImpl<T>).ref("tb")
+      const func = this.tb
       this.sink!(0, func)
     } else {
       this.sink?.(type as any, data)
@@ -31,6 +34,7 @@ class TestSourceImpl<T> extends Func<any> implements TestSource<T> {
     }
   }
 
+  @bound
   tb(type: DATA | END) {
     if (type === 2) {
       this.sink = undefined

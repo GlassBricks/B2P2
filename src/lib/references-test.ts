@@ -1,49 +1,44 @@
-import { AnyFunction, bind, Classes, Func, funcOn, funcRef, Functions, RClassInfo, RegisteredClass } from "./references"
+import { bind, bound, Classes, ContextualFun, Func, funcOn, funcRef, Functions } from "./references"
 
 declare const global: {
   __tbl: object
-  __ref: Func<AnyFunction>
-  __boundRef: Func<AnyFunction>
+  __ref: Func<ContextualFun>
+  __boundRef: Func<ContextualFun>
 }
 describe("classes", () => {
-  const registerClass = Classes.registerer()
+  @Classes.register("Foo")
+  class TestClass {
+    constructor(private readonly value: string) {}
 
-  @registerClass("Foo")
-  class TestClass extends RegisteredClass {
-    constructor(private readonly value: string) {
-      super()
-    }
-
+    @bound
     foo() {
       return this.value + "2"
     }
   }
 
   test("Name registered correctly", () => {
-    assert.equal("lib/references-test::Foo", TestClass[RClassInfo].name)
+    for (const [key, value] of pairs(TestClass.prototype)) {
+      if (type(key) === "table") {
+        // Class name symbol
+        assert.equal("lib/references-test::Foo", value)
+        return
+      }
+    }
+    error("Class name symbol not")
   })
 
   test("Error when registering after load", () => {
     assert.error(() => {
-      @registerClass()
+      @Classes.register()
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      class TestClass extends RegisteredClass {}
-    })
-  })
-
-  test("Error when instantiating unregistered class", () => {
-    class TestClass extends RegisteredClass {}
-
-    assert.error(() => {
-      // eslint-disable-next-line no-new
-      new TestClass()
+      class TestClass {}
     })
   })
 
   test("classes survives reload", () => {
     const instance = new TestClass("1")
     global.__tbl = instance
-    global.__ref = instance.ref("foo")
+    global.__ref = instance.foo
 
     assert.is_true(global.__tbl instanceof TestClass)
     assert.equal("12", global.__ref("12"))
@@ -54,15 +49,15 @@ describe("classes", () => {
 })
 
 describe("functions", () => {
-  function func(arg: any) {
+  function func(this: unknown, arg: any) {
     return arg
   }
-  Functions.registerAs("@@ test func 1 @@", func)
+  Functions.register("test func 1")(func)
 
   function func2(this: unknown, arg: unknown) {
     return [this, arg]
   }
-  Functions.registerAs("@@ test func 2 @@", func2)
+  Functions.register("test func 2")(func2)
 
   test("Simple func ref", () => {
     global.__ref = funcRef(func)

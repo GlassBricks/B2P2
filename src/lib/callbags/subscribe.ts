@@ -1,5 +1,5 @@
-import { DATA, END, Source, START, Talkback } from "./callbag"
 import { bind, Functions } from "../references"
+import { DATA, END, Source, START, Talkback } from "./callbag"
 
 /** @noSelf */
 export interface Observer<T> {
@@ -26,7 +26,7 @@ function sink<T>(this: SinkInstance<T>, type: START | DATA | END, data?: any) {
   }
 }
 
-Functions.register({ sink })
+Functions.registerAll({ sink })
 
 const subscribe =
   <T>(observer: Observer<T>) =>

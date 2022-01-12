@@ -4,52 +4,45 @@ function getCallerFile(): string {
   return string.match(debug.getinfo(3, "S")!.source!, "^.-/(.+)%.lua")[0]
 }
 
-export interface Registerer<T> {
-  (this: unknown, as?: string): (this: unknown, item: T) => void
-}
-
 export abstract class Registry<T, N extends string> {
   private readonly nameToItem = {} as Record<N, T>
   private readonly itemToName = new LuaTable<T, N>()
 
   protected abstract getDefaultName(item: T): string
 
-  protected abstract getDebugInfo(item: T): string
+  protected abstract getDebugDescription(item: T): string
 
   protected abstract onRegister(item: T, name: N): void
 
   protected abstract itemName: string
 
-  registerAs(name: string, item: T): void {
-    const n = name as N
+  registerAs(name: N, item: T): void {
     checkIsBeforeLoad()
-    const existing: T = this.nameToItem[n]
+    const existing: T = this.nameToItem[name]
     if (existing) {
-      error(`${this.itemName} with the name ${n} is already registered, existing is: ${this.getDebugInfo(existing)}`)
+      error(
+        `${this.itemName} with the name ${name} is already registered, existing is: ${this.getDebugDescription(
+          existing,
+        )}`,
+      )
     }
-    this.nameToItem[n] = item
-    this.itemToName.set(item, n)
-    this.onRegister(item, n)
+    this.nameToItem[name] = item
+    this.itemToName.set(item, name)
+    this.onRegister(item, name)
   }
 
-  registerDefault(as: string = "default"): (this: unknown, item: T) => void {
+  register(as: string): (this: unknown, item: T) => void {
     const prefix = getCallerFile() + "::"
     return (item) => {
-      this.registerAs((prefix + as) as N, item)
-    }
-  }
-
-  register(items: Record<string, T>): void {
-    const prefix = getCallerFile() + "::"
-    for (const [name, item] of pairs(items)) {
+      const name = as ?? this.getDefaultName(item)
       this.registerAs((prefix + name) as N, item)
     }
   }
 
-  registerer(prefix?: string): Registerer<T> {
-    prefix = prefix ?? getCallerFile() + "::"
-    return (as) => (item) => {
-      this.registerAs((prefix + (as ?? this.getDefaultName(item))) as N, item)
+  registerAll(items: Record<string, T>): void {
+    const prefix = getCallerFile() + "::"
+    for (const [name, item] of pairs(items)) {
+      this.registerAs((prefix + name) as N, item)
     }
   }
 
@@ -59,7 +52,8 @@ export abstract class Registry<T, N extends string> {
 
   nameOf(item: T): N {
     return (
-      this.itemToName.get(item) ?? error(`The given ${this.itemName} was not registered: ${this.getDebugInfo(item)}`)
+      this.itemToName.get(item) ??
+      error(`The given ${this.itemName} was not registered: ${this.getDebugDescription(item)}`)
     )
   }
 }

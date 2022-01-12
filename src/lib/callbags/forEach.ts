@@ -1,5 +1,5 @@
-import { DATA, END, Source, START, Talkback } from "./callbag"
 import { bind, Functions } from "../references"
+import { DATA, END, Source, START, Talkback } from "./callbag"
 
 function sink<T>(
   this: {
@@ -18,7 +18,7 @@ function sink<T>(
   }
 }
 
-Functions.register({ sink })
+Functions.registerAll({ sink })
 
 const forEach =
   <T>(consumer: (item: T) => void) =>

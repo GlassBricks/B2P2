@@ -1,11 +1,10 @@
 import { ElementSpec } from "./spec-types"
-import { RegisteredClass } from "../references"
 
 export { ElementSpec }
 
 export type FunctionComponent<T> = (props: T) => ElementSpec
 
-export abstract class Component<T> extends RegisteredClass {
+export abstract class Component<T> {
   declare props: T
   abstract render(): Element
 }

@@ -1,69 +1,49 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import Events from "./Events"
 import { Registry } from "./registry"
 
 // --- Classes ---
-
-export type RClassName = string & { _classNameBrand: any }
-
-export const OnLoad: unique symbol = Symbol("Metatable OnLoad")
+export const OnLoad: unique symbol = Symbol("OnLoad")
 
 export interface WithOnLoad {
   [OnLoad]?(): void
 }
 
-export const RClassInfo: unique symbol = Symbol("RegisteredClassInfo")
+// on a class it marks if the class was processed
+// on an instance (prototype) it returns the class name
+const RClassInfo: unique symbol = Symbol("ClassInfo")
 
-export interface RegisteredClassInfo {
-  name: RClassName
-  // prototypeFuncNames: LuaTable<AnyFunction, keyof any>
-}
-
-export interface RegisteredType<T extends RegisteredClass = RegisteredClass> {
-  [RClassInfo]: RegisteredClassInfo
+export interface Class<T> {
   name: string
   prototype: T
 }
 
-declare const global: {
-  __classes: LuaTable<RegisteredClass, RClassName>
-  // __instances: Record<object, RegisteredClass>
-  // __nextInstanceId: InstanceId
+export type ClassName = string & { _classNameBrand: any }
+
+interface RClass {
+  name: string
+  prototype: ClassInstance & LuaMetatable<ClassInstance>
+  ____super?: RClass
+  [RClassInfo]?: {
+    constructorProcessed?: true
+    boundFuncKeys?: (keyof any)[]
+  }
 }
 
-export abstract class RegisteredClass implements WithOnLoad {
-  static [RClassInfo]: RegisteredClassInfo;
+interface ClassInstance extends WithOnLoad {
+  constructor: RClass
+  ____constructor(...args: any): void
+  [RClassInfo]: ClassName
+}
 
-  [OnLoad]?(): void
-
-  // __instanceId: InstanceId
-
-  constructor() {
-    const classInfo = (this.constructor as typeof RegisteredClass)[RClassInfo]
-    if (!classInfo) {
-      error(
-        `Class "${this.constructor.name}" inherits from RegisteredClass, but was not registered with @registerClass().`,
-      )
-    }
-    if (!game) {
-      error("Registered classes can only be instantiated during events and not during on_load.")
-    }
-    global.__classes.set(this, classInfo.name)
-    // this.__instanceId = global.__nextInstanceId
-    // global.__nextInstanceId++
-    // global.__instances[this.__instanceId] = this
-  }
-
-  ref<T extends Record<K, ContextualFun>, K extends keyof T>(this: T, key: K): Func<T[K]> {
-    return funcOn(this, key)
-  }
+declare const global: {
+  __classes: LuaTable<ClassInstance, ClassName>
+  // __instances: Record<object, ClassInstance>
+  // __nextInstanceId: InstanceId
 }
 
 Events.onAll({
   on_init() {
     global.__classes = setmetatable({}, { __mode: "k" })
-    // global.__instances = setmetatable( {}, { __mode: "v" })
-    // global.__nextInstanceId = 1 as InstanceId
   },
   on_load() {
     setmetatable(global.__classes, { __mode: "k" })
@@ -82,67 +62,95 @@ Events.onAll({
   },
 })
 
-export const Classes: Registry<RegisteredType, RClassName> = new (class Classes extends Registry<
-  RegisteredType,
-  RClassName
-> {
+export function bound(this: unknown, target: unknown, name: keyof any): void {
+  const prototype = target as ClassInstance
+  const constructor = prototype.constructor
+
+  const classInfo = constructor[RClassInfo] ?? (constructor[RClassInfo] = {})
+  const boundFuncKeys = classInfo.boundFuncKeys ?? (classInfo.boundFuncKeys = [])
+  boundFuncKeys.push(name)
+}
+
+export const Classes = new (class Classes extends Registry<Class<any>, ClassName> {
   protected itemName = "class"
 
-  protected getDebugInfo(item: RegisteredType): string {
+  protected getDebugDescription(item: RClass): string {
     return serpent.block(item)
   }
 
-  protected getDefaultName(item: RegisteredType): string {
+  protected getDefaultName(item: RClass): string {
     return item.name
   }
 
-  protected onRegister(item: RegisteredType, name: RClassName): void {
-    const thisPrototype = item.prototype as LuaMetatable<RegisteredClass>
-    let callFunction: ContextualFun | undefined = undefined
-    let prototype: LuaMetatable<table> | undefined = thisPrototype
-    while (prototype) {
-      callFunction ??= rawget(prototype, "__call")
-      prototype = getmetatable(prototype)
-    }
-    if (callFunction) {
-      thisPrototype.__call = callFunction
-    }
+  declare register: (as?: string) => (this: unknown, item: Class<any>) => void
+  protected onRegister(item: RClass, name: ClassName): void {
+    const prototype = item.prototype
+    prototype[RClassInfo] = name
+    // make sure __call meta-method works for subclasses
+    rawset(prototype, "__call", prototype.__call)
 
-    item[RClassInfo] = { name }
+    let currentClass: RClass | undefined = item
+    while (currentClass !== undefined) {
+      // register all static functions
 
-    // register all static functions
-    for (const [key, value] of pairs(item as any)) {
-      if (typeof key === "string" && typeof value === "function") {
-        Functions.registerAs(`${name}.${key}` as FuncName, value)
+      for (const [key, value] of pairs(currentClass)) {
+        // noinspection SuspiciousTypeOfGuard
+        if (typeof value === "function" && typeof key === "string") {
+          Functions.registerAs((name + "." + key) as FuncName, value)
+        }
       }
+
+      const baseClass: RClass | undefined = currentClass.____super
+      const info = currentClass[RClassInfo] ?? (currentClass[RClassInfo] = {})
+      if (!info.constructorProcessed) {
+        const thisPrototype = currentClass.prototype
+        if (info.boundFuncKeys) {
+          const originalConstructor = thisPrototype.____constructor
+          const funcKeys = info.boundFuncKeys
+          thisPrototype.____constructor = function (this: Record<keyof any, ContextualFun>, ...args: any[]) {
+            for (const funcKey of funcKeys) {
+              this[funcKey] = boundPrototypeFunc(this, funcKey)
+            }
+
+            originalConstructor.call(this, ...args)
+          }
+        }
+        if (baseClass === undefined) {
+          const originalConstructor = thisPrototype.____constructor
+          thisPrototype.____constructor = function (this: ClassInstance, ...args: any[]) {
+            global.__classes.set(this, this[RClassInfo])
+            originalConstructor.call(this, ...args)
+          }
+        }
+
+        info.constructorProcessed = true
+      }
+
+      currentClass = baseClass
     }
   }
 })()
 
-export type AnyFunction = (this: void, ...args: any) => any
+// -- functions --
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type AnyFunction = Function
 export type ContextualFun = (this: any, ...args: any) => any
+export type SelflessFun = (this: void, ...args: any) => any
 
-export interface Func<F extends (...args: any) => any> {
-  (this: void, ...args: Parameters<F>): ReturnType<F>
-  call: never
-}
+export type Func<F extends AnyFunction> = F & { constructor: unknown }
 
-export abstract class Func<F> extends RegisteredClass {
-  protected abstract __call(...args: Parameters<F>): ReturnType<F>
-}
+export type FuncName = string & { _funcNameBrand: any }
 
-Func.prototype = RegisteredClass.prototype as Func<AnyFunction>
-
-export type FuncName<F = Function> = string & { _funcNameBrand: F }
-export const Functions: Registry<Function, FuncName> = new (class Functions extends Registry<Function, FuncName> {
+export const Functions: Registry<AnyFunction, FuncName> = new (class Functions extends Registry<AnyFunction, FuncName> {
   protected itemName = "function"
 
-  protected getDebugInfo(func: Function): string {
+  protected getDebugDescription(func: AnyFunction): string {
     return serpent.block(type(func) === "function" ? debug.getinfo(func) : func, { nocode: true })
   }
 
   protected getDefaultName(): string {
-    error("name must be explicitly given to register functions")
+    error("name must be given to register functions")
   }
 
   protected onRegister(): void {
@@ -150,22 +158,25 @@ export const Functions: Registry<Function, FuncName> = new (class Functions exte
   }
 })()
 
-const registerer = Classes.registerer("func:")
-const registerFuncClass =
-  (as?: string): ((this: unknown, type: RegisteredType<Func<any>>) => void) =>
-  (type) => {
-    registerer(as)(type)
-    __DebugAdapter?.stepIgnore((type.prototype as any).__call)
+export function isCallable(obj: unknown): boolean {
+  const objType = type(obj)
+  if (objType === "function") {
+    return true
   }
+  if (objType === "table") {
+    const metatable = getmetatable(obj)
+    return metatable !== undefined && metatable.__call !== undefined
+  }
+  return false
+}
 
-@registerFuncClass()
-class RegisteredFunc extends Func<AnyFunction> {
+@Classes.register()
+class RegisteredFunc {
   private readonly funcName: FuncName
-  private func?: AnyFunction
+  private func?: SelflessFun
 
   constructor(func: AnyFunction) {
-    super()
-    this.func = func
+    this.func = func as SelflessFun
     this.funcName = Functions.nameOf(func)
   }
 
@@ -173,7 +184,7 @@ class RegisteredFunc extends Func<AnyFunction> {
     Functions.get(this.funcName)
   }
 
-  __call(...args: any[]) {
+  protected __call(...args: any[]) {
     if (!this.func) {
       this.func = Functions.get(this.funcName)
     }
@@ -183,16 +194,15 @@ class RegisteredFunc extends Func<AnyFunction> {
 
 /** Requires function to be registered first. */
 export function funcRef<F extends AnyFunction>(func: F): Func<F> {
-  return new RegisteredFunc(func)
+  return new RegisteredFunc(func) as any
 }
 
-@registerFuncClass()
-class BoundFunc extends Func<AnyFunction> {
+@Classes.register()
+class BoundFunc {
   private readonly funcName: FuncName
   private func?: ContextualFun
 
   constructor(private readonly thisValue: unknown, func: ContextualFun) {
-    super()
     this.func = func
     this.funcName = Functions.nameOf(func)
   }
@@ -201,7 +211,7 @@ class BoundFunc extends Func<AnyFunction> {
     Functions.get(this.funcName)
   }
 
-  __call(...args: any[]) {
+  __call(thisArg: unknown, ...args: any[]) {
     if (!this.func) {
       this.func = Functions.get(this.funcName)
     }
@@ -210,25 +220,40 @@ class BoundFunc extends Func<AnyFunction> {
 }
 
 /** Requires function to be registered first. */
-export function bind<T, F extends (this: T, ...args: any) => any>(func: F, thisValue: T): Func<F> {
-  return new BoundFunc(thisValue, func)
+export function bind<T, F extends (this: T, ...args: any) => any>(func: F, thisValue: T): Func<OmitThisParameter<F>> {
+  return new BoundFunc(thisValue, func) as any
 }
 
-@registerFuncClass()
-class InstanceFunc<T extends Record<K, ContextualFun>, K extends keyof T> extends Func<T[K]> {
-  constructor(private readonly instance: T, private readonly key: K) {
-    super()
-  }
+@Classes.register()
+class InstanceFunc {
+  constructor(private readonly instance: Record<keyof any, ContextualFun>, private readonly key: keyof any) {}
 
-  __call(...args: any[]) {
+  __call(thisArg: unknown, ...args: unknown[]) {
     return this.instance[this.key](...args)
   }
 }
 
 export function funcOn<T extends Record<K, ContextualFun>, K extends keyof T>(obj: T, key: K): Func<T[K]> {
-  return new InstanceFunc(obj, key)
+  return new InstanceFunc(obj, key) as any
 }
+
+@Classes.register()
+class BoundPrototypeFunc {
+  constructor(private readonly instance: Record<keyof any, ContextualFun>, private readonly key: keyof any) {}
+
+  __call(thisArg: unknown, ...args: unknown[]) {
+    const instance = this.instance
+    const prototype = getmetatable(instance)!.__index as Record<keyof any, ContextualFun>
+    return prototype[this.key].call(instance, ...args)
+  }
+}
+
+export function boundPrototypeFunc<T extends Record<K, ContextualFun>, K extends keyof T>(obj: T, key: K): Func<T[K]> {
+  return new BoundPrototypeFunc(obj, key) as any
+}
+
 /*
+
 
 @registerFuncClass
 class Bind1<A0> extends Func<AnyFunction> {

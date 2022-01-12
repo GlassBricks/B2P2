@@ -25,7 +25,7 @@ test("Can register multiple", () => {
   Events.on(eventId, () => {
     actions.push(3)
   })
-  script.raise_script_set_tiles({ surface_index: 1, tiles: [] })
+  script.raise_script_set_tiles({ surface_index: 1 as SurfaceIndex, tiles: [] })
   assert.same([1, 2, 3], actions)
 })
 

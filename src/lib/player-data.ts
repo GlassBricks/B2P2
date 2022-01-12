@@ -4,7 +4,7 @@ import { checkCanModifyGameState, checkIsBeforeLoad } from "./setup"
 export interface PlayerData<T> {
   readonly name: string
   readonly table: Record<number, T>
-  [playerIndex: number]: T
+  [playerIndex: PlayerIndex]: T
 }
 
 declare const global: {
@@ -59,7 +59,7 @@ export function PlayerData<T>(name: string, init?: (player: LuaPlayer) => T): Pl
   function on_init() {
     notLoadedMetatable.__index!.call(data, 1)
     if (init) {
-      for (const [index, player] of pairs(game.players)) {
+      for (const [index, player] of game.players) {
         data[index] = init(player)
       }
     }
@@ -68,7 +68,7 @@ export function PlayerData<T>(name: string, init?: (player: LuaPlayer) => T): Pl
   Events.onAll({
     on_init,
     on_player_removed({ player_index }) {
-      data[player_index] = undefined!
+      delete data[player_index]
     },
   })
   if (init)

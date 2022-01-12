@@ -1,13 +1,13 @@
-import pipe from "./pipe"
-import of from "./of"
-import forEach from "./forEach"
-import map from "./map"
 import { asFunc } from "../testUtil"
 import { Talkback } from "./callbag"
 import filter from "./filter"
+import forEach from "./forEach"
+import map from "./map"
 import observe from "./observe"
-import { testSource, TestSource } from "./testSource"
+import of from "./of"
+import pipe from "./pipe"
 import subscribe from "./subscribe"
+import { testSource, TestSource } from "./testSource"
 
 describe("of and observe", () => {
   test("usage", () => {

@@ -12,17 +12,17 @@ test("Can get and set", () => {
 
 test("Update and delete on player created/removed", () => {
   script.get_event_handler(defines.events.on_player_created)({
-    player_index: 10000,
+    player_index: 10000 as PlayerIndex,
     name: defines.events.on_player_created,
     tick: game.tick,
   })
-  assert.equal(1, TestData[10000])
+  assert.equal(1, TestData[10000 as PlayerIndex])
   script.get_event_handler(defines.events.on_player_removed)({
-    player_index: 10000,
+    player_index: 10000 as PlayerIndex,
     name: defines.events.on_player_created,
     tick: game.tick,
   })
-  assert.is_nil(TestData[10000])
+  assert.is_nil(TestData[10000 as PlayerIndex])
 })
 
 declare const global: any

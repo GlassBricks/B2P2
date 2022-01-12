@@ -1,4 +1,4 @@
-import { AnyFunction, Classes, Func } from "./references"
+import { AnyFunction, Classes, Func, SelflessFun } from "./references"
 
 export function getPlayer(): LuaPlayer {
   // noinspection LoopStatementThatDoesntLoopJS
@@ -9,18 +9,17 @@ export function getPlayer(): LuaPlayer {
 }
 
 export function asFunc<F extends AnyFunction>(func: F): Func<F> {
-  return new AsFunc(func)
+  return new AsFunc(func) as any
 }
 
-const register = Classes.registerer()
-
-@register()
-class AsFunc<F extends AnyFunction> extends Func<F> {
-  constructor(private readonly func: F) {
-    super()
+@Classes.register()
+class AsFunc<F extends AnyFunction> {
+  private readonly func: SelflessFun
+  constructor(func: F) {
+    this.func = func as any
   }
 
-  protected __call(...args: any[]): ReturnType<F> {
+  protected __call(...args: any[]) {
     return this.func(...args)
   }
 }

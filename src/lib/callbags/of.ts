@@ -1,5 +1,5 @@
-import { DATA, END, Sink, Source, START } from "./callbag"
 import { bind, Functions } from "../references"
+import { DATA, END, Sink, Source, START } from "./callbag"
 
 function source<T>(
   this: {
@@ -32,7 +32,7 @@ function tb(
   }
 }
 
-Functions.register({ source, tb })
+Functions.registerAll({ source, tb })
 
 const of = <T>(...values: T[]): Source<T> => bind(source, { values, completed: false, nextIndex: 1 }) as Source<T>
 export default of

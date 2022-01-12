@@ -1,7 +1,7 @@
-import { FactorioJsx } from "./index"
-import { getPlayer } from "../testUtil"
-import { destroy, render } from "./render"
 import { Classes } from "../references"
+import { getPlayer } from "../testUtil"
+import { FactorioJsx } from "./index"
+import { destroy, render } from "./render"
 import { Component, Element } from "./spec"
 
 let parent: LuaGuiElement
@@ -70,7 +70,7 @@ describe("Create simple", () => {
     assert.equal("flow", element.bob!.type)
   })
 
-  @Classes.registerDefault()
+  @Classes.register()
   class FooClass extends Component<{ me?: string; children?: Element }> {
     render(): Element {
       return <flow caption={this.props.me}>{this.props.children}</flow>
