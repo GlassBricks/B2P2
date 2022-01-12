@@ -1,7 +1,7 @@
-import { FactorioJsx } from "./index"
-import { getPlayer } from "../testUtil"
-import { destroy, render } from "./render"
 import { Classes } from "../references"
+import { getPlayer } from "../testUtil"
+import { FactorioJsx } from "./index"
+import { destroy, render } from "./render"
 import { Component, Element } from "./spec"
 
 let parent: LuaGuiElement

@@ -1,4 +1,8 @@
+import { state, testSource } from "../callbags"
+import { Classes } from "../references"
 import { asFunc, getPlayer } from "../testUtil"
+import { destroy, getInstance, render, renderElement } from "./render"
+import { ClassComponentSpec, Component, FCSpec } from "./spec"
 import {
   ButtonElementSpec,
   ChooseElemButtonElementSpec,
@@ -6,10 +10,6 @@ import {
   SliderElementSpec,
   TextBoxElementSpec,
 } from "./spec-types"
-import { destroy, getInstance, render, renderElement } from "./render"
-import { state, testSource } from "../callbags"
-import { ClassComponentSpec, Component, FCSpec } from "./spec"
-import { Classes } from "../references"
 
 let parent: LuaGuiElement
 let element: GuiElementMembers | undefined

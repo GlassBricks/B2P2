@@ -1,12 +1,12 @@
-import { ElementSpec } from "./spec-types"
-import * as propTypes from "./propTypes.json"
-import { bind, Func, funcRef, Functions } from "../references"
-import { CallbagMsg, SinkSource, Source, Talkback } from "../callbags"
 import { shallowCopy } from "../_util"
-import { PlayerData } from "../player-data"
-import { PRecord } from "../util-types"
+import { CallbagMsg, SinkSource, Source, Talkback } from "../callbags"
 import Events from "../Events"
+import { PlayerData } from "../player-data"
+import { bind, Func, funcRef, Functions } from "../references"
+import { PRecord } from "../util-types"
+import * as propTypes from "./propTypes.json"
 import { ClassComponentSpec, Element, FCSpec } from "./spec"
+import { ElementSpec } from "./spec-types"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 

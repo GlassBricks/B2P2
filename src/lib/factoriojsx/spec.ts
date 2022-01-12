@@ -1,5 +1,5 @@
-import { ElementSpec } from "./spec-types"
 import { RegisteredClass } from "../references"
+import { ElementSpec } from "./spec-types"
 
 export { ElementSpec }
 

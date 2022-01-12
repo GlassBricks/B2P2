@@ -1,8 +1,8 @@
-import { State, state } from "./state"
-import { observe } from "./index"
-import { shallowCopy } from "../_util"
-import pipe from "./pipe"
 import * as util from "util"
+import { shallowCopy } from "../_util"
+import { observe } from "./index"
+import pipe from "./pipe"
+import { State, state } from "./state"
 import subscribe from "./subscribe"
 
 let results: unknown[] = []

@@ -1,6 +1,5 @@
-import { CallbagMsg, DATA, END, Sink, SinkSource } from "./callbag"
-
 import { Classes, Func } from "../references"
+import { CallbagMsg, DATA, END, Sink, SinkSource } from "./callbag"
 
 export interface TestSource<T> extends SinkSource<T> {
   readonly ended: boolean

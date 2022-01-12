@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
+import _createElement from "./createElement"
 import "./render"
+import { Element, Element as _Element } from "./spec"
 import {
   ButtonElementSpec,
   CameraElementSpec,
@@ -25,8 +27,6 @@ import {
   TextBoxElementSpec,
   TextFieldElementSpec,
 } from "./spec-types"
-import _createElement from "./createElement"
-import { Element, Element as _Element } from "./spec"
 
 export namespace FactorioJsx {
   type IntrinsicElement<T extends ElementSpec> = Omit<T, "type" | "children"> & {

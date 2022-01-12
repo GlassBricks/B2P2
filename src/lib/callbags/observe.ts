@@ -1,5 +1,5 @@
-import { DATA, END, Source, START, Talkback } from "./callbag"
 import { bind, Functions } from "../references"
+import { DATA, END, Source, START, Talkback } from "./callbag"
 
 interface SinkInstance<T> {
   tb?: Talkback
