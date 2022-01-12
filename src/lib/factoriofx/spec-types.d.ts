@@ -14,8 +14,6 @@ export interface BaseElementSpec {
   tags?: Tags
   anchor?: MaybeSource<GuiAnchor | undefined>
   location?: MaybeSource<GuiLocation | undefined>
-  children?: ElementSpec[]
-  styleMod?: BaseStyleMod
 }
 
 export interface ChooseElemButtonElementSpec extends BaseElementSpec {
@@ -27,6 +25,7 @@ export interface ChooseElemButtonElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: ChooseElemButtonGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -38,6 +37,7 @@ export interface DropDownElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: DropDownGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -48,6 +48,7 @@ export interface EmptyWidgetElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: EmptyWidgetGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -58,6 +59,7 @@ export interface EntityPreviewElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: EntityPreviewGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -69,6 +71,7 @@ export interface ListBoxElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: ListBoxGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -84,6 +87,7 @@ export interface ScrollPaneElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: ScrollPaneGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: ScrollPaneStyleMod
 }
@@ -99,6 +103,7 @@ export interface SpriteButtonElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: SpriteButtonGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -109,6 +114,7 @@ export interface TabbedPaneElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: TabbedPaneGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: TabbedPaneStyleMod
 }
@@ -124,6 +130,7 @@ export interface TextBoxElementSpec extends BaseElementSpec {
   on_gui_confirmed?: (this: void, event: OnGuiConfirmedEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: TextBoxGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: TextBoxStyleMod
 }
@@ -134,6 +141,7 @@ export interface ButtonElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: ButtonGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: ButtonStyleMod
 }
@@ -147,6 +155,7 @@ export interface CameraElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: CameraGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -157,6 +166,7 @@ export interface CheckboxElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: CheckboxGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -168,6 +178,7 @@ export interface FlowElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: FlowGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: FlowStyleMod
 }
@@ -181,6 +192,7 @@ export interface FrameElementSpec extends BaseElementSpec {
   on_gui_location_changed?: (this: void, event: OnGuiLocationChangedEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: FrameGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: FrameStyleMod
 }
@@ -191,6 +203,7 @@ export interface LabelElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: LabelGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: LabelStyleMod
 }
@@ -201,6 +214,7 @@ export interface LineElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: LineGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -217,6 +231,7 @@ export interface MinimapElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: MinimapGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -227,6 +242,7 @@ export interface ProgressBarElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: ProgressBarGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: ProgressBarStyleMod
 }
@@ -237,6 +253,7 @@ export interface RadioButtonElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: RadioButtonGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -253,6 +270,7 @@ export interface SliderElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: SliderGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -264,6 +282,7 @@ export interface SpriteElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: SpriteGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: SpriteStyleMod
 }
@@ -279,6 +298,7 @@ export interface SwitchElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: SwitchGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: BaseStyleMod
 }
@@ -289,6 +309,7 @@ export interface TabElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: TabGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: TabStyleMod
 }
@@ -304,6 +325,7 @@ export interface TableElementSpec extends BaseElementSpec {
   on_gui_click?: (this: void, event: OnGuiClickEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: TableGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: TableStyleMod
 }
@@ -321,6 +343,7 @@ export interface TextFieldElementSpec extends BaseElementSpec {
   on_gui_confirmed?: (this: void, event: OnGuiConfirmedEvent) => void
   on_gui_opened?: (this: void, event: OnGuiOpenedEvent) => void
   on_gui_closed?: (this: void, event: OnGuiClosedEvent) => void
+  onCreate?: (this: void, element: TextFieldGuiElementMembers) => void
   children?: ElementSpec[]
   styleMod?: TextFieldStyleMod
 }

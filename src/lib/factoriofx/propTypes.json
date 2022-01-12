@@ -78,5 +78,8 @@
   "allow_decimal": [true, true],
   "allow_negative": [true, true],
   "is_password": [true, true],
-  "lose_focus_on_confirm": [true, true]
+  "lose_focus_on_confirm": [true, true],
+  "children": null,
+  "onCreate": null,
+  "styleMod": null
 }

@@ -114,15 +114,14 @@ export function create<T extends GuiElementType>(
   spec: ElementSpec & { type: T },
 ): ElementInstance<T> {
   const guiSpec: Record<string, any> = {}
-  const toSetOnElem = new LuaTable<string | [string], unknown>()
-  const styleMod = spec.styleMod
+  const elemProps = new LuaTable<string | [string], unknown>()
   const events: ElementInstanceInternal["events"] = {}
 
   // eslint-disable-next-line prefer-const
   for (let [key, value] of pairs(spec)) {
-    if (key === "children" || key === "styleMod") continue // special treatment
     if (typeof value === "function") value = funcRef(value)
     const propProperties = propTypes[key]
+    if (!propProperties) continue
     if (propProperties === "event") {
       if (!(value instanceof Func)) error("Gui event handlers must be a function")
       events[key as GuiEventName] = value
@@ -133,8 +132,8 @@ export function create<T extends GuiElementType>(
     const event = propProperties[2] as GuiEventName | null
     if (!isSpecProp || value instanceof Func) {
       if (!isElemProp) error(`${key} cannot be a source value`)
-      if (typeof isElemProp === "string") toSetOnElem.set([isElemProp], value)
-      else toSetOnElem.set(key, value)
+      if (typeof isElemProp === "string") elemProps.set([isElemProp], value)
+      else elemProps.set(key, value)
       if (event) {
         events[event] = bind(notifySink, {
           key,
@@ -147,7 +146,6 @@ export function create<T extends GuiElementType>(
   }
 
   const nativeElement = parent.add(guiSpec as GuiSpec)
-  const style = nativeElement.style
   const instance: ElementInstanceInternal = {
     nativeElement,
     valid: true,
@@ -158,7 +156,7 @@ export function create<T extends GuiElementType>(
   }
   Elements[nativeElement.player_index][nativeElement.index] = instance
 
-  for (const [key, value] of pairs(toSetOnElem)) {
+  for (const [key, value] of pairs(elemProps)) {
     if (value instanceof Func) {
       if (typeof key !== "object") {
         // simple source
@@ -188,7 +186,9 @@ export function create<T extends GuiElementType>(
     }
   }
 
+  const styleMod = spec.styleMod
   if (styleMod) {
+    const style = nativeElement.style
     for (const [key, value] of pairs(styleMod)) {
       if (value instanceof Func) {
         ;(value as Source<unknown>)(0, bind(setValueSink, { instance, key, value: style }))
@@ -202,6 +202,8 @@ export function create<T extends GuiElementType>(
   if (children) {
     instance.children = children.map((childSpec) => create(nativeElement, childSpec) as ElementInstanceInternal)
   }
+
+  spec.onCreate?.(nativeElement as any)
 
   return instance as ElementInstance<any>
 }

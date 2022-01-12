@@ -331,6 +331,9 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
       set(event, "event")
     }
   }
+  set("children", null)
+  set("onCreate", null)
+  set("styleMod", null)
 
   void writeFile("propTypes.json", JSON.stringify(result), "json")
 }
@@ -353,7 +356,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   function createMembers(
     name: string,
     from: typeof elementSpecs,
-    manualFill: (type: GuiElementType | "base", def: SpecDef) => ts.TypeElement[],
+    manualFill: (type: GuiElementType, def: SpecDef) => ts.TypeElement[],
     events?: Record<GuiElementType, Record<string, string | true>>,
     // genHeritageClause?: (type: GuiElementType | "base", def: SpecDef) => ts.ExpressionWithTypeArguments[] | undefined,
   ) {
@@ -405,7 +408,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
             ),
           )
         }
-      members.push(...manualFill(type as GuiElementType | "base", def))
+      if (type !== "base") members.push(...manualFill(type as GuiElementType, def))
 
       // extends BaseElementSpec
       const superTypes = [
@@ -435,6 +438,33 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
     "ElementSpec",
     elementSpecs,
     (type) => [
+      ts.factory.createPropertySignature(
+        undefined,
+        "onCreate",
+        ts.factory.createToken(ts.SyntaxKind.QuestionToken),
+        ts.factory.createFunctionTypeNode(
+          undefined,
+          [
+            ts.factory.createParameterDeclaration(
+              undefined,
+              undefined,
+              undefined,
+              "this",
+              undefined,
+              ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
+            ),
+            ts.factory.createParameterDeclaration(
+              undefined,
+              undefined,
+              undefined,
+              "element",
+              undefined,
+              ts.factory.createTypeReferenceNode(toPascalCase(type) + "GuiElementMembers"),
+            ),
+          ],
+          ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
+        ),
+      ),
       ts.factory.createPropertySignature(
         undefined,
         "children",
@@ -469,5 +499,4 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
 
 // todo:
 // ref
-// on_create
 // tabs

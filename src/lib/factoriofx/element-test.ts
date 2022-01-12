@@ -241,73 +241,82 @@ describe("destroy", () => {
   })
 })
 
-describe("events", () => {
+test("events", () => {
   const actions: unknown[] = []
   const func = (e: unknown) => {
     actions.push(e)
   }
-  test("click event", () => {
-    const spec: ButtonElementSpec = {
-      type: "button",
-      on_gui_click: asFunc(func),
-      on_gui_opened: asFunc(func),
-    }
-    const el = create(parent, spec)
-    element = el.nativeElement
+  const spec: ButtonElementSpec = {
+    type: "button",
+    on_gui_click: asFunc(func),
+    on_gui_opened: asFunc(func),
+  }
+  const el = create(parent, spec)
+  element = el.nativeElement
 
-    assert.same([], actions)
+  assert.same([], actions)
 
-    const fakeClickEvent: OnGuiClickEvent = {
-      element: element as LuaGuiElement,
-      name: defines.events.on_gui_click,
-      player_index: element.player_index,
-      tick: game.tick,
-      alt: false,
-      button: defines.mouse_button_type.left,
-      control: false,
-      shift: false,
-    }
-    script.get_event_handler(defines.events.on_gui_click)(fakeClickEvent)
-    assert.same([fakeClickEvent], actions)
+  const fakeClickEvent: OnGuiClickEvent = {
+    element: element as LuaGuiElement,
+    name: defines.events.on_gui_click,
+    player_index: element.player_index,
+    tick: game.tick,
+    alt: false,
+    button: defines.mouse_button_type.left,
+    control: false,
+    shift: false,
+  }
+  script.get_event_handler(defines.events.on_gui_click)(fakeClickEvent)
+  assert.same([fakeClickEvent], actions)
 
-    const fakeOpenEvent: OnGuiOpenedEvent = {
-      element: element as LuaGuiElement,
-      name: defines.events.on_gui_opened,
-      player_index: element.player_index,
-      tick: game.tick,
-      gui_type: defines.gui_type.custom,
-    }
-    script.get_event_handler(defines.events.on_gui_opened)(fakeOpenEvent)
-    assert.same([fakeClickEvent, fakeOpenEvent], actions)
-  })
+  const fakeOpenEvent: OnGuiOpenedEvent = {
+    element: element as LuaGuiElement,
+    name: defines.events.on_gui_opened,
+    player_index: element.player_index,
+    tick: game.tick,
+    gui_type: defines.gui_type.custom,
+  }
+  script.get_event_handler(defines.events.on_gui_opened)(fakeOpenEvent)
+  assert.same([fakeClickEvent, fakeOpenEvent], actions)
 })
 
-describe("state", () => {
-  test("state event", () => {
-    const val = state("one")
-    const spec: TextBoxElementSpec = {
-      type: "text-box",
-      text: val,
-    }
-    const el = create(parent, spec)
-    element = el.nativeElement
+test("state", () => {
+  const val = state("one")
+  const spec: TextBoxElementSpec = {
+    type: "text-box",
+    text: val,
+  }
+  const el = create(parent, spec)
+  element = el.nativeElement
 
-    assert.same("one", val.get())
-    assert.same("one", element.text)
+  assert.same("one", val.get())
+  assert.same("one", element.text)
 
-    element.text = "two"
-    const fakeEvent: OnGuiTextChangedEvent = {
-      element: element as LuaGuiElement,
-      name: defines.events.on_gui_text_changed,
-      player_index: element.player_index,
-      tick: game.tick,
-      text: element.text,
-    }
-    script.get_event_handler(defines.events.on_gui_text_changed)(fakeEvent)
+  element.text = "two"
+  const fakeEvent: OnGuiTextChangedEvent = {
+    element: element as LuaGuiElement,
+    name: defines.events.on_gui_text_changed,
+    player_index: element.player_index,
+    tick: game.tick,
+    text: element.text,
+  }
+  script.get_event_handler(defines.events.on_gui_text_changed)(fakeEvent)
 
-    assert.same("two", val.get())
+  assert.same("two", val.get())
 
-    val.set("three")
-    assert.same("three", element.text)
-  })
+  val.set("three")
+  assert.same("three", element.text)
+})
+
+test("onCreate", () => {
+  let element1: unknown
+  const spec: FlowElementSpec = {
+    type: "flow",
+    onCreate(e) {
+      element1 = e
+    },
+  }
+  const el = create(parent, spec)
+  element = el.nativeElement
+  assert.equal(element1, element)
 })
