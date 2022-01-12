@@ -6,8 +6,10 @@ import {
   SliderElementSpec,
   TextBoxElementSpec,
 } from "./spec-types"
-import { create, destroy, getInstance } from "./element"
+import { destroy, getInstance, render, renderElement } from "./render"
 import { state, testSource } from "../callbags"
+import { ClassComponentSpec, Component, FCSpec } from "./spec"
+import { Classes } from "../references"
 
 let parent: LuaGuiElement
 let element: GuiElementMembers | undefined
@@ -26,7 +28,7 @@ describe("create", () => {
       type: "flow",
       direction: "vertical",
     }
-    const el = create(parent, spec)
+    const el = renderElement(parent, spec)
     element = el.nativeElement
     assert.equal(el, getInstance(element))
   })
@@ -36,7 +38,7 @@ describe("create", () => {
       type: "flow",
       direction: "vertical",
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.same("vertical", element.direction)
   })
 
@@ -46,7 +48,7 @@ describe("create", () => {
       elem_type: "item",
       locked: true,
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.is_true(element.locked)
   })
 
@@ -56,7 +58,7 @@ describe("create", () => {
       type: "flow",
       caption: v,
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.equal("one", element.caption)
     v.set("two")
     assert.equal("two", element.caption)
@@ -68,7 +70,7 @@ describe("create", () => {
       type: "slider",
       value_step: value,
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.equal(1, element.get_slider_value_step())
     value.set(2)
     assert.equal(2, element.get_slider_value_step())
@@ -81,7 +83,7 @@ describe("create", () => {
       minimum_value: value,
       maximum_value: 5,
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.equal(1, element.get_slider_minimum())
     assert.equal(5, element.get_slider_maximum())
     value.set(2)
@@ -96,7 +98,7 @@ describe("create", () => {
       minimum_value: 1,
       maximum_value: value,
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.equal(1, element.get_slider_minimum())
     assert.equal(5, element.get_slider_maximum())
     value.set(6)
@@ -111,7 +113,7 @@ describe("create", () => {
       direction: v as any,
     }
     assert.error(() => {
-      element = create(parent, spec).nativeElement
+      element = renderElement(parent, spec).nativeElement
     })
   })
 
@@ -125,7 +127,7 @@ describe("create", () => {
         },
       ],
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.equal("button", element.children[0].type)
     assert.equal("hi", element.children[0].caption)
   })
@@ -139,7 +141,7 @@ describe("styleMod", () => {
         left_padding: 3,
       },
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.equals(3, element.style.left_padding)
   })
 
@@ -150,7 +152,7 @@ describe("styleMod", () => {
         padding: [3, 3],
       },
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.equals(3, element.style.left_padding)
   })
 
@@ -162,7 +164,7 @@ describe("styleMod", () => {
         padding: value,
       },
     }
-    element = create(parent, spec).nativeElement
+    element = renderElement(parent, spec).nativeElement
     assert.equals(1, element.style.left_padding)
     value.set(2)
     assert.equals(2, element.style.left_padding)
@@ -175,7 +177,7 @@ describe("destroy", () => {
       type: "flow",
       direction: "vertical",
     }
-    const el = create(parent, spec)
+    const el = renderElement(parent, spec)
     element = el.nativeElement
     destroy(el)
     assert.is_false(el.valid)
@@ -186,7 +188,7 @@ describe("destroy", () => {
       type: "flow",
       direction: "vertical",
     }
-    const el = create(parent, spec)
+    const el = renderElement(parent, spec)
     element = el.nativeElement
     destroy(el)
     assert.is_false(element.valid)
@@ -197,7 +199,7 @@ describe("destroy", () => {
       type: "flow",
       direction: "vertical",
     }
-    const el = create(parent, spec)
+    const el = renderElement(parent, spec)
     element = el.nativeElement
     destroy(element)
     assert.is_false(element.valid)
@@ -210,7 +212,7 @@ describe("destroy", () => {
       type: "flow",
       caption: source,
     }
-    const el = create(parent, spec)
+    const el = renderElement(parent, spec)
     element = el.nativeElement
     assert.is_false(source.ended)
     destroy(el)
@@ -233,7 +235,7 @@ describe("destroy", () => {
         },
       ],
     }
-    const el = create(parent, spec)
+    const el = renderElement(parent, spec)
     element = el.nativeElement
     assert.is_false(source.ended)
     destroy(el)
@@ -251,7 +253,7 @@ test("events", () => {
     on_gui_click: asFunc(func),
     on_gui_opened: asFunc(func),
   }
-  const el = create(parent, spec)
+  const el = renderElement(parent, spec)
   element = el.nativeElement
 
   assert.same([], actions)
@@ -286,7 +288,7 @@ test("state", () => {
     type: "text-box",
     text: val,
   }
-  const el = create(parent, spec)
+  const el = renderElement(parent, spec)
   element = el.nativeElement
 
   assert.same("one", val.get())
@@ -316,7 +318,68 @@ test("onCreate", () => {
       element1 = e
     },
   }
-  const el = create(parent, spec)
+  const el = renderElement(parent, spec)
   element = el.nativeElement
   assert.equal(element1, element)
+})
+
+test("function component", () => {
+  const results: unknown[] = []
+  function Component(props: { cb: (this: void, element: GuiElementMembers) => void }): FlowElementSpec {
+    results.push("called")
+    return {
+      type: "flow",
+      onCreate: props.cb,
+    }
+  }
+
+  const cb = (element: GuiElementMembers) => {
+    results.push(element.type)
+  }
+
+  const spec: FCSpec<any> = {
+    type: Component,
+    props: { cb },
+  }
+  const el = render(parent, spec)
+  element = el.nativeElement
+
+  assert.same(["called", "flow"], results)
+})
+
+const register = Classes.registerer()
+
+describe("Class component", () => {
+  const results: unknown[] = []
+
+  @register()
+  class Foo extends Component<{ cb: (this: void, element: GuiElementMembers) => void }> {
+    constructor() {
+      super()
+      results.push("constructed")
+    }
+
+    render(): FlowElementSpec {
+      results.push("called")
+      return {
+        type: "flow",
+        onCreate: this.props.cb,
+      }
+    }
+  }
+
+  test("Create", () => {
+    const cb = (element: GuiElementMembers) => {
+      results.push(element.type)
+    }
+
+    const spec: ClassComponentSpec<any> = {
+      type: Foo,
+      props: { cb },
+    }
+    const el = render(parent, spec)
+    element = el.nativeElement
+
+    assert.same(["constructed", "called", "flow"], results)
+  })
 })

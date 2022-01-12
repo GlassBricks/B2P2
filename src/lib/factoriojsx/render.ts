@@ -4,12 +4,14 @@ import { bind, Func, funcRef, Functions } from "../references"
 import { CallbagMsg, SinkSource, Source, Talkback } from "../callbags"
 import { shallowCopy } from "../_util"
 import { PlayerData } from "../player-data"
-import { GuiEventName } from "./gui-event-types"
 import { PRecord } from "../util-types"
 import Events from "../Events"
+import { ClassComponentSpec, Element, FCSpec } from "./spec"
 
-export interface ElementInstance<T extends GuiElementType> {
-  readonly nativeElement: Extract<GuiElementMembers, { type: T }>
+type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
+
+export interface ElementInstance<T extends GuiElementType = GuiElementType> {
+  readonly nativeElement: Extract<LuaGuiElement, { type: T }>
   readonly playerIndex: number
   readonly index: number
   readonly valid: boolean
@@ -109,7 +111,23 @@ Functions.register({ setValueSink, callMethodSink, setSliderMinMaxSink, notifySi
 type GuiUnitNumber = number
 const Elements = PlayerData<Record<GuiUnitNumber, ElementInstanceInternal>>("gui:Elements", () => ({}))
 
-export function create<T extends GuiElementType>(
+const type = _G.type
+export function render(parent: LuaGuiElement, element: Element): ElementInstance {
+  const elemType = element.type
+  const elemTypeType = type(elemType)
+  if (elemTypeType === "string") {
+    return renderElement(parent, element as ElementSpec)
+  }
+  if (elemTypeType === "table") {
+    return renderClassComponent(parent, element as ClassComponentSpec<any>)
+  }
+  if (elemTypeType === "function") {
+    return renderFunctionComponent(parent, element as FCSpec<any>)
+  }
+  error("Unknown element spec" + serpent.block(element))
+}
+
+export function renderElement<T extends GuiElementType>(
   parent: LuaGuiElement,
   spec: ElementSpec & { type: T },
 ): ElementInstance<T> {
@@ -119,9 +137,9 @@ export function create<T extends GuiElementType>(
 
   // eslint-disable-next-line prefer-const
   for (let [key, value] of pairs(spec)) {
-    if (typeof value === "function") value = funcRef(value)
     const propProperties = propTypes[key]
     if (!propProperties) continue
+    if (typeof value === "function") value = funcRef(value)
     if (propProperties === "event") {
       if (!(value instanceof Func)) error("Gui event handlers must be a function")
       events[key as GuiEventName] = value
@@ -200,12 +218,22 @@ export function create<T extends GuiElementType>(
 
   const children = spec.children
   if (children) {
-    instance.children = children.map((childSpec) => create(nativeElement, childSpec) as ElementInstanceInternal)
+    instance.children = children.map((childSpec) => render(nativeElement, childSpec) as ElementInstanceInternal)
   }
 
   spec.onCreate?.(nativeElement as any)
 
   return instance as ElementInstance<any>
+}
+
+function renderFunctionComponent<T>(parent: LuaGuiElement, spec: FCSpec<T>) {
+  return renderElement(parent, spec.type(spec.props))
+}
+
+function renderClassComponent<T>(parent: LuaGuiElement, spec: ClassComponentSpec<T>) {
+  const instance = new spec.type()
+  instance.props = spec.props
+  return render(parent, instance.render())
 }
 
 export function destroy(element: ElementInstance<any> | GuiElementMembers): void {
@@ -242,8 +270,6 @@ export function getInstance<T extends GuiElementType>(
 }
 
 // -- gui events --
-type GuiEventId = typeof defines.events[GuiEventName]
-
 const guiEventNames: Record<GuiEventName, true> = {
   on_gui_click: true,
   on_gui_opened: true,
@@ -258,13 +284,10 @@ const guiEventNames: Record<GuiEventName, true> = {
   on_gui_confirmed: true,
   on_gui_text_changed: true,
 }
-const guiEventNameMapping: Record<GuiEventId, GuiEventName> = {}
-for (const [guiEventName] of pairs(guiEventNames)) {
-  guiEventNameMapping[defines.events[guiEventName]] = guiEventName
-}
 
 const _getInstance = getInstance
-for (const [id, name] of pairs(guiEventNameMapping)) {
+for (const [name] of pairs(guiEventNames)) {
+  const id = defines.events[name]
   Events.on(id, (e) => {
     const element = e.element
     if (!element) return

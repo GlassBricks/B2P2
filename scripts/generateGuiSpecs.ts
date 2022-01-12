@@ -31,10 +31,10 @@ type GuiElementType =
   | "table"
   | "textfield"
 
-const outDir = path.resolve(__dirname, "../src/lib/factoriofx")
+const outDir = path.resolve(__dirname, "../src/lib/factoriojsx")
 const indexFileName = path.resolve(__dirname, "../node_modules/typed-factorio/index.d.ts")
 const classesFileName = path.resolve(__dirname, "../node_modules/typed-factorio/generated/classes.d.ts")
-const guiEventsFileName = path.resolve(outDir, "gui-event-types.d.ts")
+const guiEventsFileName = path.resolve(__dirname, "gui-event-types.d.ts")
 
 const program = ts.createProgram({
   rootNames: [classesFileName, indexFileName, guiEventsFileName],
@@ -266,6 +266,11 @@ const stateProps = {} as Record<GuiElementType, Record<string, string>>
     }
     styleMods[type] = styleResult
   }
+  elementSpecs.base.children = {
+    name: "children",
+    type: "Element[]",
+    optional: true,
+  }
 }
 
 function getPropName(name: string): string | ts.StringLiteral {
@@ -321,6 +326,10 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   for (const type of guiElementTypes) {
     for (const [name, attr] of Object.entries(elementSpecs[type])) {
       const value = [attr.add, attr.element]
+      if (!attr.add && !attr.element) {
+        set(name, null)
+        continue
+      }
       if (type !== "base" && stateProps[type][name]) {
         value.push(stateProps[type][name])
       }
@@ -331,7 +340,6 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
       set(event, "event")
     }
   }
-  set("children", null)
   set("onCreate", null)
   set("styleMod", null)
 
@@ -467,12 +475,6 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
       ),
       ts.factory.createPropertySignature(
         undefined,
-        "children",
-        ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-        ts.factory.createArrayTypeNode(ts.factory.createTypeReferenceNode("ElementSpec")),
-      ),
-      ts.factory.createPropertySignature(
-        undefined,
         "styleMod",
         ts.factory.createToken(ts.SyntaxKind.QuestionToken),
         ts.factory.createTypeReferenceNode((type in styleMods ? toPascalCase(type) : "Base") + "StyleMod"),
@@ -493,7 +495,10 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   )
   createMembers("StyleMod", styleMods, () => [])
 
-  const header = `import { MaybeSource, MaybeSinkSource } from "../callbags"\n\n`
+  const header = `import { MaybeSource, MaybeSinkSource } from "../callbags"
+import { Element } from "./spec"
+
+`
   printFile("spec-types.d.ts", header, statements)
 }
 

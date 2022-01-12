@@ -1,6 +1,6 @@
 import Events from "./Events"
 import "./callbags"
-import "./factoriofx"
+import "./factoriojsx"
 
 export * from "./references"
 export * from "./player-data"

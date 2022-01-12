@@ -1,5 +1,3 @@
-type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
-
 export interface ButtonEvents {
   on_gui_click: true
   on_gui_opened: true
@@ -161,10 +159,4 @@ export interface SwitchEvents {
   on_gui_switch_state_changed: "switch_state"
   on_gui_opened: true
   on_gui_closed: true
-}
-
-export type GuiEventProps<Events> = {
-  [K in keyof Events]?: K extends keyof typeof defines.events
-    ? (this: void, data: typeof defines.events[K]["_eventData"]) => void
-    : never
 }

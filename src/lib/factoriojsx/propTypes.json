@@ -10,6 +10,7 @@
   "tags": [true, null],
   "anchor": [true, true],
   "location": [null, true],
+  "children": null,
   "elem_type": [true, null],
   "elem_filters": [true, true],
   "elem_value": [null, true, "on_gui_elem_changed"],
@@ -79,7 +80,6 @@
   "allow_negative": [true, true],
   "is_password": [true, true],
   "lose_focus_on_confirm": [true, true],
-  "children": null,
   "onCreate": null,
   "styleMod": null
 }

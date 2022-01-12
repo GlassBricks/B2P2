@@ -9,7 +9,8 @@ if (script.active_mods.testorio) {
       "lib/callbags/callbag-test",
       "lib/callbags/state-test.ts",
       "lib/player-data-test",
-      "lib/factoriofx/element-test",
+      "lib/factoriojsx/render-test",
+      "lib/factoriojsx/jsx-test",
     ],
     {
       tag_blacklist: ["after_mod_reload"],
