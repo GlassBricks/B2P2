@@ -392,14 +392,6 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
                 undefined,
                 undefined,
                 undefined,
-                "this",
-                undefined,
-                ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
-              ),
-              ts.factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                undefined,
                 "event",
                 undefined,
                 ts.factory.createTypeReferenceNode(toPascalCase(name) + "Event"),
@@ -453,14 +445,6 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
         ts.factory.createFunctionTypeNode(
           undefined,
           [
-            ts.factory.createParameterDeclaration(
-              undefined,
-              undefined,
-              undefined,
-              "this",
-              undefined,
-              ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
-            ),
             ts.factory.createParameterDeclaration(
               undefined,
               undefined,

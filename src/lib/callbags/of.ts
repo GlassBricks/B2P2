@@ -32,7 +32,7 @@ function tb(
   }
 }
 
-Functions.register({ source, tb })
+Functions.registerAll({ source, tb })
 
 const of = <T>(...values: T[]): Source<T> => bind(source, { values, completed: false, nextIndex: 1 }) as Source<T>
 export default of

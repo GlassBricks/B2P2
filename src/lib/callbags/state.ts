@@ -1,5 +1,5 @@
 import { shallowCopy } from "../_util"
-import { bind, Classes, Func, Functions } from "../references"
+import { bind, bound, Classes, Functions } from "../references"
 import { CallbagMsg, PushSink, Sink, SinkSource, Source, START, Talkback, TbMsg } from "./callbag"
 
 export interface NullableState<T> extends SinkSource<T | undefined> {
@@ -81,7 +81,7 @@ function bouncerTb(this: { outSink?: Sink<any> }, type: TbMsg) {
   }
 }
 
-Functions.register({ bouncer, bouncerTb })
+Functions.registerAll({ bouncer, bouncerTb })
 
 export function diff<T>(from: T, to: T): ChangeTrace<T> | undefined {
   if (from === to) return undefined
@@ -125,20 +125,21 @@ export function postTrace<T>(change: Change<T>): Change<T> {
   return change
 }
 
-@Classes.registerDefault()
-class StateImpl<T> extends Func<any> implements State<T> {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface StateImpl<T> extends SinkSource<T> {}
+
+@Classes.register()
+class StateImpl<T> implements State<T> {
   private value: T
   private sinks = new LuaTable<object, Sink<Change<T>>>()
 
   private readonly upstream: Upstream<T>
   private dsTalkback?: Talkback
-  readonly changes: Downstream<T>
 
   constructor(initialValue: T)
   constructor(parent: StateImpl<Record<keyof any, T>>, key: keyof any)
 
   constructor(first: T | StateImpl<Record<keyof any, T> | undefined>, key?: keyof any) {
-    super()
     let parentDownstream: Downstream<T | undefined>
     if (key !== undefined) {
       const parent = first as StateImpl<Record<keyof any, T> | undefined>
@@ -159,8 +160,7 @@ class StateImpl<T> extends Func<any> implements State<T> {
       parentDownstream = b
     }
 
-    parentDownstream(0, (this as StateImpl<T>).ref("parentDownstreamSink"))
-    this.changes = (this as StateImpl<T>).ref("downstream")
+    parentDownstream(0, this.parentDownstreamSink)
   }
 
   get(): T {
@@ -179,7 +179,8 @@ class StateImpl<T> extends Func<any> implements State<T> {
     }
   }
 
-  parentDownstreamSink(type: CallbagMsg, data?: any): void {
+  @bound
+  private parentDownstreamSink(type: CallbagMsg, data?: any): void {
     if (type === 0) {
       this.dsTalkback = data
     } else if (type === 1) {
@@ -193,7 +194,8 @@ class StateImpl<T> extends Func<any> implements State<T> {
     }
   }
 
-  downstream(type: START, sink: Sink<Change<T>>) {
+  @bound
+  changes(type: START, sink: Sink<Change<T>>) {
     if (type !== 0) return
     const key = {}
     this.sinks.set(key, sink)
@@ -212,9 +214,9 @@ class StateImpl<T> extends Func<any> implements State<T> {
     }
   }
 
-  protected __call(type: CallbagMsg, data?: any): void {
+  protected __call(thisArg: unknown, type: CallbagMsg, data?: any): void {
     if (type === 0) {
-      this.downstream(0, bind(StateImpl.passValueSink, { state: this, sink: data }))
+      this.changes(0, bind(StateImpl.passValueSink, { state: this, sink: data }))
     } else if (type === 1) {
       this.set(data)
     } else if (type === 2) {

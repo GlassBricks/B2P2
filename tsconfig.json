@@ -21,7 +21,8 @@
   "tstl": {
     "luaTarget": "5.2",
     "noResolvePaths": ["__testorio__/init"],
-    "noImplicitSelf": true
+    "noImplicitSelf": true,
+    "sourceMapTraceback": true
   },
   "include": [
     "src"

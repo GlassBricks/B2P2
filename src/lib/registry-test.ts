@@ -10,8 +10,8 @@ test("Can register function", () => {
 
 test("error on duplicate func", () => {
   assert.error(() => {
-    Functions.registerAs("foo", () => 0)
-    Functions.registerAs("foo", () => 0)
+    Functions.registerAs("foo" as FuncName, () => 0)
+    Functions.registerAs("foo" as FuncName, () => 0)
   })
 })
 
@@ -23,6 +23,6 @@ test("error on nonexistent func", () => {
 
 test("Error when registering after load", () => {
   assert.error(() => {
-    Functions.registerAs("foo", func)
+    Functions.registerAs("foo" as FuncName, func)
   })
 })

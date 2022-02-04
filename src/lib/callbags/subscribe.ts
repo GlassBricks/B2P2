@@ -26,7 +26,7 @@ function sink<T>(this: SinkInstance<T>, type: START | DATA | END, data?: any) {
   }
 }
 
-Functions.register({ sink })
+Functions.registerAll({ sink })
 
 const subscribe =
   <T>(observer: Observer<T>) =>

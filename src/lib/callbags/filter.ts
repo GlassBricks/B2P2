@@ -33,7 +33,7 @@ function filterSource<T>(
   this.source(0, bind(filterSink, { sink, predicate: this.predicate }))
 }
 
-Functions.register({ filterSink, filterSource })
+Functions.registerAll({ filterSink, filterSource })
 
 const filter =
   <T>(predicate: Func<(value: T) => boolean>) =>

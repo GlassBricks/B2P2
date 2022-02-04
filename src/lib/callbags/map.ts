@@ -18,7 +18,7 @@ function mapSource<T, R>(this: { source: Source<T>; func: Func<(value: T) => R> 
   this.source(0, bind(mapSink, { sink, func: this.func }))
 }
 
-Functions.register({ mapSink, mapSource })
+Functions.registerAll({ mapSink, mapSource })
 
 const map =
   <T, R>(func: Func<(value: T) => R>) =>

@@ -70,7 +70,7 @@ describe("Create simple", () => {
     assert.equal("flow", element.bob!.type)
   })
 
-  @Classes.registerDefault()
+  @Classes.register()
   class FooClass extends Component<{ me?: string; children?: Element }> {
     render(): Element {
       return <flow caption={this.props.me}>{this.props.children}</flow>

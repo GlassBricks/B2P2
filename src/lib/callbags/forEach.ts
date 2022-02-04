@@ -18,7 +18,7 @@ function sink<T>(
   }
 }
 
-Functions.register({ sink })
+Functions.registerAll({ sink })
 
 const forEach =
   <T>(consumer: (item: T) => void) =>
