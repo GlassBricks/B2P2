@@ -11,6 +11,8 @@ if (script.active_mods.testorio) {
       "lib/player-data-test",
       "lib/factoriojsx/render-test",
       "lib/factoriojsx/jsx-test",
+      "utility/pair-test",
+      "utility/position-test",
     ],
     {
       tag_blacklist: ["after_mod_reload"],

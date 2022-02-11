@@ -32,6 +32,8 @@
     "@typescript-eslint/no-var-requires": "off",
     "import/prefer-default-export": "off",
     "import/no-namespace": "off",
+    "import/no-unresolved": "off",
+    "import/export": "off",
     // modifications/weakening
     "@typescript-eslint/no-inferrable-types": [
       "warn", {
