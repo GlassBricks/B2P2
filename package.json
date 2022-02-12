@@ -7,6 +7,7 @@
     "@types/prettier": "^2.4.3",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
+    "configparser": "^0.3.9",
     "del-cli": "^4.0.1",
     "eslint": "^8.8.0",
     "eslint-config-esnext": "^4.1.0",
@@ -31,6 +32,7 @@
   "scripts": {
     "build": "tstl",
     "watch": "tstl --watch",
-    "clean": "del-cli \"**/*.lua\" \"!**/*.def.lua\" \"!**/node_modules/**\""
+    "clean": "del-cli \"**/*.lua\" \"!**/*.def.lua\" \"!**/node_modules/**\"",
+    "gen-locale-defs": "ts-node scripts/gen-locale-defs.ts"
   }
 }
