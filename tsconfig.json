@@ -16,7 +16,8 @@
     "outDir": "src",
     "resolveJsonModule": true,
     "jsx": "react",
-    "jsxFactory": "FactorioJsx.createElement"
+    "jsxFactory": "FactorioJsx.createElement",
+    "skipLibCheck": true
   },
   "tstl": {
     "luaTarget": "5.2",
@@ -24,8 +25,6 @@
     "noImplicitSelf": true,
     "sourceMapTraceback": true
   },
-  "include": [
-    "src"
-  ],
+  "include": ["src", "node_modules/typed-factorio/runtime/index.d.ts"],
   "exclude": []
 }
