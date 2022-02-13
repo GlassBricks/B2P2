@@ -1,4 +1,4 @@
-import { NumberPair, pair, unpair } from "./number-pair"
+import { NumberPair, pair } from "./number-pair"
 import { DOWN, LEFT, RIGHT, UP } from "./rotation"
 
 // Down is positive y, right is positive x
@@ -62,6 +62,10 @@ export class PosClass implements PositionTable {
     return pair(this.x, this.y)
   }
 
+  equals(position: PositionTable): boolean {
+    return this.x === position.x && this.y === position.y
+  }
+
   rotateAboutOrigin(direction: defines.direction): PosClass {
     if (direction === UP) return this
     if (direction === DOWN) return pos(-this.x, -this.y)
@@ -73,17 +77,16 @@ export class PosClass implements PositionTable {
 const proto = PosClass.prototype as LuaMetatable<any>
 
 namespace pos {
-  export function loada(position: PositionTable): asserts position is PosClass {
+  export function load(position: PositionTable): asserts position is PosClass {
     setmeta(position, proto)
   }
 
-  export function load(position: PositionTable): PosClass {
-    return setmeta(position, proto)
+  export function from(position: PositionTable): PosClass {
+    return setmeta({ x: position.x, y: position.y }, proto)
   }
 
-  export function fromPair(pair: NumberPair): PosClass {
-    const [x, y] = unpair(pair)
-    return pos(x, y)
+  export function equals(a: PositionTable, b: PositionTable): boolean {
+    return a.x === b.x && a.y === b.y
   }
 }
 

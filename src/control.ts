@@ -13,6 +13,7 @@ if (script.active_mods.testorio) {
       "lib/factoriojsx/jsx-test",
       "utility/pair-test",
       "utility/position-test",
+      "blueprint/entity-info-test",
     ],
     {
       tag_blacklist: ["after_mod_reload"],

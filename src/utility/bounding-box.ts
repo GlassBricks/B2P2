@@ -25,6 +25,13 @@ export class BoundingBoxClass implements BoundingBoxRead {
     return bbox({ x: left_top.x + bx, y: left_top.y + by }, { x: right_bottom.x + bx, y: right_bottom.y + by })
   }
 
+  shiftToOrigin(): BoundingBoxClass {
+    const { left_top, right_bottom } = this
+    const { x: bx, y: by } = left_top
+
+    return bbox({ x: 0, y: 0 }, { x: right_bottom.x - bx, y: right_bottom.y - by })
+  }
+
   roundTile(): BoundingBoxClass {
     const { left_top, right_bottom } = this
     return bbox(
@@ -115,8 +122,17 @@ namespace bbox {
     return bbox({ x: point.x - radius, y: point.y - radius }, { x: point.x + radius, y: point.y + radius })
   }
 
-  export function load(data: BoundingBoxRead): BoundingBoxClass {
-    return setmeta(data, proto)
+  export function from(data: BoundingBoxRead): BoundingBoxClass {
+    return setmeta(
+      {
+        left_top: data.left_top,
+        right_bottom: data.right_bottom,
+      },
+      proto,
+    )
+  }
+  export function corners(lx: number, ly: number, rx: number, ry: number): BoundingBoxClass {
+    return bbox({ x: lx, y: ly }, { x: rx, y: ry })
   }
 }
 

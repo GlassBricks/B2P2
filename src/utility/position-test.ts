@@ -1,7 +1,7 @@
 import { pos } from "./position"
-import { pair, unpair } from "./number-pair"
 import { bbox } from "./bounding-box"
 import { DOWN, LEFT, RIGHT, UP } from "./rotation"
+import { unpair } from "./number-pair"
 
 describe("position", () => {
   test("create", () => {
@@ -9,14 +9,14 @@ describe("position", () => {
     assert.same({ x: 1, y: 2 }, position)
   })
 
-  test("loada", () => {
+  test("load", () => {
     const position = { x: 3, y: 4 }
-    pos.loada(position)
+    pos.load(position)
     assert.equal(5, position.length())
   })
 
-  test("loadr", () => {
-    const position = pos.load({ x: 3, y: 4 })
+  test("from", () => {
+    const position = pos.from({ x: 3, y: 4 })
     assert.equal(5, position.length())
   })
 
@@ -111,16 +111,30 @@ describe("position", () => {
     assert.equal(4, y)
   })
 
-  test("fromPair", () => {
-    const p = pair(3, 4)
-    const position = pos.fromPair(p)
-    assert.same({ x: 3, y: 4 }, position)
+  test("equals", () => {
+    const position = pos(1, 2)
+    const position2 = { x: 1, y: 2 }
+    const position3 = { x: 2, y: 2 }
+    assert.is_true(position.equals(position2))
+    assert.is_false(position.equals(position3))
   })
 })
 
 describe("bounding box", () => {
   test("create", () => {
     const box = bbox({ x: 1, y: 2 }, { x: 3, y: 4 })
+    assert.same({ x: 1, y: 2 }, box.left_top)
+    assert.same({ x: 3, y: 4 }, box.right_bottom)
+  })
+
+  test("from", () => {
+    const box = bbox.from({ left_top: { x: 1, y: 2 }, right_bottom: { x: 3, y: 4 } })
+    assert.same({ x: 1, y: 2 }, box.left_top)
+    assert.same({ x: 3, y: 4 }, box.right_bottom)
+  })
+
+  test("corners", () => {
+    const box = bbox.corners(1, 2, 3, 4)
     assert.same({ x: 1, y: 2 }, box.left_top)
     assert.same({ x: 3, y: 4 }, box.right_bottom)
   })
