@@ -1,20 +1,28 @@
-let itemStack: BlueprintItemStack | undefined
+declare const global: {
+  __testItemStack: BlueprintItemStack | undefined
+}
+
+export function getBPItemStack(): BlueprintItemStack {
+  if (global.__testItemStack === undefined) {
+    global.__testItemStack = game.create_inventory(1)[0]
+    global.__testItemStack.set_stack("blueprint")
+  }
+  return global.__testItemStack
+}
 
 export function getBlueprintEntities(
-  surface: SurfaceIdentification,
   area: BoundingBox,
+  surface: SurfaceIdentification = 1,
   force: ForceIdentification = "player",
 ): BlueprintEntityRead[] {
-  if (itemStack === undefined) {
-    itemStack = game.create_inventory(1)[0]
-    itemStack.set_stack("blueprint")
-  }
+  const itemStack = getBPItemStack()
   itemStack.create_blueprint({
     surface,
     area,
     force,
   })
   itemStack.blueprint_snap_to_grid = [1, 1]
+  itemStack.blueprint_absolute_snapping = true
   return itemStack.get_blueprint_entities() ?? []
 }
 

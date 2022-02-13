@@ -1,4 +1,4 @@
-import { shallowCopy } from "../_util"
+import { shallowCopy } from "../util"
 import { bind, bound, Classes, Functions } from "../references"
 import { CallbagMsg, PushSink, Sink, SinkSource, Source, START, Talkback, TbMsg } from "./callbag"
 

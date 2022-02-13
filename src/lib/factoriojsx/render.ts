@@ -1,4 +1,4 @@
-import { shallowCopy } from "../_util"
+import { shallowCopy } from "../util"
 import { CallbagMsg, SinkSource, Source, Talkback } from "../callbags"
 import Events from "../Events"
 import { PlayerData } from "../player-data"

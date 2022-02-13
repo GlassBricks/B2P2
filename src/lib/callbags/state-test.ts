@@ -1,5 +1,5 @@
 import * as util from "util"
-import { shallowCopy } from "../_util"
+import { shallowCopy } from "../util"
 import { observe } from "./index"
 import pipe from "./pipe"
 import { State, state } from "./state"
