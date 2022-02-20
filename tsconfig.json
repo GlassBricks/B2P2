@@ -17,7 +17,6 @@
     "resolveJsonModule": true,
     "jsx": "react",
     "jsxFactory": "FactorioJsx.createElement",
-    "skipLibCheck": true
   },
   "tstl": {
     "luaTarget": "5.2",

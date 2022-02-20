@@ -140,7 +140,7 @@ export interface ButtonElementSpec extends BaseElementSpec {
 
 export interface CameraElementSpec extends BaseElementSpec {
   type: "camera"
-  position: MaybeSource<Position>
+  position: MaybeSource<MapPosition>
   surface_index?: MaybeSource<uint>
   zoom?: MaybeSource<double>
   entity?: MaybeSource<LuaEntity | undefined>
@@ -207,7 +207,7 @@ export interface LineElementSpec extends BaseElementSpec {
 
 export interface MinimapElementSpec extends BaseElementSpec {
   type: "minimap"
-  position?: MaybeSource<Position>
+  position?: MaybeSource<MapPosition>
   surface_index?: MaybeSource<uint>
   chart_player_index?: uint
   force?: MaybeSource<string | undefined>
