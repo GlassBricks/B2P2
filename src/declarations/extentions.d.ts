@@ -1,10 +1,9 @@
-type Mutable<T> = {
-  -readonly [P in keyof T]: T[P]
-}
+declare type LuaTableAddMethod<TKey extends AnyNotNil> = ((key: TKey) => void) &
+  LuaExtension<"__luaTableAddMethodBrand">
 
 declare interface LuaSet<T extends AnyNotNil> extends LuaPairsIterable<T, true> {
   size: LuaLengthMethod<number>
-  add: LuaTableSetMethod<T, true>
+  add: LuaTableAddMethod<T>
   has: LuaTableHasMethod<T>
   delete: LuaTableDeleteMethod<T>
 }
@@ -22,3 +21,13 @@ declare interface LuaMap<TKey extends AnyNotNil, TValue> extends LuaPairsIterabl
 
 declare const LuaMap: (new <TKey extends AnyNotNil, TValue>() => LuaMap<TKey, TValue>) &
   LuaExtension<"__luaTableNewBrand">
+
+declare type WithMetatable<T, M> = T & {
+  [P in keyof M]: M[P] extends (self: any, ...args: infer A) => infer R ? (this: T, ...args: A) => R : M[P]
+}
+
+declare const luaLength: LuaLength<object, number>
+
+interface BlueprintEntity {
+  readonly recipe?: string
+}

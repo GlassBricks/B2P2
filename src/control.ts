@@ -1,22 +1,32 @@
-import "./lib"
+// import "./lib"
+import { Events } from "./lib"
+
+pcall(require, "debug")
+
+declare function __getTestFiles(): string[]
 
 if (script.active_mods.testorio) {
-  require("__testorio__/init")(
-    [
-      "lib/Events-test",
-      "lib/registry-test",
-      "lib/references-test",
-      "lib/callbags/callbag-test",
-      "lib/callbags/state-test.ts",
-      "lib/player-data-test",
-      "lib/factoriojsx/render-test",
-      "lib/factoriojsx/jsx-test",
-      "utility/pair-test",
-      "utility/position-test",
-      "blueprint/entity-info-test",
-    ],
-    {
-      tag_blacklist: ["after_mod_reload"],
+  let testsStarted = false
+  Events.on_game_created_from_scenario(() => {
+    testsStarted = true
+  })
+  Events.on_player_created((p) => {
+    if (!testsStarted) return
+    game.get_player(p.player_index)?.toggle_map_editor()
+    game.tick_paused = false
+  })
+
+  const tagBlacklist: string[] = []
+  if (script.active_mods.debugadapter) {
+    tagBlacklist.push("after_mod_reload")
+  }
+
+  require("__testorio__/init")(__getTestFiles(), {
+    tag_blacklist: tagBlacklist,
+    log_skipped_tests: true,
+    before_test_run() {
+      const force = game.forces.player
+      force.enable_all_recipes()
     },
-  )
+  } as Testorio.Config)
 }

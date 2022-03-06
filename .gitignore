@@ -124,3 +124,6 @@ dist
 
 **/*.lua
 !**/*.def.lua
+
+tstlPlugin/*.js
+tstlPlugin/*.js.map
