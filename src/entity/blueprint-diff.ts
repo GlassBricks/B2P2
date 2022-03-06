@@ -1,43 +1,33 @@
-import { Blueprint, BlueprintDiff, EntityGridBuilder } from "./EntityGrid"
-import { compareEntities } from "./entity-diff"
-import { BasicEntity } from "./Entity"
+import { BasicBlueprint, BlueprintDiff, MutableBlueprintDiff } from "./EntityGrid"
+import { compareCompatibleEntities, findCompatibleOrOverlappingEntity } from "./entity-diff"
+import { createDeleteEntity } from "./Entity"
 
-export function compareBlueprints(old: Blueprint, cur: Blueprint): BlueprintDiff {
-  const changes = new EntityGridBuilder()
-  const deletions = new EntityGridBuilder<BasicEntity>()
-
+export function compareBlueprints(old: BasicBlueprint, cur: BasicBlueprint): BlueprintDiff {
+  const diff = new MutableBlueprintDiff()
   const present: Record<number, true> = {}
 
   // find added or updated entities
   for (const [, entity] of pairs(cur.byEntityNumber)) {
-    const pos = entity.tileBox.left_top
-    // see if entity in same position in old assembly
-    const oldEntity = old.getAtPos(pos.x, pos.y)
-    if (!oldEntity) {
-      changes.add(entity)
+    const existing = findCompatibleOrOverlappingEntity(old, entity)
+    if (!existing || existing === "overlap") {
+      // entity is new
+      diff.add(entity)
     } else {
-      const update = compareEntities(oldEntity, entity)
-      if (update === "incompatible") {
-        // consider as new entity
-        changes.add(entity)
-      } else {
-        present[oldEntity.entity_number] = true
-        if (update) {
-          changes.add(update)
-        }
+      present[existing.entity_number] = true
+      const update = compareCompatibleEntities(existing, entity)
+      if (update) {
+        // entity is updated
+        diff.add(update)
       }
     }
   }
   // find removed entities
   for (const [number, entity] of pairs(old.byEntityNumber)) {
     if (!present[number]) {
-      deletions.add(entity)
+      diff.add(createDeleteEntity(entity))
     }
   }
-  return {
-    changes,
-    deletions,
-  }
+  return diff
 }
 
 //
@@ -60,7 +50,7 @@ export function compareBlueprints(old: Blueprint, cur: Blueprint): BlueprintDiff
 //     // check for any overlaps in entire tile box
 //     let matched = false
 //     for (const [x, y] of bbox.iterateTiles(newEntity.tileBox)) {
-//       const oldEntity = below.getAtPos(x, y)
+//       const oldEntity = below.getAt(x, y)
 //       if (!oldEntity) continue
 //       matched = true
 //

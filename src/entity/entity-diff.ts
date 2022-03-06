@@ -1,9 +1,18 @@
 import { compare, isEmpty } from "../lib/util"
 import { getEntityInfo } from "./entity-info"
 import * as util from "util"
-import { AnyEntity, createUpdateEntity, UpdateableEntityProp, UpdateableProps, UpdateEntity } from "./Entity"
+import {
+  AnyEntity,
+  BasicEntity,
+  createUpdateEntity,
+  UpdateableEntityProp,
+  UpdateableProps,
+  UpdateEntity,
+} from "./Entity"
 import { pos } from "../lib/geometry/position"
 import { UP } from "../lib/geometry/rotation"
+import { BasicBlueprint } from "./EntityGrid"
+import { bbox } from "../lib/geometry/bounding-box"
 
 const oppositedirection = util.oppositedirection
 export function isCompatibleEntity(old: AnyEntity, cur: AnyEntity): boolean {
@@ -33,9 +42,14 @@ export function isCompatibleEntity(old: AnyEntity, cur: AnyEntity): boolean {
  * @returns The string "incompatible" if they are not compatible, undefined if there are no changes, {@link UpdateEntity}
  *   if there are changes
  */
-export function compareEntities(old: AnyEntity, cur: AnyEntity): UpdateEntity | "incompatible" | undefined {
+export function compareEntities(old: BasicEntity, cur: BasicEntity): UpdateEntity | "incompatible" | undefined {
   if (!isCompatibleEntity(old, cur)) return "incompatible"
+  return compareCompatibleEntities(old, cur)
+}
 
+/** This assumes the entities are compatible. */
+export function compareCompatibleEntities(old: AnyEntity, cur: AnyEntity): UpdateEntity | undefined {
+  // assume compatible
   const changedProps = new LuaSet<UpdateableEntityProp>()
   for (const [prop] of pairs(UpdateableProps)) {
     if (!compare(old[prop], cur[prop])) {
@@ -43,9 +57,39 @@ export function compareEntities(old: AnyEntity, cur: AnyEntity): UpdateEntity | 
     }
   }
   if (isEmpty(changedProps)) return undefined
-
   return createUpdateEntity(cur, changedProps)
 }
+
+/**
+ * Tries to find an entity in the blueprint that is compatible with the given entity.
+ *
+ * Returns the string "overlap" if there is no compatible entity but another entity overlaps. Returns undefined if there
+ * is no compatible entity and no other entity overlaps.
+ */
+export function findCompatibleOrOverlappingEntity(
+  blueprint: BasicBlueprint,
+  entity: BasicEntity,
+): BasicEntity | "overlap" | undefined {
+  const matchCandidates = blueprint.getAt(entity.position)
+  if (matchCandidates) {
+    for (const [candidate] of matchCandidates) {
+      if (isCompatibleEntity(candidate, entity)) {
+        return candidate
+      }
+    }
+    return "overlap"
+  }
+  // search for overlaps
+  const box = entity.tileBox
+  for (const [x, y] of bbox.iterateTiles(box)) {
+    const entities = blueprint.getAt(pos(x, y))
+    if (entities && !isEmpty(entities)) {
+      return "overlap"
+    }
+  }
+  return undefined
+}
+
 //
 // export interface EntityPasteResult {
 //   entity: AssemblyEntity

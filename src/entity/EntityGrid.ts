@@ -1,37 +1,43 @@
-import { AnyEntity, BasicEntity, createBasicEntity, withEntityNumber } from "./Entity"
+import { AnyEntity, BasicEntity, createBasicEntity, DeleteEntity, UpdateEntity, withEntityNumber } from "./Entity"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { RRecord } from "../lib/util-types"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { mutate, shallowCopy } from "../lib/util"
+import { isEmpty, mutate, shallowCopy } from "../lib/util"
 import { pos } from "../lib/geometry/position"
 
 export interface EntityGrid<E extends AnyEntity> {
   // todo: off grid entities
-  readonly byPosition: RRecord<NumberPair, E>
+  readonly byPosition: RRecord<NumberPair, LuaSet<E>>
   readonly byEntityNumber: RRecord<number, E>
 
-  getAtPos(x: number, y: number): E | undefined
-  getAsArray(): E[]
+  getAt(pos: MapPositionTable): LuaSet<E> | undefined
+  getAtPos(x: number, y: number): LuaSet<E> | undefined
+  asArray(): E[]
 
   computeBoundingBox(): BoundingBoxClass
 
-  copy(): EntityGridBuilder<E>
+  copy(): MutableEntityGrid<E>
 }
 const min = math.min
 const max = math.max
+const floor = math.floor
 
 @Classes.register()
-export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
+export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
   private nextEntityNumber = 1
-  byPosition: Record<NumberPair, E> = {}
+  byPosition: Record<NumberPair, LuaSet<E>> = {}
   byEntityNumber: Record<number, E> = {}
 
-  getAtPos(x: number, y: number): E | undefined {
-    return this.byPosition[pair(x, y)]
+  getAt(pos: MapPositionTable): LuaSet<E> | undefined {
+    return this.byPosition[pair(floor(pos.x), floor(pos.y))]
   }
 
-  getAsArray(): E[] {
+  getAtPos(x: number, y: number): LuaSet<E> | undefined {
+    return this.byPosition[pair(floor(x), floor(y))]
+  }
+
+  asArray(): E[] {
     return this.byEntityNumber as any
   }
 
@@ -40,22 +46,19 @@ export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
     let minY = Infinity
     let maxX = -Infinity
     let maxY = -Infinity
-    function expandTo(position: MapPositionTable) {
-      minX = min(minX, position.x)
-      minY = min(minY, position.y)
-      maxX = max(maxX, position.x)
-      maxY = max(maxY, position.y)
-    }
     for (const [, entity] of pairs(this.byEntityNumber)) {
       const bbox = entity.tileBox
-      expandTo(bbox.left_top)
-      expandTo(bbox.right_bottom)
+      const { left_top, right_bottom } = bbox
+      minX = min(minX, left_top.x)
+      minY = min(minY, left_top.y)
+      maxX = max(maxX, right_bottom.x)
+      maxY = max(maxY, right_bottom.y)
     }
     return bbox.fromCorners(minX, minY, maxX, maxY)
   }
 
-  copy(): EntityGridBuilder<E> {
-    return EntityGridBuilder.from(this)
+  copy(): MutableEntityGrid<E> {
+    return MutableEntityGrid.from(this)
   }
 
   /** Does not check for collisions. */
@@ -64,7 +67,8 @@ export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
     const assemblyEntity = withEntityNumber(entity, number)
     this.byEntityNumber[number] = assemblyEntity
     for (const [x, y] of bbox.iterateTiles(assemblyEntity.tileBox)) {
-      this.byPosition[pair(x, y)] = assemblyEntity
+      const set = (this.byPosition[pair(x, y)] ??= new LuaSet())
+      set.add(assemblyEntity)
     }
     return this
   }
@@ -81,11 +85,18 @@ export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
   remove(entity: E): this {
     const existing = this.byEntityNumber[entity.entity_number]
     if (existing !== entity) {
-      error(`Tried to remove entity ${entity.entity_number} but it was not in the assembly`)
+      error(`Tried to remove entity ${entity.entity_number} but it was not in the blueprint`)
     }
     delete this.byEntityNumber[entity.entity_number]
     for (const [x, y] of bbox.iterateTiles(entity.tileBox)) {
-      this.byPosition[pair(x, y)] = undefined!
+      const p = pair(x, y)
+      const set = this.byPosition[p]
+      if (set) {
+        set.delete(entity)
+        if (isEmpty(set)) {
+          delete this.byPosition[p]
+        }
+      }
     }
     return this
   }
@@ -93,12 +104,14 @@ export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
   replaceUnsafe(oldEntity: E, newEntity: E): this {
     const existing = this.byEntityNumber[oldEntity.entity_number]
     if (existing !== oldEntity) {
-      error(`Tried to replace entity ${oldEntity.entity_number} but it was not in the assembly`)
+      error(`Tried to replace entity ${oldEntity.entity_number} but it was not in the blueprint`)
     }
     const result = withEntityNumber(newEntity, oldEntity.entity_number)
     this.byEntityNumber[oldEntity.entity_number] = result
     for (const [x, y] of bbox.iterateTiles(oldEntity.tileBox)) {
-      this.byPosition[pair(x, y)] = result
+      const set = this.byPosition[pair(x, y)]
+      set.delete(oldEntity)
+      set.add(result)
     }
     return this
   }
@@ -107,7 +120,8 @@ export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
     this.byPosition = {}
     for (const [, entity] of pairs(this.byEntityNumber)) {
       for (const [x, y] of bbox.iterateTiles(entity.tileBox)) {
-        this.byPosition[pair(x, y)] = entity
+        const set = (this.byPosition[pair(x, y)] ??= new LuaSet())
+        set.add(entity)
       }
     }
   }
@@ -130,8 +144,8 @@ export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
     return this.shiftAll(by)
   }
 
-  withEntityNumberRemap(map: Record<number, number>): EntityGridBuilder<E> {
-    const result = new EntityGridBuilder<E>()
+  withEntityNumberRemap(map: Record<number, number>): MutableEntityGrid<E> {
+    const result = new MutableEntityGrid<E>()
     for (const [number, entity] of pairs(this.byEntityNumber)) {
       const newNumber = map[number]
       if (newNumber === undefined) {
@@ -145,7 +159,7 @@ export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
     return result
   }
 
-  withCompactedEntityNumbers(): EntityGridBuilder<E> {
+  withCompactedEntityNumbers(): MutableEntityGrid<E> {
     let nextNumber = 1
     const map: Record<number, number> = {}
     for (const [number] of pairs(this.byEntityNumber)) {
@@ -154,8 +168,8 @@ export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
     return this.withEntityNumberRemap(map)
   }
 
-  static from<E extends AnyEntity>(assembly: EntityGrid<E>): EntityGridBuilder<E> {
-    const builder = new EntityGridBuilder<E>()
+  static from<E extends AnyEntity>(assembly: EntityGrid<E>): MutableEntityGrid<E> {
+    const builder = new MutableEntityGrid<E>()
     builder.byPosition = shallowCopy(assembly.byPosition)
     builder.byEntityNumber = shallowCopy(assembly.byEntityNumber)
     builder.nextEntityNumber = luaLength(assembly.byEntityNumber) + 1
@@ -163,16 +177,17 @@ export class EntityGridBuilder<E extends AnyEntity> implements EntityGrid<E> {
     return builder
   }
 
-  static fromBlueprint(entities: BlueprintEntityRead[]): EntityGridBuilder<BasicEntity> {
-    const builder = new EntityGridBuilder<BasicEntity>()
+  static fromBlueprint(entities: BlueprintEntityRead[]): MutableEntityGrid<BasicEntity> {
+    const builder = new MutableEntityGrid<BasicEntity>()
     builder.addAll(entities.map((e) => createBasicEntity(e)))
     return builder
   }
 }
 
-export type Blueprint = EntityGrid<BasicEntity>
-export type BlueprintPaste = EntityGrid<AnyEntity>
-export interface BlueprintDiff {
-  changes: BlueprintPaste
-  deletions: Blueprint
-}
+export type BasicBlueprint = EntityGrid<BasicEntity>
+export type BlueprintPaste = EntityGrid<BasicEntity | UpdateEntity>
+export type BlueprintDiff = EntityGrid<BasicEntity | UpdateEntity | DeleteEntity>
+type Creator<E extends AnyEntity> = new () => MutableEntityGrid<E>
+export const MutableBasicBlueprint: Creator<BasicEntity> = MutableEntityGrid
+export const MutableBlueprintPaste: Creator<BasicEntity | UpdateEntity> = MutableEntityGrid
+export const MutableBlueprintDiff: Creator<BasicEntity | UpdateEntity | DeleteEntity> = MutableEntityGrid

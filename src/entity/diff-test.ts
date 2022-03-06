@@ -1,4 +1,4 @@
-import { Blueprint, EntityGridBuilder } from "./EntityGrid"
+import { BasicBlueprint, MutableEntityGrid } from "./EntityGrid"
 import { getBlueprintEntities } from "../test-util/blueprint"
 import { compareBlueprints } from "./blueprint-diff"
 
@@ -126,14 +126,14 @@ const nonCircuitSamples = samples.filter((sample) => !sample.includes("circuit")
 
 describe("samples", () => {
   let surface: LuaSurface
-  let original: Blueprint
+  let original: BasicBlueprint
   // let workingArea: BoundingBoxRead
 
-  function getSample(name: SampleName): Blueprint {
+  function getSample(name: SampleName): BasicBlueprint {
     const newName = `sample ${name}`
     const area = surface.get_script_area(newName) ?? error(`could not find area '${newName}'`)
     const bp = getBlueprintEntities(area.area, surface)
-    return EntityGridBuilder.fromBlueprint(bp).shiftToOrigin()
+    return MutableEntityGrid.fromBlueprint(bp).shiftToOrigin()
   }
 
   before_all(() => {
@@ -149,11 +149,11 @@ describe("samples", () => {
     const diff = compareBlueprints(original, assembly)
     const expectedDiff = expected[name]
 
-    const resultEntities = diff.changes.getAsArray()
+    const resultEntities = diff.asArray()
 
     const additions = resultEntities.filter((x) => x.entityType === undefined).length
     const updates = resultEntities.filter((x) => x.entityType === "update").length
-    const deletions = diff.deletions.getAsArray().length
+    const deletions = resultEntities.filter((x) => x.entityType === "delete").length
 
     assert.equal(expectedDiff.additions, additions, "additions")
     assert.equal(expectedDiff.updates, updates, "updates")
@@ -194,7 +194,7 @@ describe("samples", () => {
   //
   //   // get blueprint of result and compare to resultAssembly
   //   const entities3 = getBlueprintEntities(workingArea)
-  //   const worldResult = EntityGridBuilder.fromBlueprint(entities3).shiftToOrigin()
+  //   const worldResult = MutableEntityGrid.fromBlueprint(entities3).shiftToOrigin()
   //   const worldDiff = compareAssemblies(worldResult, resultAssembly)
   //   assert.same([], worldDiff.additions, "world diff additions")
   //   assert.same([], worldDiff.deletions, "world diff deletions")
