@@ -23,7 +23,6 @@ if (script.active_mods.testorio) {
 
   require("__testorio__/init")(__getTestFiles(), {
     tag_blacklist: tagBlacklist,
-    log_skipped_tests: true,
     before_test_run() {
       const force = game.forces.player
       force.enable_all_recipes()

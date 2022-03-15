@@ -20,9 +20,11 @@ import {
 import { getFunctionTypeForCall } from "typescript-to-lua/dist/transformation/utils/typescript"
 import { unsupportedBuiltinOptionalCall } from "typescript-to-lua/dist/transformation/utils/diagnostics"
 import { transformExpressionList } from "typescript-to-lua/dist/transformation/visitors/expression-list"
-import * as globby from "globby"
 
-const testPattern = "**/*test.ts"
+import * as globToRegExp from "glob-to-regexp"
+import * as path from "path"
+
+const testPattern = globToRegExp("**/*test.ts")
 
 const plugin: Plugin = {
   visitors: {
@@ -43,12 +45,25 @@ const plugin: Plugin = {
       // handle special case when call = __getTestFiles(), replace with list of files
       if (ts.isIdentifier(node.expression) && node.expression.text === "__getTestFiles") {
         const rootDir = getSourceDir(context.program)
-        const files = globby.sync(testPattern, { cwd: rootDir })
-        return createTableExpression(
-          files
-            .map((file) => file.substring(0, file.length - ".ts".length))
-            .map((file) => createTableFieldExpression(createStringLiteral(file))),
-        )
+        const fields = context.program
+          .getSourceFiles()
+          .filter((f) => testPattern.test(f.fileName))
+          .map((f) => {
+            const value = path
+              .relative(rootDir, f.fileName)
+              .replace(/\\/g, "/")
+              .substring(0, f.fileName.length - 3)
+            return createTableFieldExpression(createStringLiteral(value))
+          })
+        return createTableExpression(fields)
+      }
+
+      // handle __datestamp()
+      if (ts.isIdentifier(node.expression) && node.expression.text === "__datestamp") {
+        const date = new Date().toISOString()
+        // remove all characters that are not alpha-numeric or '-' or '_'
+        const dateString = date.replace(/[^a-zA-Z0-9-_]/g, "")
+        return createStringLiteral(dateString)
       }
 
       if (ts.isOptionalChain(node)) {
@@ -83,4 +98,5 @@ const plugin: Plugin = {
     },
   },
 }
+// noinspection JSUnusedGlobalSymbols
 export default plugin

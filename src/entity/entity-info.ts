@@ -1,5 +1,6 @@
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { UP } from "../lib/geometry/rotation"
+import { UpdateableEntityProp, UpdateableProps } from "./Entity"
 
 export interface EntityInfo {
   collisionBox: BoundingBoxClass
@@ -7,8 +8,17 @@ export interface EntityInfo {
 
   flippable: boolean
   rotatable: boolean
-  canPasteRotation: boolean
+  // canPasteRotation: boolean
+  isPropPasteable(prop: UpdateableEntityProp): boolean
 }
+
+const PasteableProps: Partial<typeof UpdateableProps> = {
+  recipe: true,
+  control_behavior: true,
+  override_stack_size: true,
+  // direction: false,
+}
+export { PasteableProps }
 
 const entityInfoCache: Record<string, EntityInfo> = {}
 
@@ -32,7 +42,12 @@ export function getEntityInfo(entityName: string): EntityInfo {
     fastReplaceGroup: proto.fast_replaceable_group,
     flippable,
     rotatable,
-    canPasteRotation,
+    isPropPasteable(prop: UpdateableEntityProp): boolean {
+      if (prop === "direction") {
+        return canPasteRotation
+      }
+      return prop in PasteableProps
+    },
   }
 
   entityInfoCache[entityName] = entityInfo

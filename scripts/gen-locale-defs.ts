@@ -10,20 +10,28 @@ function toPascalCase(str: string): string {
     .join("")
 }
 
-function convertPropertyName(origName: string): string {
-  // replace non alphanumeric characters with underscore
-  let result = origName.replace(/[^a-zA-Z0-9]/g, "_")
-
-  // get rid of all multi-underscores
-  result = result.replace(/_+/g, "_")
-
-  // get rid of all trailing underscores.
-  result = result.replace(/_$/, "")
-  // get rid of all leading underscores.
-  result = result.replace(/^_/, "")
-
-  return result
-}
+// function convertLocaleValue(value: string): string {
+//   // replace non alphanumeric characters with underscore
+//   let result = value.replace(/[^a-zA-Z0-9]/g, "_")
+//
+//   // get rid of all multi-underscores
+//   result = result.replace(/_+/g, "_")
+//
+//   // get rid of all trailing underscores.
+//   result = result.replace(/_$/, "")
+//   // get rid of all leading underscores.
+//   result = result.replace(/^_/, "")
+//
+//   // limit length to 40 chars
+//   if (result.length > 40) {
+//     const lastUnderscore = result.lastIndexOf("_", 40)
+//     if (lastUnderscore > 0) {
+//       result = result.substring(0, lastUnderscore)
+//     }
+//   }
+//
+//   return result
+// }
 
 const source = path.join(__dirname, "../src/locale/en/en.cfg")
 const config: ConfigParser.default = new (ConfigParser as any)()
@@ -37,9 +45,11 @@ for (const section of sections) {
   const items = config.items(section)
   const statements: ts.EnumMember[] = []
   for (const [key, value] of Object.entries(items)) {
-    const propName = toPascalCase(key) + "_" + convertPropertyName(value)
+    const propName = toPascalCase(key)
     const valueName = `${section}.${key}`
-    statements.push(ts.factory.createEnumMember(propName, ts.factory.createStringLiteral(valueName)))
+    const member = ts.factory.createEnumMember(propName, ts.factory.createStringLiteral(valueName))
+    ts.addSyntheticLeadingComment(member, ts.SyntaxKind.MultiLineCommentTrivia, `* ${value} `, true)
+    statements.push(member)
   }
 
   // remove part before first dot, if any

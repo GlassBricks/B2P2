@@ -1,6 +1,7 @@
 import { Mutable } from "../lib/util-types"
 import { getTileBox } from "./entity-info"
 import { shallowCopy } from "../lib/util"
+import { L_Bbpp } from "../locale"
 
 // all types in this file should be immutable
 // mutation can only be done on a guaranteed own copy
@@ -8,15 +9,17 @@ import { shallowCopy } from "../lib/util"
 export interface BaseEntity extends BlueprintEntityRead {
   readonly tileBox: BoundingBoxRead
   readonly entity_number: number
-  // readonly recipe?: string
+
+  readonly diffType?: string
+  readonly sourceName?: string
 }
 
 export interface BasicEntity extends BaseEntity {
-  readonly entityType?: undefined
+  readonly diffType?: undefined
 }
 
 export interface DeleteEntity extends BaseEntity {
-  readonly entityType: "delete"
+  readonly diffType: "delete"
 }
 
 export const UpdateableProps = {
@@ -25,17 +28,14 @@ export const UpdateableProps = {
   direction: true,
   items: true,
   control_behavior: true,
+  override_stack_size: true,
   // todo: circuit network
+  // todo: detect unhandled properties
 } as const
 
 export type UpdateableEntityProp = keyof typeof UpdateableProps
-export const PasteableProps: Partial<typeof UpdateableProps> = {
-  recipe: true,
-  control_behavior: true,
-  // direction: false,
-}
 export interface UpdateEntity extends BaseEntity {
-  readonly entityType: "update"
+  readonly diffType: "update"
   // an empty object is a valid, meaning this only references an entity
   readonly changedProps: LuaSet<UpdateableEntityProp>
 }
@@ -47,11 +47,11 @@ export function createBasicEntity(
   entityNumber: number = entity.entity_number,
 ): BasicEntity {
   const existingTileBox = (entity as BaseEntity).tileBox
-  if (existingTileBox && entity.entity_number === entityNumber && (entity as BasicEntity).entityType === undefined) {
+  if (existingTileBox && entity.entity_number === entityNumber && (entity as BasicEntity).diffType === undefined) {
     return entity as BasicEntity
   }
   const result = shallowCopy(entity) as Mutable<BasicEntity>
-  result.entityType = undefined
+  result.diffType = undefined
   result.entity_number = entityNumber
   if (!existingTileBox) {
     result.tileBox = getTileBox(result)
@@ -64,11 +64,11 @@ export function createDeleteEntity(
   entityNumber: number = entity.entity_number,
 ): DeleteEntity {
   const existingTileBox = (entity as BaseEntity).tileBox
-  if (existingTileBox && entity.entity_number === entityNumber && (entity as DeleteEntity).entityType === "delete") {
+  if (existingTileBox && entity.entity_number === entityNumber && (entity as DeleteEntity).diffType === "delete") {
     return entity as DeleteEntity
   }
   const result = shallowCopy(entity) as Mutable<DeleteEntity>
-  result.entityType = "delete"
+  result.diffType = "delete"
   result.entity_number = entityNumber
   if (!existingTileBox) {
     result.tileBox = getTileBox(result)
@@ -82,7 +82,7 @@ export function createUpdateEntity(
   entityNumber: number = entity.entity_number,
 ): UpdateEntity {
   const result = shallowCopy(entity) as Mutable<UpdateEntity>
-  result.entityType = "update"
+  result.diffType = "update"
   result.changedProps = changedProps
   result.entity_number = entityNumber
   result.tileBox ??= getTileBox(result)
@@ -94,4 +94,14 @@ export function withEntityNumber<E extends AnyEntity>(entity: E, entityNumber: n
     return entity
   }
   return { ...entity, entityNumber }
+}
+
+export function describeEntity(
+  entity: BaseEntity,
+  sourceName: string | undefined = entity.sourceName,
+): LocalisedString {
+  if (sourceName) {
+    return [L_Bbpp.EntityFromLayer, ["entity-name." + entity.name], entity.sourceName]
+  }
+  return ["entity-name." + entity.name]
 }

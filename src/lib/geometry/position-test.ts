@@ -12,6 +12,16 @@ test("from", () => {
   assert.equal(5, position.length())
 })
 
+test("normalize", () => {
+  const position = pos.normalize([1, 2])
+  assert.equal(1, position.x)
+  assert.equal(2, position.y)
+
+  const position2 = pos.normalize({ x: 1, y: 2 })
+  assert.equal(1, position2.x)
+  assert.equal(2, position2.y)
+})
+
 test("add", () => {
   const position = pos(1, 2)
   const position2 = pos(3, 4)

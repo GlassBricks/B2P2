@@ -1,12 +1,5 @@
 export function debugPrint(...items: unknown[]): void {
-  let item: unknown
-  if (select("#", ...items) === 1) {
-    ;[item] = [...items]
-  } else {
-    item = table.pack(...items)
-  }
-
-  const message = serpent.block(item)
+  const message = items.map((x) => serpent.block(x)).join(" ")
   game?.print(message)
   log(message)
 }

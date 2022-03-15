@@ -333,7 +333,10 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
       if (type !== "base" && stateProps[type][name]) {
         value.push(stateProps[type][name])
       }
-      set(name, value)
+      set(
+        name,
+        value.map((x) => x ?? false),
+      )
     }
     if (type === "base") continue
     for (const event of Object.keys(events[type])) {

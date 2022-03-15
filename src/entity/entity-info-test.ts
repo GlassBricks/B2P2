@@ -1,9 +1,9 @@
 import { bbox } from "../lib/geometry/bounding-box"
 import { getTileBox } from "./entity-info"
-import { getBlueprintEntities } from "../test-util/blueprint"
-import { getArea } from "../test-util/area"
+import { takeBlueprint } from "../world/blueprint"
+import { getScriptArea } from "../utility/test-util"
 
-describe("bounding box", () => {
+describe.skip("bounding box", () => {
   test.each(
     [
       ["chest", bbox.fromCorners(0, 0, 1, 1)],
@@ -14,9 +14,9 @@ describe("bounding box", () => {
     ],
     "Size of bounding box for %s is correct",
     (name, expected) => {
-      const [surface, area] = getArea(1, name)
-      const entities = getBlueprintEntities(area, surface)
-      assert.equal(entities.length, 1)
+      const [surface, area] = getScriptArea(1 as SurfaceIndex, name)
+      const entities = takeBlueprint(surface, area)
+      assert.equal(1, entities.length)
       const entity = entities[0]
       assert.same(expected, getTileBox(entity).shiftToOrigin())
     },

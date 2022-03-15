@@ -6,28 +6,28 @@ import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { isEmpty, mutate, shallowCopy } from "../lib/util"
 import { pos } from "../lib/geometry/position"
 
-export interface EntityGrid<E extends AnyEntity> {
+export interface Blueprint<E extends AnyEntity> {
   // todo: off grid entities
-  readonly byPosition: RRecord<NumberPair, LuaSet<E>>
-  readonly byEntityNumber: RRecord<number, E>
+  readonly byPosition: RRecord<NumberPair, ReadonlyLuaSet<E>>
+  readonly entities: RRecord<number, E>
 
-  getAt(pos: MapPositionTable): LuaSet<E> | undefined
-  getAtPos(x: number, y: number): LuaSet<E> | undefined
-  asArray(): E[]
+  getAt(pos: MapPositionTable): ReadonlyLuaSet<E> | undefined
+  getAtPos(x: number, y: number): ReadonlyLuaSet<E> | undefined
+  asArray(): readonly E[]
 
   computeBoundingBox(): BoundingBoxClass
 
-  copy(): MutableEntityGrid<E>
+  copy(): MutableBlueprint<AnyEntity>
 }
 const min = math.min
 const max = math.max
 const floor = math.floor
 
 @Classes.register()
-export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
+export class MutableBlueprint<E extends AnyEntity> implements Blueprint<E> {
   private nextEntityNumber = 1
   byPosition: Record<NumberPair, LuaSet<E>> = {}
-  byEntityNumber: Record<number, E> = {}
+  entities: Record<number, E> = {}
 
   getAt(pos: MapPositionTable): LuaSet<E> | undefined {
     return this.byPosition[pair(floor(pos.x), floor(pos.y))]
@@ -38,7 +38,7 @@ export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
   }
 
   asArray(): E[] {
-    return this.byEntityNumber as any
+    return this.entities as any
   }
 
   computeBoundingBox(): BoundingBoxClass {
@@ -46,7 +46,7 @@ export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
     let minY = Infinity
     let maxX = -Infinity
     let maxY = -Infinity
-    for (const [, entity] of pairs(this.byEntityNumber)) {
+    for (const [, entity] of pairs(this.entities)) {
       const bbox = entity.tileBox
       const { left_top, right_bottom } = bbox
       minX = min(minX, left_top.x)
@@ -57,15 +57,15 @@ export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
     return bbox.fromCorners(minX, minY, maxX, maxY)
   }
 
-  copy(): MutableEntityGrid<E> {
-    return MutableEntityGrid.from(this)
+  copy(): MutableBlueprint<AnyEntity> {
+    return MutableBlueprint.copyOf<AnyEntity>(this)
   }
 
   /** Does not check for collisions. */
   add(entity: E): this {
     const number = this.nextEntityNumber++
     const assemblyEntity = withEntityNumber(entity, number)
-    this.byEntityNumber[number] = assemblyEntity
+    this.entities[number] = assemblyEntity
     for (const [x, y] of bbox.iterateTiles(assemblyEntity.tileBox)) {
       const set = (this.byPosition[pair(x, y)] ??= new LuaSet())
       set.add(assemblyEntity)
@@ -83,11 +83,11 @@ export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
   }
 
   remove(entity: E): this {
-    const existing = this.byEntityNumber[entity.entity_number]
+    const existing = this.entities[entity.entity_number]
     if (existing !== entity) {
       error(`Tried to remove entity ${entity.entity_number} but it was not in the blueprint`)
     }
-    delete this.byEntityNumber[entity.entity_number]
+    delete this.entities[entity.entity_number]
     for (const [x, y] of bbox.iterateTiles(entity.tileBox)) {
       const p = pair(x, y)
       const set = this.byPosition[p]
@@ -102,12 +102,12 @@ export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
   }
 
   replaceUnsafe(oldEntity: E, newEntity: E): this {
-    const existing = this.byEntityNumber[oldEntity.entity_number]
+    const existing = this.entities[oldEntity.entity_number]
     if (existing !== oldEntity) {
       error(`Tried to replace entity ${oldEntity.entity_number} but it was not in the blueprint`)
     }
     const result = withEntityNumber(newEntity, oldEntity.entity_number)
-    this.byEntityNumber[oldEntity.entity_number] = result
+    this.entities[oldEntity.entity_number] = result
     for (const [x, y] of bbox.iterateTiles(oldEntity.tileBox)) {
       const set = this.byPosition[pair(x, y)]
       set.delete(oldEntity)
@@ -118,7 +118,7 @@ export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
 
   private recomputePositions(): void {
     this.byPosition = {}
-    for (const [, entity] of pairs(this.byEntityNumber)) {
+    for (const [, entity] of pairs(this.entities)) {
       for (const [x, y] of bbox.iterateTiles(entity.tileBox)) {
         const set = (this.byPosition[pair(x, y)] ??= new LuaSet())
         set.add(entity)
@@ -127,8 +127,8 @@ export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
   }
 
   shiftAll(by: MapPositionTable): this {
-    for (const [, entity] of pairs(this.byEntityNumber)) {
-      this.byEntityNumber[entity.entity_number] = mutate(entity, (e) => {
+    for (const [, entity] of pairs(this.entities)) {
+      this.entities[entity.entity_number] = mutate(entity, (e) => {
         e.tileBox = bbox.shift(e.tileBox, by)
         e.position = pos.add(e.position, by)
       })
@@ -144,50 +144,75 @@ export class MutableEntityGrid<E extends AnyEntity> implements EntityGrid<E> {
     return this.shiftAll(by)
   }
 
-  withEntityNumberRemap(map: Record<number, number>): MutableEntityGrid<E> {
-    const result = new MutableEntityGrid<E>()
-    for (const [number, entity] of pairs(this.byEntityNumber)) {
+  withEntityNumberRemap(map: Record<number, number>): MutableBlueprint<E> {
+    const result = new MutableBlueprint<E>()
+    for (const [number, entity] of pairs(this.entities)) {
       const newNumber = map[number]
       if (newNumber === undefined) {
         error(`Tried to remap entity number ${entity.entity_number} but it was not in the mapping`)
       }
-      result.byEntityNumber[newNumber] = withEntityNumber(entity, newNumber)
+      result.entities[newNumber] = withEntityNumber(entity, newNumber)
     }
     // todo: remap circuit connection numbers
     result.recomputePositions()
-    result.nextEntityNumber = luaLength(result.byEntityNumber) + 1
+    result.nextEntityNumber = luaLength(result.entities) + 1
     return result
   }
 
-  withCompactedEntityNumbers(): MutableEntityGrid<E> {
+  withCompactedEntityNumbers(): MutableBlueprint<E> {
     let nextNumber = 1
     const map: Record<number, number> = {}
-    for (const [number] of pairs(this.byEntityNumber)) {
+    for (const [number] of pairs(this.entities)) {
       map[number] = nextNumber++
     }
     return this.withEntityNumberRemap(map)
   }
 
-  static from<E extends AnyEntity>(assembly: EntityGrid<E>): MutableEntityGrid<E> {
-    const builder = new MutableEntityGrid<E>()
-    builder.byPosition = shallowCopy(assembly.byPosition)
-    builder.byEntityNumber = shallowCopy(assembly.byEntityNumber)
-    builder.nextEntityNumber = luaLength(assembly.byEntityNumber) + 1
+  static copyOf<E extends AnyEntity>(assembly: Blueprint<E>): MutableBlueprint<E> {
+    const builder = new MutableBlueprint<E>()
+    builder.byPosition = shallowCopy(assembly.byPosition) as any
+    builder.entities = shallowCopy(assembly.entities)
+    builder.nextEntityNumber = luaLength(assembly.entities) + 1
 
     return builder
   }
 
-  static fromBlueprint(entities: BlueprintEntityRead[]): MutableEntityGrid<BasicEntity> {
-    const builder = new MutableEntityGrid<BasicEntity>()
+  static fromEntities(entities: BlueprintEntityRead[]): MutableBlueprint<BasicEntity> {
+    const builder = new MutableBlueprint<BasicEntity>()
     builder.addAll(entities.map((e) => createBasicEntity(e)))
     return builder
   }
 }
 
-export type BasicBlueprint = EntityGrid<BasicEntity>
-export type BlueprintPaste = EntityGrid<BasicEntity | UpdateEntity>
-export type BlueprintDiff = EntityGrid<BasicEntity | UpdateEntity | DeleteEntity>
-type Creator<E extends AnyEntity> = new () => MutableEntityGrid<E>
-export const MutableBasicBlueprint: Creator<BasicEntity> = MutableEntityGrid
-export const MutableBlueprintPaste: Creator<BasicEntity | UpdateEntity> = MutableEntityGrid
-export const MutableBlueprintDiff: Creator<BasicEntity | UpdateEntity | DeleteEntity> = MutableEntityGrid
+export function filterBlueprint<E extends AnyEntity, T extends E>(
+  blueprint: Blueprint<E>,
+  predicate: (entity: E) => entity is T,
+): MutableBlueprint<T>
+export function filterBlueprint<E extends AnyEntity>(
+  blueprint: Blueprint<E>,
+  predicate: (entity: E) => boolean,
+): MutableBlueprint<E>
+export function filterBlueprint<E extends AnyEntity>(
+  blueprint: Blueprint<E>,
+  predicate: (entity: E) => boolean,
+): MutableBlueprint<E> {
+  const builder = new MutableBlueprint<E>()
+  for (const [, entity] of pairs(blueprint.entities)) {
+    if (predicate(entity)) {
+      builder.add(entity)
+    }
+  }
+  return builder
+}
+
+export type BasicBlueprint = Blueprint<BasicEntity>
+export type BlueprintPaste = Blueprint<BasicEntity | UpdateEntity>
+export type BlueprintDiff = Blueprint<BasicEntity | UpdateEntity | DeleteEntity>
+export type MutableBasicBlueprint = MutableBlueprint<BasicEntity>
+export type MutableBlueprintPaste = MutableBlueprint<BasicEntity | UpdateEntity>
+export type MutableBlueprintDiff = MutableBlueprint<BasicEntity | UpdateEntity | DeleteEntity>
+
+export type Creator<E extends AnyEntity> = new () => MutableBlueprint<E>
+export const MutableBasicBlueprint: Creator<BasicEntity> = MutableBlueprint
+export const MutableBlueprintPaste: Creator<BasicEntity | UpdateEntity> = MutableBlueprint
+export const MutableBlueprintDiff: Creator<BasicEntity | UpdateEntity | DeleteEntity> = MutableBlueprint

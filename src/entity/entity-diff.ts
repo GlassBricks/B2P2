@@ -1,4 +1,4 @@
-import { compare, isEmpty } from "../lib/util"
+import { compare, isEmpty, shallowCopy } from "../lib/util"
 import { getEntityInfo } from "./entity-info"
 import * as util from "util"
 import {
@@ -11,10 +11,12 @@ import {
 } from "./Entity"
 import { pos } from "../lib/geometry/position"
 import { UP } from "../lib/geometry/rotation"
-import { BasicBlueprint } from "./EntityGrid"
+import { Blueprint } from "./Blueprint"
 import { bbox } from "../lib/geometry/bounding-box"
+import { Mutable } from "../lib/util-types"
 
 const oppositedirection = util.oppositedirection
+/** Compatible entities are those that are considered to be the "same" entity, considered the same when pasting. */
 export function isCompatibleEntity(old: AnyEntity, cur: AnyEntity): boolean {
   if (!pos.equals(old.position, cur.position)) return false
 
@@ -60,16 +62,48 @@ export function compareCompatibleEntities(old: AnyEntity, cur: AnyEntity): Updat
   return createUpdateEntity(cur, changedProps)
 }
 
-/**
- * Tries to find an entity in the blueprint that is compatible with the given entity.
- *
- * Returns the string "overlap" if there is no compatible entity but another entity overlaps. Returns undefined if there
- * is no compatible entity and no other entity overlaps.
- */
-export function findCompatibleOrOverlappingEntity(
-  blueprint: BasicBlueprint,
-  entity: BasicEntity,
-): BasicEntity | "overlap" | undefined {
+export function findCompatibleOrOverlappingEntity<E extends AnyEntity>(
+  blueprint: Blueprint<E>,
+  entity: AnyEntity,
+):
+  | {
+      type: "compatible" | "overlapping"
+      entity: E
+    }
+  | {
+      type?: undefined
+      entity?: never
+    } {
+  const matchCandidates = blueprint.getAt(entity.position)
+  if (matchCandidates) {
+    for (const [candidate] of matchCandidates) {
+      if (isCompatibleEntity(candidate, entity)) {
+        return {
+          type: "compatible",
+          entity: candidate,
+        }
+      }
+    }
+    return {
+      type: "overlapping",
+      entity: next(matchCandidates)[0],
+    }
+  }
+  // search for overlaps elsewhere
+  const box = entity.tileBox
+  for (const [x, y] of bbox.iterateTiles(box)) {
+    const entities = blueprint.getAt(pos(x, y))
+    if (entities && !isEmpty(entities)) {
+      return {
+        type: "overlapping",
+        entity: next(entities)[0],
+      }
+    }
+  }
+  return {}
+}
+
+export function findCompatibleEntity<E extends AnyEntity>(blueprint: Blueprint<E>, entity: AnyEntity): E | undefined {
   const matchCandidates = blueprint.getAt(entity.position)
   if (matchCandidates) {
     for (const [candidate] of matchCandidates) {
@@ -77,40 +111,46 @@ export function findCompatibleOrOverlappingEntity(
         return candidate
       }
     }
-    return "overlap"
-  }
-  // search for overlaps
-  const box = entity.tileBox
-  for (const [x, y] of bbox.iterateTiles(box)) {
-    const entities = blueprint.getAt(pos(x, y))
-    if (entities && !isEmpty(entities)) {
-      return "overlap"
-    }
   }
   return undefined
 }
 
-//
-// export interface EntityPasteResult {
-//   entity: AssemblyEntity
-//   incompatibleProps: UpdateableEntityProp[]
-// }
-// /** Result is safe to use in {@link AssemblyBuilder.replaceUnsafe} */
-// export function pasteEntityUpdate(entity: AssemblyEntity, update: EntityUpdate): EntityPasteResult {
-//   const { changedProps, newEntity } = update
-//   const incompatibleProps: UpdateableEntityProp[] = []
-//   const result = shallowCopy(entity) as Record<UpdateableEntityProp, any>
-//   for (const [prop] of pairs(changedProps)) {
-//     const pasteable = prop === "direction" ? getEntityInfo(entity.name).canPasteRotation : PasteableProps[prop]
-//     if (pasteable) {
-//       result[prop] = newEntity[prop]
-//     } else {
-//       incompatibleProps.push(prop)
-//     }
-//   }
-//
-//   return {
-//     entity: result as AssemblyEntity,
-//     incompatibleProps,
-//   }
-// }
+export interface EntityPasteResult {
+  entity: BasicEntity
+  incompatibleProps: UpdateableEntityProp[]
+}
+
+// assumes entities are compatible
+export function pasteEntityUpdate(entity: BasicEntity, update: BasicEntity | UpdateEntity): EntityPasteResult {
+  const incompatibleProps: UpdateableEntityProp[] = []
+  const result = shallowCopy(entity) as Record<UpdateableEntityProp, any>
+  const changedProps =
+    update.diffType === undefined ? (UpdateableProps as unknown as LuaSet<UpdateableEntityProp>) : update.changedProps
+  const entityInfo = getEntityInfo(entity.name)
+  for (const [prop] of changedProps) {
+    if (entityInfo.isPropPasteable(prop)) {
+      result[prop] = update[prop]
+    } else {
+      const oldProp = entity[prop]
+      const newProp = update[prop]
+      if (!compare(oldProp, newProp)) {
+        incompatibleProps.push(prop)
+      }
+    }
+  }
+
+  return {
+    entity: result as BasicEntity,
+    incompatibleProps,
+  }
+}
+
+export function asBasicEntity(entity: UpdateEntity | BasicEntity): BasicEntity {
+  if (entity.diffType === undefined) {
+    return entity
+  }
+  const result = shallowCopy(entity) as Mutable<Partial<UpdateEntity>>
+  delete result.changedProps
+  delete result.diffType
+  return result as BasicEntity
+}

@@ -1,11 +1,16 @@
 declare type LuaTableAddMethod<TKey extends AnyNotNil> = ((key: TKey) => void) &
   LuaExtension<"__luaTableAddMethodBrand">
 
+declare interface ReadonlyLuaSet<T extends AnyNotNil> extends LuaPairsIterable<T, true> {
+  readonly size: LuaLengthMethod<number>
+  readonly has: LuaTableHasMethod<T> & LuaTableHasMethod<AnyNotNil>
+}
+
 declare interface LuaSet<T extends AnyNotNil> extends LuaPairsIterable<T, true> {
-  size: LuaLengthMethod<number>
-  add: LuaTableAddMethod<T>
-  has: LuaTableHasMethod<T>
-  delete: LuaTableDeleteMethod<T>
+  readonly size: LuaLengthMethod<number>
+  readonly add: LuaTableAddMethod<T>
+  readonly has: LuaTableHasMethod<T> & LuaTableHasMethod<AnyNotNil>
+  readonly delete: LuaTableDeleteMethod<T>
 }
 
 declare const LuaSet: (new <TKey extends AnyNotNil>() => LuaSet<TKey>) & LuaExtension<"__luaTableNewBrand">
@@ -30,4 +35,5 @@ declare const luaLength: LuaLength<object, number>
 
 interface BlueprintEntity {
   readonly recipe?: string
+  readonly override_stack_size?: number
 }

@@ -1,6 +1,7 @@
 /** @noSelfInFile */
 
 import { DOWN, LEFT, RIGHT, UP } from "./rotation"
+import { pos } from "./position"
 
 // Down is positive y, right is positive x
 
@@ -31,6 +32,11 @@ namespace bbox {
 
   export function around(point: MapPositionTable, radius: number): BoundingBoxClass {
     return bbox({ x: point.x - radius, y: point.y - radius }, { x: point.x + radius, y: point.y + radius })
+  }
+
+  export function normalize(box: BoundingBox): BoundingBoxClass
+  export function normalize(box: Any): BoundingBoxClass {
+    return bbox(pos.normalize(box.left_top || box[1]), pos.normalize(box.right_bottom || box[2]))
   }
 
   export function shift(box: BoundingBoxRead, amount: MapPositionTable): BoundingBoxClass {

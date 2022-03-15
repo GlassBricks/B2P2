@@ -25,6 +25,15 @@ test("around", () => {
   assert.same({ x: 2, y: 2 }, box.right_bottom)
 })
 
+test("normalize", () => {
+  const box = bbox.normalize([
+    [1, 2],
+    [3, 4],
+  ])
+  assert.same({ x: 1, y: 2 }, box.left_top)
+  assert.same({ x: 3, y: 4 }, box.right_bottom)
+})
+
 test("shift", () => {
   const box = bbox({ x: 1, y: 2 }, { x: 3, y: 4 })
   const box2 = box.shift({ x: 1, y: 1 })

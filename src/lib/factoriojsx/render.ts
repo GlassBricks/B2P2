@@ -12,8 +12,8 @@ type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 
 export interface ElementInstance<T extends GuiElementType = GuiElementType> {
   readonly nativeElement: Extract<LuaGuiElement, { type: T }>
-  readonly playerIndex: number
-  readonly index: number
+  readonly playerIndex: PlayerIndex
+  readonly index: GuiElementIndex
   readonly valid: boolean
 }
 

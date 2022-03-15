@@ -22,6 +22,14 @@ namespace pos {
   export function from(position: MapPositionTable): PositionClass {
     return setmetatable({ x: position.x, y: position.y }, meta)
   }
+  export function load(position: MapPositionTable): PositionClass {
+    return setmetatable(position, meta)
+  }
+  export function normalize(pos: MapPosition): PositionClass
+  export function normalize(p: Any): PositionClass {
+    return pos(p.x || p[1], p.y || p[2])
+  }
+
   export function add(pos1: MapPositionTable, pos2: MapPositionTable): PositionClass {
     return pos(pos1.x + pos2.x, pos1.y + pos2.y)
   }
