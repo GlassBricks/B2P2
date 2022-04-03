@@ -22,7 +22,8 @@ export interface DeleteEntity extends BaseEntity {
   readonly diffType: "delete"
 }
 
-export const UpdateableProps = {
+export type UpdateableProp = "name" | "recipe" | "direction" | "items" | "control_behavior" | "override_stack_size"
+export const UpdateableProp: ReadonlyLuaSet<UpdateableProp> = {
   name: true,
   recipe: true,
   direction: true,
@@ -31,13 +32,12 @@ export const UpdateableProps = {
   override_stack_size: true,
   // todo: circuit network
   // todo: detect unhandled properties
-} as const
+} as unknown as LuaSet<UpdateableProp>
 
-export type UpdateableEntityProp = keyof typeof UpdateableProps
 export interface UpdateEntity extends BaseEntity {
   readonly diffType: "update"
   // an empty object is a valid, meaning this only references an entity
-  readonly changedProps: LuaSet<UpdateableEntityProp>
+  readonly changedProps: ReadonlyLuaSet<UpdateableProp>
 }
 
 export type AnyEntity = BasicEntity | UpdateEntity | DeleteEntity
@@ -78,7 +78,7 @@ export function createDeleteEntity(
 
 export function createUpdateEntity(
   entity: BlueprintEntityRead,
-  changedProps: LuaSet<UpdateableEntityProp>,
+  changedProps: LuaSet<UpdateableProp>,
   entityNumber: number = entity.entity_number,
 ): UpdateEntity {
   const result = shallowCopy(entity) as Mutable<UpdateEntity>

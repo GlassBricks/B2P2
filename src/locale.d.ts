@@ -18,5 +18,11 @@ export declare const enum L_Diagnostic {
     /** The update entity __1__ contains unpasteable changes. */
     UnpasteableEntity = "bbpp.diagnostic.unpasteable-entity",
     /** __1__ cannot be pasted. */
-    PropCannotBePasted = "bbpp.diagnostic.prop-cannot-be-pasted"
+    PropCannotBePasted = "bbpp.diagnostic.prop-cannot-be-pasted",
+    /** The removal of __1__ will have no effect as that entity part of an import. */
+    BelowEntityDeleted = "bbpp.diagnostic.below-entity-deleted",
+    /** Internal error: __1__ Please report this to the developers. */
+    InternalError = "bbpp.diagnostic.internal-error",
+    /** When processing changes, an update entity __1__ was created for a nonexistent entity. */
+    UpdateToNonexistentEntity = "bbpp.diagnostic.update-to-nonexistent-entity"
 }

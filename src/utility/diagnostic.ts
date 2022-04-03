@@ -25,3 +25,7 @@ export function createDiagnosticFactory<A extends any[]>(
     }
   }
 }
+
+export function createInternalErrorMessage(message: LocalisedString): LocalisedString {
+  return [L_Diagnostic.InternalError, message]
+}

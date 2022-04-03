@@ -1,14 +1,7 @@
 import { compare, isEmpty, shallowCopy } from "../lib/util"
 import { getEntityInfo } from "./entity-info"
 import * as util from "util"
-import {
-  AnyEntity,
-  BasicEntity,
-  createUpdateEntity,
-  UpdateableEntityProp,
-  UpdateableProps,
-  UpdateEntity,
-} from "./Entity"
+import { AnyEntity, BasicEntity, createUpdateEntity, UpdateableProp, UpdateEntity } from "./Entity"
 import { pos } from "../lib/geometry/position"
 import { UP } from "../lib/geometry/rotation"
 import { Blueprint } from "./Blueprint"
@@ -52,8 +45,8 @@ export function compareEntities(old: BasicEntity, cur: BasicEntity): UpdateEntit
 /** This assumes the entities are compatible. */
 export function compareCompatibleEntities(old: AnyEntity, cur: AnyEntity): UpdateEntity | undefined {
   // assume compatible
-  const changedProps = new LuaSet<UpdateableEntityProp>()
-  for (const [prop] of pairs(UpdateableProps)) {
+  const changedProps = new LuaSet<UpdateableProp>()
+  for (const [prop] of UpdateableProp) {
     if (!compare(old[prop], cur[prop])) {
       changedProps.add(prop)
     }
@@ -65,15 +58,7 @@ export function compareCompatibleEntities(old: AnyEntity, cur: AnyEntity): Updat
 export function findCompatibleOrOverlappingEntity<E extends AnyEntity>(
   blueprint: Blueprint<E>,
   entity: AnyEntity,
-):
-  | {
-      type: "compatible" | "overlapping"
-      entity: E
-    }
-  | {
-      type?: undefined
-      entity?: never
-    } {
+): { type: "compatible" | "overlapping"; entity: E } | { type?: undefined; entity?: never } {
   const matchCandidates = blueprint.getAt(entity.position)
   if (matchCandidates) {
     for (const [candidate] of matchCandidates) {
@@ -117,25 +102,19 @@ export function findCompatibleEntity<E extends AnyEntity>(blueprint: Blueprint<E
 
 export interface EntityPasteResult {
   entity: BasicEntity
-  incompatibleProps: UpdateableEntityProp[]
+  incompatibleProps: UpdateableProp[]
 }
 
 // assumes entities are compatible
-export function pasteEntityUpdate(entity: BasicEntity, update: BasicEntity | UpdateEntity): EntityPasteResult {
-  const incompatibleProps: UpdateableEntityProp[] = []
-  const result = shallowCopy(entity) as Record<UpdateableEntityProp, any>
-  const changedProps =
-    update.diffType === undefined ? (UpdateableProps as unknown as LuaSet<UpdateableEntityProp>) : update.changedProps
+export function applyEntityUpdate(entity: BasicEntity, update: BasicEntity | UpdateEntity): EntityPasteResult {
+  const result = shallowCopy(entity) as Record<UpdateableProp, any>
+  const incompatibleProps: UpdateableProp[] = []
+  const changedProps = update.diffType === undefined ? UpdateableProp : update.changedProps
   const entityInfo = getEntityInfo(entity.name)
   for (const [prop] of changedProps) {
-    if (entityInfo.isPropPasteable(prop)) {
-      result[prop] = update[prop]
-    } else {
-      const oldProp = entity[prop]
-      const newProp = update[prop]
-      if (!compare(oldProp, newProp)) {
-        incompatibleProps.push(prop)
-      }
+    result[prop] = update[prop]
+    if (!entityInfo.isPropPasteable(prop) && !compare(entity[prop], update[prop])) {
+      incompatibleProps.push(prop)
     }
   }
 
@@ -143,6 +122,17 @@ export function pasteEntityUpdate(entity: BasicEntity, update: BasicEntity | Upd
     entity: result as BasicEntity,
     incompatibleProps,
   }
+}
+
+export function getUnpasteableProps(entity: UpdateEntity): UpdateableProp[] {
+  const result: UpdateableProp[] = []
+  const entityInfo = getEntityInfo(entity.name)
+  for (const [prop] of entity.changedProps) {
+    if (!entityInfo.isPropPasteable(prop)) {
+      result.push(prop)
+    }
+  }
+  return result
 }
 
 export function asBasicEntity(entity: UpdateEntity | BasicEntity): BasicEntity {

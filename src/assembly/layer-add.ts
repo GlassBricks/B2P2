@@ -1,43 +1,14 @@
 import { MutableBasicBlueprint } from "../entity/Blueprint"
-import { invalidLayer, Layer } from "./Layer"
-import { asBasicEntity, findCompatibleOrOverlappingEntity, pasteEntityUpdate } from "../entity/entity-diff"
-import { createDiagnosticFactory, Diagnostic } from "../utility/diagnostic"
-import { L_Diagnostic } from "../locale"
-import { BaseEntity, describeEntity, UpdateableEntityProp } from "../entity/Entity"
-
-export const overlap = createDiagnosticFactory(L_Diagnostic.Overlap, (below: BaseEntity, above: BaseEntity) => ({
-  message: [L_Diagnostic.Overlap, describeEntity(above), describeEntity(below)],
-  position: above.position,
-  severity: "error",
-}))
-
-export const addEntityOverAddEntity = createDiagnosticFactory(
-  L_Diagnostic.AddEntityOverAddEntity,
-  (below: BaseEntity, above: BaseEntity) => ({
-    message: [L_Diagnostic.AddEntityOverAddEntity, describeEntity(above), describeEntity(below)],
-    position: above.position,
-    severity: "warning",
-  }),
-)
-
-export const unpasteableEntity = createDiagnosticFactory(
-  L_Diagnostic.UnpasteableEntity,
-  (entity: BaseEntity, incompatibleProps: readonly UpdateableEntityProp[]) => ({
-    message: [L_Diagnostic.UnpasteableEntity, describeEntity(entity)],
-    position: entity.position,
-    severity: "error",
-    additionalInfo: incompatibleProps.map((prop) => [L_Diagnostic.PropCannotBePasted, prop]),
-  }),
-)
-
-export const updateEntityLostReference = createDiagnosticFactory(
-  L_Diagnostic.UpdateEntityLostReference,
-  (entity: BaseEntity) => ({
-    message: [L_Diagnostic.UpdateEntityLostReference, describeEntity(entity)],
-    position: entity.position,
-    severity: "warning",
-  }),
-)
+import { Layer } from "./Layer"
+import { asBasicEntity, findCompatibleOrOverlappingEntity, applyEntityUpdate } from "../entity/entity-diff"
+import { Diagnostic } from "../utility/diagnostic"
+import {
+  addEntityOverAddEntity,
+  invalidLayer,
+  overlap,
+  unpasteableEntity,
+  updateEntityLostReference,
+} from "./diagnostics"
 
 export function layerAdd(state: MutableBasicBlueprint, layer: Layer): Diagnostic[] {
   const content = layer.getContent()
@@ -64,7 +35,7 @@ export function layerAdd(state: MutableBasicBlueprint, layer: Layer): Diagnostic
 
     // update
     if (existing.type === "compatible") {
-      const { entity: pasteResult, incompatibleProps } = pasteEntityUpdate(existing.entity, entity)
+      const { entity: pasteResult, incompatibleProps } = applyEntityUpdate(existing.entity, entity)
       if (incompatibleProps.length > 0) {
         diagnostics.push(unpasteableEntity(entity, incompatibleProps))
       }

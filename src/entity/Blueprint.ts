@@ -1,7 +1,7 @@
 import { AnyEntity, BasicEntity, createBasicEntity, DeleteEntity, UpdateEntity, withEntityNumber } from "./Entity"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
-import { RRecord } from "../lib/util-types"
+import { Mutable, RRecord } from "../lib/util-types"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { isEmpty, mutate, shallowCopy } from "../lib/util"
 import { pos } from "../lib/geometry/position"
