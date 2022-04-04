@@ -24,6 +24,7 @@
     "no-use-before-define": "off",
     "class-methods-use-this": "off",
     "no-invalid-this": "off",
+    "no-loop-func": "off",
     "@typescript-eslint/no-extra-semi": "off",
     "no-undef": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
@@ -32,6 +33,8 @@
     "@typescript-eslint/no-var-requires": "off",
     "import/prefer-default-export": "off",
     "import/no-namespace": "off",
+    "import/no-unresolved": "off",
+    "import/export": "off",
     // modifications/weakening
     "@typescript-eslint/no-inferrable-types": [
       "warn", {
