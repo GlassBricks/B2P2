@@ -33,7 +33,11 @@
     "typescript-tstl-plugin": "^0.3.2"
   },
   "scripts": {
-    "build": "tstl",
+    "build:plugin": "tsc -p tstlPlugin/tsconfig.json",
+    "build:locale": "ts-node scripts/gen-locale-defs.ts",
+    "build:gui-specs": "ts-node scripts/gen-gui-specs.ts",
+    "build:scripts": "concurrently \"yarn build:plugin\" \"yarn build:locale\" \"yarn build:gui-specs\"",
+    "build": "yarn build:scripts && tstl",
     "watch": "tstl --watch",
     "clean": "del-cli \"**/*.lua\" \"!**/*.def.lua\" \"!**/node_modules/**\""
   }

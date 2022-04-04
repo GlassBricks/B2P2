@@ -333,7 +333,10 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
       if (type !== "base" && stateProps[type][name]) {
         value.push(stateProps[type][name])
       }
-      set(name, value)
+      set(
+        name,
+        value.map((x) => x ?? false),
+      )
     }
     if (type === "base") continue
     for (const event of Object.keys(events[type])) {
@@ -392,14 +395,6 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
                 undefined,
                 undefined,
                 undefined,
-                "this",
-                undefined,
-                ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
-              ),
-              ts.factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                undefined,
                 "event",
                 undefined,
                 ts.factory.createTypeReferenceNode(toPascalCase(name) + "Event"),
@@ -453,14 +448,6 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
         ts.factory.createFunctionTypeNode(
           undefined,
           [
-            ts.factory.createParameterDeclaration(
-              undefined,
-              undefined,
-              undefined,
-              "this",
-              undefined,
-              ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
-            ),
             ts.factory.createParameterDeclaration(
               undefined,
               undefined,
