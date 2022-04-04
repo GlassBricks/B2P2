@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
-    "types": ["typed-factorio/runtime", "testorio", "luassert-tstl"],
+    "types": ["typed-factorio/runtime", "typed-factorio/strict-index-types", "testorio", "luassert-tstl"],
     "plugins": [
       {
         "name": "typescript-tstl-plugin"
       }
     ],
     "lib": ["esnext"],
+    "skipDefaultLibCheck": true,
     "strict": true,
     "experimentalDecorators": true,
     "rootDir": "src",
@@ -21,10 +22,14 @@
   "tstl": {
     "luaTarget": "5.2",
     "noResolvePaths": ["__testorio__/init"],
-    "noImplicitSelf": true
+    "noImplicitSelf": true,
+    "sourceMapTraceback": true,
+    "luaPlugins": [
+      {
+        "name": "./tstlPlugin/plugin.js"
+      }
+    ]
   },
-  "include": [
-    "src"
-  ],
+  "include": ["src"],
   "exclude": []
 }
