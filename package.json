@@ -24,7 +24,7 @@
     "luassert-tstl": "^0.2.3",
     "prettier": "^2.6.2",
     "testorio": "^1.0.0",
-    "testorio-tools": "^0.3.3",
+    "testorio-tools": "^0.3.4",
     "ts-node": "^10.7.0",
     "typed-factorio": "^1.0.0",
     "typescript": "^4.6.3",

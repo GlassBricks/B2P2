@@ -15,7 +15,7 @@ if (script.active_mods.testorio) {
   })
 
   const tagBlacklist: string[] = []
-  if (script.active_mods.debugadapter) {
+  if (__DebugAdapter) {
     tagBlacklist.push("after_mod_reload")
   }
 

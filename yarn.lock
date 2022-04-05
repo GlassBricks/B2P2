@@ -2582,10 +2582,10 @@ tapable@^2.2.0:
   resolved "https://registry.npmjs.org/tapable/-/tapable-2.2.1.tgz"
   integrity sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==
 
-testorio-tools@^0.3.3:
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/testorio-tools/-/testorio-tools-0.3.3.tgz#07d34c45b6b0190fb1bb7c4b29c08fa0511c0a90"
-  integrity sha512-cwiW+QqdhevVKSxO4Ndjwp9eRKFS42Or8BfDIzLqXJU0or7YzZ7UWvQyNanC2ITS89uoCyE32S1yIyIu/6XvMw==
+testorio-tools@^0.3.4:
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/testorio-tools/-/testorio-tools-0.3.4.tgz#29441767771cb99059f058e25d81c5f1066162e9"
+  integrity sha512-7thLt2iEj7g7whhRgkAgZLCqLfG0/6A2ZSAGs0PT2RwGUzULSy8rUm/QubJ6ZICZaw7RHrYfnZOO9Qj/eSgLFA==
   dependencies:
     "@types/rimraf" "^3.0.2"
     commander "^8.3.0"
