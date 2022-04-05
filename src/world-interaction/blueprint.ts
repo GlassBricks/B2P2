@@ -3,8 +3,10 @@ import { pos } from "../lib/geometry/position"
 import { Mutable } from "../lib/util-types"
 import { getTempItemStack } from "./temp-item-stack"
 import { getPlayer } from "../lib/testUtil"
+import { bbox } from "../lib/geometry/bounding-box"
 
-export function takeBlueprint(surface: SurfaceIdentification, area: BoundingBoxRead): BlueprintEntityRead[] {
+export function takeBlueprint(surface: SurfaceIdentification, box: BoundingBox): BlueprintEntityRead[] {
+  const area = bbox.normalize(box)
   const item = getTempItemStack()
   item.set_stack("blueprint")
   const index = item.create_blueprint({
