@@ -15,6 +15,7 @@ import {
 } from "typescript-to-lua"
 import {
   getOptionalContinuationData,
+  OptionalContinuation,
   transformOptionalChain,
 } from "typescript-to-lua/dist/transformation/visitors/optional-chaining"
 import { getFunctionTypeForCall } from "typescript-to-lua/dist/transformation/utils/typescript"
@@ -25,6 +26,52 @@ import * as globToRegExp from "glob-to-regexp"
 import * as path from "path"
 
 const testPattern = globToRegExp("**/*test.ts")
+
+function getTestFiles(context: TransformationContext) {
+  const rootDir = getSourceDir(context.program)
+  const fields = context.program
+    .getSourceFiles()
+    .filter((f) => testPattern.test(f.fileName))
+    .map((f) => {
+      const value = path
+        .relative(rootDir, f.fileName)
+        .replace(/\\/g, "/")
+        .substring(0, f.fileName.length - 3)
+      return createTableFieldExpression(createStringLiteral(value))
+    })
+  return createTableExpression(fields)
+}
+function getDatestamp() {
+  const date = new Date().toISOString()
+  // remove all characters that are not alpha-numeric or '-' or '_'
+  const datestring = date.replace(/[^a-za-z0-9-_]/g, "")
+  return createStringLiteral(datestring)
+}
+
+function transformLuaTableAddMethod(
+  context: TransformationContext,
+  node: ts.CallExpression,
+  optionalContinuation: OptionalContinuation | undefined,
+) {
+  if (optionalContinuation) {
+    context.diagnostics.push(unsupportedBuiltinOptionalCall(node))
+    return createNilLiteral()
+  }
+  const args = node.arguments.slice()
+  assert(ts.isPropertyAccessExpression(node.expression) || ts.isElementAccessExpression(node.expression))
+  args.unshift(node.expression.expression)
+  const [table, accessExpression] = transformExpressionList(context, args)
+  context.addPrecedingStatements(
+    createAssignmentStatement(createTableIndexExpression(table, accessExpression), createBooleanLiteral(true), node),
+  )
+  return createNilLiteral()
+}
+
+function transformLuaSetNewMethod(context: TransformationContext, node: ts.NewExpression) {
+  const args = node.arguments?.slice() ?? []
+  const expressions = transformExpressionList(context, args)
+  return createTableExpression(expressions.map((e) => createTableFieldExpression(createBooleanLiteral(true), e)))
+}
 
 const plugin: Plugin = {
   visitors: {
@@ -44,26 +91,11 @@ const plugin: Plugin = {
     [ts.SyntaxKind.CallExpression]: (node: ts.CallExpression, context: TransformationContext) => {
       // handle special case when call = __getTestFiles(), replace with list of files
       if (ts.isIdentifier(node.expression) && node.expression.text === "__getTestFiles") {
-        const rootDir = getSourceDir(context.program)
-        const fields = context.program
-          .getSourceFiles()
-          .filter((f) => testPattern.test(f.fileName))
-          .map((f) => {
-            const value = path
-              .relative(rootDir, f.fileName)
-              .replace(/\\/g, "/")
-              .substring(0, f.fileName.length - 3)
-            return createTableFieldExpression(createStringLiteral(value))
-          })
-        return createTableExpression(fields)
+        return getTestFiles(context)
       }
 
-      // handle __datestamp()
       if (ts.isIdentifier(node.expression) && node.expression.text === "__datestamp") {
-        const date = new Date().toISOString()
-        // remove all characters that are not alpha-numeric or '-' or '_'
-        const dateString = date.replace(/[^a-zA-Z0-9-_]/g, "")
-        return createStringLiteral(dateString)
+        return getDatestamp()
       }
 
       if (ts.isOptionalChain(node)) {
@@ -75,26 +107,17 @@ const plugin: Plugin = {
         : undefined
 
       const type = getFunctionTypeForCall(context, node)
-      if (!type?.getProperty("__luaTableAddMethodBrand")) {
-        return context.superTransformExpression(node)
+      if (type?.getProperty("__luaTableAddMethodBrand")) {
+        return transformLuaTableAddMethod(context, node, optionalContinuation)
       }
-
-      if (optionalContinuation) {
-        context.diagnostics.push(unsupportedBuiltinOptionalCall(node))
-        return createNilLiteral()
+      return context.superTransformExpression(node)
+    },
+    [ts.SyntaxKind.NewExpression]: (node: ts.NewExpression, context: TransformationContext) => {
+      const type = context.checker.getTypeAtLocation(node.expression)
+      if (type?.getProperty("__luaSetNewBrand")) {
+        return transformLuaSetNewMethod(context, node)
       }
-      const args = node.arguments.slice()
-      assert(ts.isPropertyAccessExpression(node.expression) || ts.isElementAccessExpression(node.expression))
-      args.unshift(node.expression.expression)
-      const [table, accessExpression] = transformExpressionList(context, args)
-      context.addPrecedingStatements(
-        createAssignmentStatement(
-          createTableIndexExpression(table, accessExpression),
-          createBooleanLiteral(true),
-          node,
-        ),
-      )
-      return createNilLiteral()
+      return context.superTransformExpression(node)
     },
   },
 }

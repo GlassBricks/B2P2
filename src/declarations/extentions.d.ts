@@ -13,7 +13,8 @@ declare interface LuaSet<T extends AnyNotNil> extends LuaPairsIterable<T, true> 
   readonly delete: LuaTableDeleteMethod<T>
 }
 
-declare const LuaSet: (new <TKey extends AnyNotNil>() => LuaSet<TKey>) & LuaExtension<"__luaTableNewBrand">
+declare const LuaSet: (new <TKey extends AnyNotNil>(...values: TKey[]) => LuaSet<TKey>) &
+  LuaExtension<"__luaSetNewBrand">
 
 declare function next<T>(table: LuaSet<any>, index?: T): LuaMultiReturn<[T, true] | []>
 
