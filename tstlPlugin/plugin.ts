@@ -3,11 +3,14 @@ import * as assert from "assert"
 import {
   createAssignmentStatement,
   createBooleanLiteral,
+  createCallExpression,
+  createIdentifier,
   createNilLiteral,
   createStringLiteral,
   createTableExpression,
   createTableFieldExpression,
   createTableIndexExpression,
+  Expression,
   getSourceDir,
   isCallExpression,
   Plugin,
@@ -67,10 +70,31 @@ function transformLuaTableAddMethod(
   return createNilLiteral()
 }
 
-function transformLuaSetNewMethod(context: TransformationContext, node: ts.NewExpression) {
+function transformLuaSetNewCall(context: TransformationContext, node: ts.NewExpression) {
   const args = node.arguments?.slice() ?? []
   const expressions = transformExpressionList(context, args)
-  return createTableExpression(expressions.map((e) => createTableFieldExpression(createBooleanLiteral(true), e)))
+  return createTableExpression(
+    expressions.map((e) => createTableFieldExpression(createBooleanLiteral(true), e)),
+    node,
+  )
+}
+
+function wrapInParenthesis(expression: Expression) {
+  return createCallExpression(createIdentifier(""), [expression])
+}
+
+function transformLuaTableFirstMethod(
+  context: TransformationContext,
+  node: ts.CallExpression,
+  optionalContinuation: OptionalContinuation | undefined,
+) {
+  if (optionalContinuation) {
+    context.diagnostics.push(unsupportedBuiltinOptionalCall(node))
+    return createNilLiteral()
+  }
+  assert(ts.isPropertyAccessExpression(node.expression) || ts.isElementAccessExpression(node.expression))
+  const table = context.transformExpression(node.expression.expression)
+  return wrapInParenthesis(createCallExpression(createIdentifier("next"), [table], node))
 }
 
 const plugin: Plugin = {
@@ -110,12 +134,15 @@ const plugin: Plugin = {
       if (type?.getProperty("__luaTableAddMethodBrand")) {
         return transformLuaTableAddMethod(context, node, optionalContinuation)
       }
+      if (type?.getProperty("__luaTableFirstMethodBrand")) {
+        return transformLuaTableFirstMethod(context, node, optionalContinuation)
+      }
       return context.superTransformExpression(node)
     },
     [ts.SyntaxKind.NewExpression]: (node: ts.NewExpression, context: TransformationContext) => {
       const type = context.checker.getTypeAtLocation(node.expression)
       if (type?.getProperty("__luaSetNewBrand")) {
-        return transformLuaSetNewMethod(context, node)
+        return transformLuaSetNewCall(context, node)
       }
       return context.superTransformExpression(node)
     },
