@@ -9,6 +9,7 @@ export interface Blueprint<E extends Entity = Entity> {
   readonly entities: RRecord<EntityId, E>
 
   getAtPos(x: number, y: number): LuaSet<E> | undefined
+  getAt(pos: MapPositionTable): LuaSet<E> | undefined
 }
 
 export interface MutableBlueprint<E extends Entity = Entity> extends Blueprint<E> {
@@ -47,6 +48,10 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
 
   getAtPos(x: number, y: number): LuaSet<E> | undefined {
     return this.byPosition[pair(floor(x), floor(y))]
+  }
+
+  getAt(pos: MapPositionTable): LuaSet<E> | undefined {
+    return this.byPosition[pair(floor(pos.x), floor(pos.y))]
   }
 
   replaceUnsafe(old: E, cur: E): E {

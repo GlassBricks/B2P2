@@ -75,6 +75,12 @@ describe("getAtPos", () => {
     const { x, y } = mockEntity.entity.position
     assert.same(new LuaSet(e1, e2), b.getAtPos(x, y))
   })
+
+  test("getAt same as getAtPos", () => {
+    const e = b.addSingle(mockEntity)
+    const position = mockEntity.entity.position
+    assert.same(new LuaSet(e), b.getAt(position))
+  })
 })
 
 describe("replaceUnsafe", () => {
