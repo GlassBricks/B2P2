@@ -16,6 +16,8 @@ const entitySamples = {
   "assembling-machine-2": true,
   "fluid-assembling-machine": true,
   "rotated-fluid-assembling-machine": true,
+  "assembling-machine-with-modules-1": true,
+  "assembling-machine-with-modules-2": true,
 }
 export type EntitySample = keyof typeof entitySamples
 
@@ -29,7 +31,13 @@ function loadSamplesFromWorld() {
     inserter: ["inserter", "rotated-inserter"],
     "fast-inserter": ["fast-inserter"],
     "assembling-machine-1": ["assembling-machine-1"],
-    "assembling-machine-2": ["assembling-machine-2", "fluid-assembling-machine", "rotated-fluid-assembling-machine"],
+    "assembling-machine-2": [
+      "assembling-machine-2",
+      "fluid-assembling-machine",
+      "rotated-fluid-assembling-machine",
+      "assembling-machine-with-modules-1",
+      "assembling-machine-with-modules-2",
+    ],
   }
   samples = {}
   const [surface, area] = get_area(1 as SurfaceIdentification, "entity samples")

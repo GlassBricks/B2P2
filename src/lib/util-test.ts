@@ -1,4 +1,4 @@
-import { compare, isEmpty, mutate, shallowCopy } from "./util"
+import { deepCompare, isEmpty, mutate, shallowCopy } from "./util"
 
 test("shallowCopy", () => {
   const obj = {
@@ -44,7 +44,7 @@ test("compare", () => {
       d: 3,
     },
   }
-  assert.is_true(compare(a, b))
+  assert.is_true(deepCompare(a, b))
   const c = {
     a: 1,
     b: {
@@ -52,7 +52,7 @@ test("compare", () => {
       d: 4,
     },
   }
-  assert.is_false(compare(a, c))
+  assert.is_false(deepCompare(a, c))
 })
 
 test("isEmpty", () => {
