@@ -2,7 +2,9 @@ import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { UP } from "../lib/geometry/rotation"
 
 export interface EntityInfo {
-  collisionBox: BoundingBoxClass
+  readonly collisionBox: BoundingBoxClass
+  readonly entityGroup: string
+  readonly isRotationPasteable: boolean
 }
 
 const entityInfoCache: Record<string, EntityInfo> = {}
@@ -13,8 +15,11 @@ export function getEntityInfo(entityName: string): EntityInfo {
   }
 
   const proto = game.entity_prototypes[entityName]
+  const collisionBox = bbox.from(proto.collision_box)
   const entityInfo: EntityInfo = {
-    collisionBox: bbox.from(proto.collision_box),
+    collisionBox,
+    entityGroup: proto.fast_replaceable_group ?? `<none> ${entityName}`,
+    isRotationPasteable: proto.type === "assembling-machine" && collisionBox.isCenteredSquare(),
   }
 
   entityInfoCache[entityName] = entityInfo

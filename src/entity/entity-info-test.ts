@@ -1,24 +1,33 @@
-import { test_area } from "__testorio__/testUtil/areas"
-import { getTileArea } from "./entity-info"
+import { getEntityInfo, getTileArea } from "./entity-info"
 import { bbox } from "../lib/geometry/bounding-box"
-import { takeBlueprint } from "../world-interaction/blueprint"
+import { EntitySample, getEntitySample } from "../test/entity-sample"
 
-describe("bounding box", () => {
-  test.each(
-    [
-      ["chest", bbox.fromCorners(0, 0, 1, 1)],
-      ["furnace", bbox.fromCorners(0, 0, 2, 2)],
-      ["assembling machine", bbox.fromCorners(0, 0, 3, 3)],
-      ["splitter", bbox.fromCorners(0, 0, 1, 2)],
-      ["offshore pump", bbox.fromCorners(0, 0, 2, 1)],
-    ],
-    "Size of bounding box for %s is correct",
-    (name, expected) => {
-      const [surface, area] = test_area(1 as SurfaceIdentification, name)
-      const entities = takeBlueprint(surface, area)
-      assert.equal(entities.length, 1)
-      const entity = entities[0]
-      assert.same(expected, getTileArea(entity).shiftToOrigin())
-    },
-  )
-})
+describe.each<[EntitySample, BoundingBoxRead, string]>(
+  [
+    ["chest", bbox.fromCorners(0, 0, 1, 1), "container"],
+    ["furnace", bbox.fromCorners(0, 0, 2, 2), "furnace"],
+    ["assembling-machine-1", bbox.fromCorners(0, 0, 3, 3), "assembling-machine"],
+    ["splitter", bbox.fromCorners(0, 0, 2, 1), "transport-belt"],
+    ["offshore-pump", bbox.fromCorners(0, 0, 1, 2), "<none> offshore-pump"],
+  ],
+  "entity %s",
+  (name, boundingBox, group) => {
+    let entity: BlueprintEntityRead
+    before_all(() => {
+      entity = getEntitySample(name)
+    })
+
+    test("bounding box is correct", () => {
+      assert.same(boundingBox, getTileArea(entity).shiftToOrigin())
+    })
+
+    test("entity group is correct", () => {
+      assert.same(group, getEntityInfo(entity.name).entityGroup)
+    })
+
+    test("isRotationPasteable is correct", () => {
+      const pasteable = name === "assembling-machine-1"
+      assert.same(pasteable, getEntityInfo(entity.name).isRotationPasteable)
+    })
+  },
+)
