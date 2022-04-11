@@ -2,17 +2,16 @@ import { Entity } from "./entity"
 
 // this is only in consideration when entities are compatible
 export const enum PropUpdateBehavior {
-  Irrelevant = 0, // not relevant for pasting
+  Unchecked = 0, // not relevant for pasting
   UpdateableOnly = 1, // can be changed manually, but can't be pasted
   IgnoredOnPaste = 2, // does not prevent pasting, but has no effect
   Pasteable = 3, // prop is updated upon paste
 }
 
 export const PropUpdateBehaviors = {
-  entity_number: PropUpdateBehavior.Irrelevant,
-  position: PropUpdateBehavior.Irrelevant,
-
-  direction: PropUpdateBehavior.Pasteable, // if direction not pasteable, then entities should not be compatible
+  entity_number: PropUpdateBehavior.Unchecked,
+  position: PropUpdateBehavior.Unchecked,
+  neighbours: PropUpdateBehavior.Unchecked,
 
   name: PropUpdateBehavior.UpdateableOnly,
 
@@ -22,6 +21,7 @@ export const PropUpdateBehaviors = {
   override_stack_size: PropUpdateBehavior.Pasteable,
   recipe: PropUpdateBehavior.Pasteable,
   schedule: PropUpdateBehavior.Pasteable,
+  direction: PropUpdateBehavior.Pasteable, // if direction not pasteable, then entities should not be compatible
 
   connections: undefined,
   tags: undefined,
@@ -40,6 +40,7 @@ export type UpdateableProp = UpdateablePropsWithType<
 
 export type UnpasteableProp = UpdateablePropsWithType<PropUpdateBehavior.UpdateableOnly>
 export type IgnoredOnPasteProp = UpdateablePropsWithType<PropUpdateBehavior.IgnoredOnPaste>
+export type UnhandledProp = UpdateablePropsWithType<undefined>
 
 export interface EntityReference extends Entity {
   readonly type: "reference"

@@ -18,6 +18,8 @@ const entitySamples = {
   "rotated-fluid-assembling-machine": true,
   "assembling-machine-with-modules-1": true,
   "assembling-machine-with-modules-2": true,
+
+  "power-pole": true,
 }
 export type EntitySample = keyof typeof entitySamples
 
@@ -38,6 +40,7 @@ function loadSamplesFromWorld() {
       "assembling-machine-with-modules-1",
       "assembling-machine-with-modules-2",
     ],
+    "small-electric-pole": ["power-pole"],
   }
   samples = {}
   const [surface, area] = get_area(1 as SurfaceIdentification, "entity samples")

@@ -38,8 +38,3 @@ declare type WithMetatable<T, M> = T & {
 }
 
 declare const luaLength: LuaLength<object, number>
-
-interface BlueprintEntity {
-  readonly recipe?: string
-  readonly override_stack_size?: number
-}
