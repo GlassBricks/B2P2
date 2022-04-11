@@ -1,26 +1,28 @@
-import { getTileArea } from "./entity-info"
-import { mutableShallowCopy } from "../lib/util"
+import { mutableShallowCopy, shallowCopy } from "../lib/util"
+import { Mutable } from "../lib/util-types"
+import { getTileBox } from "./entity-info"
 
 /** This corresponds to entity_number only when converted back to native entities. */
-export type EntityId = number & { _bpEntityIdBrand: never }
+export type EntityNumber = number & { _bpEntityIdBrand: never }
 
-export interface Entity {
-  readonly id: EntityId
+export interface Entity extends BlueprintEntityRead {
+  readonly entity_number: EntityNumber
   readonly tileBox: BoundingBoxRead
-  readonly entity: BlueprintEntityRead
 }
 
-export function createEntity(bpEntity: BlueprintEntityRead, id: EntityId = bpEntity.entity_number as EntityId): Entity {
-  return {
-    id,
-    tileBox: getTileArea(bpEntity),
-    entity: bpEntity,
-  }
+export function createEntity(
+  entity: BlueprintEntityRead,
+  number: EntityNumber = entity.entity_number as EntityNumber,
+): Entity {
+  const result = shallowCopy(entity) as Mutable<Entity>
+  result.entity_number = number
+  result.tileBox ??= getTileBox(result)
+  return result
 }
 
-export function withEntityId<T extends Entity>(entity: T, id: EntityId): T {
-  if (entity.id === id) return entity
+export function withEntityNumber<T extends Entity>(entity: T, number: EntityNumber): T {
+  if (entity.entity_number === number) return entity
   const result = mutableShallowCopy(entity)
-  result.id = id
+  result.entity_number = number
   return result
 }

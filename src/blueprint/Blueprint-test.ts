@@ -1,5 +1,5 @@
 import { MutableBlueprint } from "./Blueprint"
-import { createEntity, Entity, EntityId } from "../entity/entity"
+import { createEntity, Entity, EntityNumber } from "../entity/entity"
 import { bbox } from "../lib/geometry/bounding-box"
 
 let b: MutableBlueprint
@@ -24,7 +24,7 @@ before_all(() => {
       position: { x: 0.5, y: 0.5 },
       entity_number: 1,
     },
-    2 as EntityId,
+    2 as EntityNumber,
   )
   mockEntity3 = createEntity(
     {
@@ -32,7 +32,7 @@ before_all(() => {
       position: { x: 0.5, y: 0.5 },
       entity_number: 1,
     },
-    3 as EntityId,
+    3 as EntityNumber,
   )
 })
 test("adding entity adds to .entities", () => {
@@ -42,14 +42,14 @@ test("adding entity adds to .entities", () => {
 
 test("adding entity changes id", () => {
   const e2 = b.addSingle(mockEntity2)
-  assert.same(e2.id, 1)
+  assert.same(e2.entity_number, 1)
   assert.same({ 1: e2 }, b.entities)
 })
 
 describe("getAtPos", () => {
   it("returns entity after add", () => {
     const e = b.addSingle(mockEntity)
-    const { x, y } = mockEntity.entity.position
+    const { x, y } = mockEntity.position
     assert.same(new LuaSet(e), b.getAtPos(x, y))
   })
 
@@ -72,13 +72,13 @@ describe("getAtPos", () => {
   it("returns all entities if overlapping", () => {
     const e1 = b.addSingle(mockEntity)
     const e2 = b.addSingle(mockEntity2)
-    const { x, y } = mockEntity.entity.position
+    const { x, y } = mockEntity.position
     assert.same(new LuaSet(e1, e2), b.getAtPos(x, y))
   })
 
   test("getAt same as getAtPos", () => {
     const e = b.addSingle(mockEntity)
-    const position = mockEntity.entity.position
+    const position = mockEntity.position
     assert.same(new LuaSet(e), b.getAt(position))
   })
 })

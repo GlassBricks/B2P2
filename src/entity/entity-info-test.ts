@@ -1,4 +1,4 @@
-import { getEntityInfo, getTileArea } from "./entity-info"
+import { getEntityInfo, getTileBox } from "./entity-info"
 import { bbox } from "../lib/geometry/bounding-box"
 import { EntitySample, getEntitySample } from "../test/entity-sample"
 
@@ -18,7 +18,7 @@ describe.each<[EntitySample, BoundingBoxRead, string]>(
     })
 
     test("bounding box is correct", () => {
-      assert.same(boundingBox, getTileArea(entity).shiftToOrigin())
+      assert.same(boundingBox, getTileBox(entity).shiftToOrigin())
     })
 
     test("entity group is correct", () => {

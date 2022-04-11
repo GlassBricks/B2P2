@@ -9,7 +9,7 @@ export function findCompatibleEntity<T extends Entity>(
   const entities = blueprint.getAt(entity.position)
   if (entities === undefined) return undefined
   for (const [e] of entities) {
-    if (isCompatibleEntity(e.entity, entity)) return e
+    if (isCompatibleEntity(e, entity)) return e
   }
   return undefined
 }

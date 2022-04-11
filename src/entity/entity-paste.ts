@@ -12,7 +12,7 @@ import { deepCompare } from "../lib/util"
 const _: Record<IgnoredOnPasteProp, true> = { items: true }
 
 // this will replace the above function eventually
-export function findPasteConflict(
+export function findEntityPasteConflicts(
   below: BlueprintEntityRead,
   above: BlueprintEntityRead,
 ): UnpasteableProp | IgnoredOnPasteProp | UnhandledProp | undefined {
