@@ -51,3 +51,11 @@ test.each<[EntitySample, EntitySample]>(
     assert.equal("items", findPasteConflict(entity1, entity2))
   },
 )
+
+test("reports unhandled props", () => {
+  const entity = getEntitySample("assembling-machine-1")
+  const entity2 = mutableShallowCopy(entity) as any
+  entity2.foo = "bar"
+  assert.equal("foo", findPasteConflict(entity, entity2))
+  assert.equal("foo", findPasteConflict(entity2, entity))
+})
