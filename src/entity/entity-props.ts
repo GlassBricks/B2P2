@@ -38,7 +38,7 @@ export type UpdateableProp = UpdateablePropsWithType<
   PropUpdateBehavior.UpdateableOnly | PropUpdateBehavior.Pasteable | PropUpdateBehavior.IgnoredOnPaste
 >
 
-export type NotPasteableProp = UpdateablePropsWithType<PropUpdateBehavior.UpdateableOnly>
+export type UnpasteableProp = UpdateablePropsWithType<PropUpdateBehavior.UpdateableOnly>
 export type IgnoredOnPasteProp = UpdateablePropsWithType<PropUpdateBehavior.IgnoredOnPaste>
 
 export interface EntityReference extends Entity {

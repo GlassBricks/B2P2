@@ -1,60 +1,35 @@
-import { IgnoredOnPasteProp, NotPasteableProp, PropUpdateBehavior, PropUpdateBehaviors } from "./entity-props"
+import { IgnoredOnPasteProp, PropUpdateBehavior, PropUpdateBehaviors, UnpasteableProp } from "./entity-props"
 import { deepCompare } from "../lib/util"
-import { PRecord } from "../lib/util-types"
 
-export interface SuccessfulPasteResult {
-  entity: BlueprintEntityRead
-  ignoredProps?: IgnoredOnPasteProp[]
-}
-export interface FailedPasteResult {
-  conflictingProp: NotPasteableProp
-}
-
-// only for compiler to assert that the only ignored on paste prop so far is "items"
+// for compiler to assert that the only ignored on paste prop (as currently implemented) is "items"
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _: Record<IgnoredOnPasteProp, true> = { items: true }
 
-export function tryPasteCompatibleEntities(
+// this will replace the above function eventually
+export function findPasteConflict(
   below: BlueprintEntityRead,
   above: BlueprintEntityRead,
-): LuaMultiReturn<[true, SuccessfulPasteResult] | [false, FailedPasteResult]> {
-  const result: PRecord<keyof BlueprintEntityRead, unknown> = {}
+): UnpasteableProp | IgnoredOnPasteProp | undefined {
   for (const [prop, value] of pairs(above)) {
     const behavior = PropUpdateBehaviors[prop]
-    if (behavior === PropUpdateBehavior.UpdateableOnly) {
-      if (!deepCompare(below[prop], value)) {
-        return $multi(false, { conflictingProp: prop as NotPasteableProp })
-      }
-      result[prop] = value
-    } else if (behavior === PropUpdateBehavior.Pasteable) {
-      result[prop] = value
-    } else {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _: PropUpdateBehavior.Irrelevant | PropUpdateBehavior.IgnoredOnPaste | undefined = behavior
-      // do nothing
+    if (behavior === PropUpdateBehavior.UpdateableOnly && !deepCompare(below[prop], value)) {
+      return prop as UnpasteableProp
     }
   }
-
-  for (const [prop, value] of pairs(below)) {
-    const behavior = PropUpdateBehaviors[prop]
-    if (behavior === PropUpdateBehavior.Irrelevant) {
-      result[prop] = value
-    }
-
+  for (const [prop] of pairs(below)) {
     if (above[prop] !== undefined) continue // already handled above
+    const behavior = PropUpdateBehaviors[prop]
     if (behavior === PropUpdateBehavior.UpdateableOnly) {
       // exists in below, but not above
-      return $multi(false, { conflictingProp: prop as NotPasteableProp })
-    }
-    if (behavior === PropUpdateBehavior.Pasteable) {
-      result[prop] = undefined
+      return prop as UnpasteableProp
     }
   }
 
+  // hardcoded for now
   const belowItems = below.items
   if (!deepCompare(belowItems, above.items)) {
-    result.items = belowItems
-    return $multi(true, { entity: result as BlueprintEntityRead, ignoredProps: ["items"] })
+    return "items"
   }
-  return $multi(true, { entity: result as BlueprintEntityRead })
+
+  return undefined
 }

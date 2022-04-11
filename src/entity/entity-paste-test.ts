@@ -1,55 +1,36 @@
 import { EntitySample, getEntitySample } from "../test/entity-sample"
-import { FailedPasteResult, SuccessfulPasteResult, tryPasteCompatibleEntities } from "./entity-paste"
-import { mutableShallowCopy, mutate } from "../lib/util"
+import { findPasteConflict } from "./entity-paste"
+import { mutableShallowCopy } from "../lib/util"
 
-test("pasting an entity on itself is successful and does not change the entity", () => {
+test("pasting an entity on itself is successful", () => {
   const entity = getEntitySample("chest")
-  const [success, pasteResult] = tryPasteCompatibleEntities(entity, entity)
-  assert(success)
-  assert.same(entity, (pasteResult as SuccessfulPasteResult).entity)
+  assert.is_nil(findPasteConflict(entity, entity))
 })
 
-test("pasting a pasteable prop is successful and updates the prop", () => {
+test("pasting a pasteable prop is successful", () => {
   const entity = getEntitySample("assembling-machine-1")
   const entity2 = { ...entity, recipe: "iron-gear-wheel" }
-  const [success, pasteResult] = tryPasteCompatibleEntities(entity, entity2)
-  assert(success)
-  assert.same(entity2, (pasteResult as SuccessfulPasteResult).entity)
+  assert.is_nil(findPasteConflict(entity, entity2))
 })
 
-test("pasting recipe from none successful and updates the prop", () => {
+test("pasting recipe from none successful", () => {
   const entity = getEntitySample("assembling-machine-1")
   const entity2 = mutableShallowCopy(entity)
   entity2.recipe = undefined
-  const [success, pasteResult] = tryPasteCompatibleEntities(entity2, entity)
-  assert(success)
-  assert.same(entity, (pasteResult as SuccessfulPasteResult).entity)
+  assert.is_nil(findPasteConflict(entity, entity2))
 })
 
-test("pasting to remove recipe is successful and updates the prop", () => {
+test("pasting to remove recipe is successful", () => {
   const entity = getEntitySample("assembling-machine-1")
   const entity2 = mutableShallowCopy(entity)
   entity2.recipe = undefined
-  const [success, pasteResult] = tryPasteCompatibleEntities(entity, entity2)
-  assert(success)
-  assert.same(entity2, (pasteResult as SuccessfulPasteResult).entity)
-})
-
-test("pasting a pasteable prop preserves entity number", () => {
-  const entity = getEntitySample("assembling-machine-1")
-  const entity2 = mutableShallowCopy(entity)
-  entity2.entity_number++
-  const [success, pasteResult] = tryPasteCompatibleEntities(entity, entity2)
-  assert(success)
-  assert.same(entity, (pasteResult as SuccessfulPasteResult).entity)
+  assert.is_nil(findPasteConflict(entity, entity2))
 })
 
 test("pasting an entity in the same fast replace group is unsuccessful", () => {
   const entity1 = getEntitySample("assembling-machine-1")
   const entity2 = { ...getEntitySample("assembling-machine-2"), position: entity1.position }
-  const [success, pasteResult] = tryPasteCompatibleEntities(entity1, entity2)
-  assert(!success)
-  assert.equal("name", (pasteResult as FailedPasteResult).conflictingProp)
+  assert.equal("name", findPasteConflict(entity1, entity2))
 })
 
 test.each<[EntitySample, EntitySample]>(
@@ -67,12 +48,6 @@ test.each<[EntitySample, EntitySample]>(
       position: entity1.position,
       entity_number: entity1.entity_number,
     }
-    const [success, pasteResult] = tryPasteCompatibleEntities(entity1, entity2)
-    assert(success)
-    assert.same(
-      mutate(entity2, (e) => (e.items = entity1.items)),
-      (pasteResult as SuccessfulPasteResult).entity,
-    )
-    assert.same(["items"], (pasteResult as SuccessfulPasteResult).ignoredProps)
+    assert.equal("items", findPasteConflict(entity1, entity2))
   },
 )
