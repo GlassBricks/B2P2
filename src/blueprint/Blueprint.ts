@@ -1,4 +1,4 @@
-import { Entity, EntityNumber, withEntityNumber } from "../entity/entity"
+import { createEntity, Entity, EntityNumber, withEntityNumber } from "../entity/entity"
 import { PRecord, RRecord } from "../lib/util-types"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
@@ -19,6 +19,11 @@ export interface MutableBlueprint<E extends Entity = Entity> extends Blueprint<E
   replaceUnsafe(old: E, cur: E): E
 
   remove(entity: E): E
+}
+
+interface MutableBlueprintConstructor {
+  new <E extends Entity = Entity>(): MutableBlueprint<E>
+  fromEntities(entities: BlueprintEntityRead[]): MutableBlueprint
 }
 
 @Classes.register("Blueprint")
@@ -72,10 +77,9 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
 
   remove(entity: E): E {
     const number = entity.entity_number
-    if (this.entities[number] !== entity)
-      error("tried to remove entity that doesn't exist in blueprint: " + serpent.block(entity))
-
     const oldEntity = this.entities[number]
+    if (oldEntity !== entity) error("tried to remove entity that doesn't exist in blueprint: " + serpent.block(entity))
+
     delete this.entities[number]
     for (const [x, y] of bbox.iterateTiles(oldEntity.tileBox)) {
       const index = pair(x, y)
@@ -86,6 +90,16 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
 
     return oldEntity
   }
+
+  static fromEntities(entities: BlueprintEntityRead[]): MutableBlueprint {
+    const blueprint = new BlueprintImpl<Entity>()
+    for (const rawEntity of entities) {
+      const entity = createEntity(rawEntity)
+      blueprint.addEntityUnchecked(entity, entity.entity_number)
+    }
+
+    return blueprint
+  }
 }
 
-export const MutableBlueprint: new <E extends Entity>() => MutableBlueprint<E> = BlueprintImpl
+export const MutableBlueprint: MutableBlueprintConstructor = BlueprintImpl
