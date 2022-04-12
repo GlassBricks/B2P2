@@ -21,11 +21,11 @@ const entitySamples = {
 
   "power-pole": true,
 }
-export type EntitySample = keyof typeof entitySamples
+export type EntitySampleName = keyof typeof entitySamples
 
 let samples: Record<string, BlueprintEntityRead>
 function loadSamplesFromWorld() {
-  const samplesInOrderByName: Record<string, EntitySample[]> = {
+  const samplesInOrderByName: Record<string, EntitySampleName[]> = {
     "iron-chest": ["chest"],
     "stone-furnace": ["furnace"],
     splitter: ["splitter", "flipped-splitter"],
@@ -55,7 +55,7 @@ function loadSamplesFromWorld() {
   }
 }
 
-export function getEntitySample(sample: EntitySample): BlueprintEntityRead {
+export function getEntitySample(sample: EntitySampleName): BlueprintEntityRead {
   if (!samples) {
     loadSamplesFromWorld()
   }

@@ -1,4 +1,4 @@
-import { EntitySample, getEntitySample } from "../test/entity-sample"
+import { EntitySampleName, getEntitySample } from "../test/entity-sample"
 import { findEntityPasteConflict } from "./entity-paste"
 import { mutableShallowCopy } from "../lib/util"
 
@@ -33,7 +33,7 @@ test("pasting an entity in the same fast replace group is unsuccessful", () => {
   assert.equal("name", findEntityPasteConflict(entity1, entity2))
 })
 
-test.each<[EntitySample, EntitySample]>(
+test.each<[EntitySampleName, EntitySampleName]>(
   [
     ["assembling-machine-2", "assembling-machine-with-modules-1"],
     ["assembling-machine-with-modules-1", "assembling-machine-2"],
