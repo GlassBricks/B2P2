@@ -150,3 +150,37 @@ test("fromEntities", () => {
   const b2 = MutableBlueprint.fromEntities(entities)
   assert.same(b.entities, b2.entities)
 })
+
+test("remapEntityNumbers", () => {
+  b.addSingle(mockEntity)
+  b.addSingle(mockEntity2)
+  b.remapEntityNumbers({
+    1: 2,
+    2: 1,
+  })
+  const expected = new MutableBlueprint()
+  expected.addSingle(mockEntity2)
+  expected.addSingle(mockEntity)
+  assert.same(expected.entities, b.entities)
+})
+
+test("sortEntities", () => {
+  const entity1 = mockEntity
+  const entity2 = createEntity({
+    ...mockEntity,
+    position: { x: 1.5, y: 0.5 },
+  })
+  const entity3 = createEntity({
+    ...mockEntity,
+    position: { x: 0.5, y: 1.5 },
+  })
+  b.addSingle(entity3)
+  b.addSingle(entity1)
+  b.addSingle(entity2)
+  b.sortEntities()
+  const expected = new MutableBlueprint()
+  expected.addSingle(entity1)
+  expected.addSingle(entity2)
+  expected.addSingle(entity3)
+  assert.same(expected.entities, b.entities)
+})
