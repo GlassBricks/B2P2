@@ -109,11 +109,25 @@ namespace bbox {
     const { left_top, right_bottom } = box
     return left_top.x === -right_bottom.x && left_top.y === -right_bottom.y
   }
-  export function equals(box: BoundingBoxRead, other: BoundingBoxRead): boolean {
+  export function contains(box: BoundingBoxRead, point: MapPositionTable): boolean {
     const { left_top, right_bottom } = box
-    const { left_top: lt, right_bottom: rb } = other
-    return lt.x === left_top.x && lt.y === left_top.y && rb.x === right_bottom.x && rb.y === right_bottom.y
+    return point.x >= left_top.x && point.x <= right_bottom.x && point.y >= left_top.y && point.y <= right_bottom.y
   }
+  export function intersectsNonZeroArea(box: BoundingBoxRead, other: BoundingBoxRead): boolean {
+    const { left_top, right_bottom } = box
+    const { left_top: otherLeft_top, right_bottom: otherRight_bottom } = other
+    return (
+      left_top.x < otherRight_bottom.x &&
+      right_bottom.x > otherLeft_top.x &&
+      left_top.y < otherRight_bottom.y &&
+      right_bottom.y > otherLeft_top.y
+    )
+  }
+}
+export function equals(box: BoundingBoxRead, other: BoundingBoxRead): boolean {
+  const { left_top, right_bottom } = box
+  const { left_top: lt, right_bottom: rb } = other
+  return lt.x === left_top.x && lt.y === left_top.y && rb.x === right_bottom.x && rb.y === right_bottom.y
 }
 
 const meta: LuaMetatable<BoundingBoxRead, BoundingBoxClass> = {

@@ -128,3 +128,17 @@ test("isCenteredRectangle", () => {
   const box3 = bbox({ x: 2, y: 3 }, { x: -2, y: -3 })
   assert.is_true(box3.isCenteredRectangle())
 })
+
+test("contains", () => {
+  const box = bbox({ x: 1, y: 1 }, { x: 4, y: 4 })
+  assert.is_true(box.contains({ x: 2, y: 3 }))
+  assert.is_false(box.contains({ x: 2, y: 5 }))
+})
+
+test("intersectsNonZeroArea", () => {
+  const box = bbox({ x: 1, y: 1 }, { x: 4, y: 4 })
+  assert.is_true(box.intersectsNonZeroArea(bbox({ x: 2, y: 3 }, { x: 3, y: 4 })))
+  assert.is_false(box.intersectsNonZeroArea(bbox({ x: 2, y: 5 }, { x: 3, y: 6 })))
+  // only touches
+  assert.is_false(box.intersectsNonZeroArea(bbox({ x: 2, y: 4 }, { x: 3, y: 5 })))
+})
