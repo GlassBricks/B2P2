@@ -22,8 +22,11 @@ if (script.active_mods.testorio) {
   require("__testorio__/init")(__getTestFiles(), {
     tag_blacklist: tagBlacklist,
     before_test_run() {
+      Events.raiseFakeEventNamed("on_init", undefined)
       const force = game.forces.player
       force.enable_all_recipes()
     },
+    log_passed_tests: false,
+    // test_pattern: "blueprint.*%-test",
   } as Testorio.Config)
 }

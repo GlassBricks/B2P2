@@ -44,9 +44,14 @@ export interface EventsObj extends ShorthandRegister {
   onAll(handlers: EventHandlers): void
 
   clearHandlers<E extends EventId<any, any> | string>(event: E): void
+
+  raiseFakeEvent<E extends EventId<any, any>>(event: E, data: E["_eventData"]): void
+  raiseFakeEvent<E extends string>(event: E, data: CustomInputEvent): void
+  raiseFakeEvent<E extends EventId<any, any> | string>(event: E, data: EventDataOf<E>): void
+  raiseFakeEventNamed<E extends keyof NamedEventTypes>(event: E, data: NamedEventTypes[E]): void
 }
 
-const scriptEvents: Record<keyof ScriptEvents, symbol> = {
+export const scriptEventIds: Record<keyof ScriptEvents, symbol> = {
   on_init: Symbol("on_init"),
   on_load: Symbol("on_load"),
   on_configuration_changed: Symbol("on_configuration_changed"),
@@ -84,6 +89,14 @@ function registerInternal(id: keyof any, handler: AnyHandler) {
   }
 }
 
+function raiseFakeEvent(id: keyof any, data: any) {
+  const handlers = registeredHandlers[id]
+  if (!handlers) return
+  for (const handler of handlers) {
+    handler(data)
+  }
+}
+
 function clear(id: keyof any) {
   registeredHandlers[id] = undefined
   if (type(id) === "table") {
@@ -106,18 +119,28 @@ const Events = {
   onAll(handlers: EventHandlers): void {
     for (const [event, handler] of pairs(handlers)) {
       const id =
-        scriptEvents[event as keyof ScriptEvents] ??
+        scriptEventIds[event as keyof ScriptEvents] ??
         defines.events[event as keyof typeof defines.events] ??
         error(`"${event}" is not an event name. Use "register" to register a handler for a custom input event.`)
       registerInternal(id, handler)
     }
   },
   clearHandlers: clear,
+  raiseFakeEvent(event: keyof any, data: any): void {
+    raiseFakeEvent(event, data)
+  },
+  raiseFakeEventNamed(event: any, data: any): void {
+    const id =
+      scriptEventIds[event as keyof ScriptEvents] ??
+      defines.events[event as keyof typeof defines.events] ??
+      error(`"${event}" is not an event name.`)
+    raiseFakeEvent(id, data)
+  },
 } as EventsObj
 
 setmetatable(Events, {
   __index(this: EventsObj, key: keyof any) {
-    const id = scriptEvents[key as keyof ScriptEvents] ?? defines.events[key as keyof typeof defines.events]
+    const id = scriptEventIds[key as keyof ScriptEvents] ?? defines.events[key as keyof typeof defines.events]
     if (id !== undefined) {
       return (handler: AnyHandler) => {
         registerInternal(id, handler)
