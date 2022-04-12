@@ -41,6 +41,7 @@ export type UpdateableProp = UpdateablePropsWithType<
 export type UnpasteableProp = UpdateablePropsWithType<PropUpdateBehavior.UpdateableOnly>
 export type IgnoredOnPasteProp = UpdateablePropsWithType<PropUpdateBehavior.IgnoredOnPaste>
 export type UnhandledProp = UpdateablePropsWithType<undefined>
+export type ConflictingProp = UnpasteableProp | IgnoredOnPasteProp | UnhandledProp
 
 export interface EntityReference extends Entity {
   readonly type: "reference"

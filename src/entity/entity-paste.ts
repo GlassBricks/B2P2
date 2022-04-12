@@ -23,7 +23,7 @@ export function findEntityPasteConflicts(
     if (behavior === PropUpdateBehavior.UpdateableOnly && !deepCompare(below[prop], value)) {
       return prop as UnpasteableProp
     }
-    if (behavior === undefined) {
+    if (behavior === undefined && !deepCompare(below[prop], value)) {
       unhandledProp = prop
     }
   }

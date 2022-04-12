@@ -59,3 +59,10 @@ test("reports unhandled props", () => {
   assert.equal("foo", findEntityPasteConflicts(entity, entity2))
   assert.equal("foo", findEntityPasteConflicts(entity2, entity))
 })
+
+test("does not report unhandled props if identical", () => {
+  const entity = getEntitySample("assembling-machine-1")
+  const entity2 = mutableShallowCopy(entity) as any
+  entity2.foo = "bar"
+  assert.equal(undefined, findEntityPasteConflicts(entity2, entity2))
+})
