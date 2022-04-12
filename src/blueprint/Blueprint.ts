@@ -1,10 +1,13 @@
 import { createEntity, Entity, EntityNumber, withEntityNumber } from "../entity/entity"
-import { PRecord, RRecord } from "../lib/util-types"
+import { Mutable, PRecord, RRecord } from "../lib/util-types"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { bbox } from "../lib/geometry/bounding-box"
 import { shallowCopy } from "../lib/util"
+import { table as utilTable } from "util"
 import floor = math.floor
+import deepcopy = utilTable.deepcopy
+import sort = table.sort
 
 export interface Blueprint<E extends Entity = Entity> {
   readonly entities: RRecord<EntityNumber, E>
@@ -121,9 +124,36 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
       if (newNumber === undefined) error("tried to remap entity number that doesn't exist: " + oldNumber)
       newEntities[newNumber as EntityNumber] = withEntityNumber(entity, newNumber as EntityNumber)
     }
+    BlueprintImpl.remapConnections(newEntities, map)
 
     this.entities = newEntities
     this.recomputeByPosition()
+  }
+
+  private static remapConnections(entities: Record<EntityNumber, Entity>, map: Record<number, number>): void {
+    function remapConnectionData(connectionPoint: BlueprintConnectionData[] | undefined): void {
+      if (connectionPoint === undefined) return
+      for (const point of connectionPoint) {
+        point.entity_id = map[point.entity_id]
+      }
+    }
+    function remapConnectionPoint(connectionPoint: BlueprintConnectionPoint | undefined): void {
+      if (connectionPoint === undefined) return
+      remapConnectionData(connectionPoint.red)
+      remapConnectionData(connectionPoint.green)
+    }
+    function remapEntityConnections(entity: Mutable<Entity>) {
+      const connection = entity.connections
+      if (connection === undefined) return
+      const result = deepcopy(connection)
+      remapConnectionPoint(result["1"])
+      remapConnectionPoint(result["2"])
+      entity.connections = result
+    }
+
+    for (const [, entity] of pairs(entities)) {
+      remapEntityConnections(entity)
+    }
   }
 
   private recomputeByPosition(): void {
@@ -142,7 +172,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
       if (a.y !== b.y) return a.y < b.y
       return a.x < b.x
     }
-    table.sort(entities, compareByPosition)
+    sort(entities, compareByPosition)
     const remap: Record<EntityNumber, number> = {}
     for (const [newNumber, entity] of ipairs(entities)) {
       remap[entity.entity_number] = newNumber

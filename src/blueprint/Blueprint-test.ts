@@ -152,15 +152,51 @@ test("fromEntities", () => {
 })
 
 test("remapEntityNumbers", () => {
-  b.addSingle(mockEntity)
-  b.addSingle(mockEntity2)
+  const connections2: BlueprintCircuitConnection = {
+    "1": {
+      red: [
+        {
+          entity_id: 2,
+        },
+      ],
+    },
+  }
+  const connections1: BlueprintCircuitConnection = {
+    "1": {
+      red: [
+        {
+          entity_id: 1,
+        },
+      ],
+    },
+  }
+
+  const entity1 = {
+    ...mockEntity,
+    connections: connections2,
+  }
+  const entity2 = {
+    ...mockEntity2,
+    connections: connections1,
+  }
+  const swappedEntity1 = {
+    ...mockEntity,
+    connections: connections1,
+  }
+  const swappedEntity2 = {
+    ...mockEntity2,
+    connections: connections2,
+  }
+
+  b.addSingle(entity1)
+  b.addSingle(entity2)
   b.remapEntityNumbers({
     1: 2,
     2: 1,
   })
   const expected = new MutableBlueprint()
-  expected.addSingle(mockEntity2)
-  expected.addSingle(mockEntity)
+  expected.addSingle(swappedEntity2)
+  expected.addSingle(swappedEntity1)
   assert.same(expected.entities, b.entities)
 })
 
