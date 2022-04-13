@@ -2,13 +2,22 @@ import { Classes, Events } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
 import { PasteBlueprint } from "../blueprint/paste-entity"
 import { MutableBlueprint } from "../blueprint/Blueprint"
-import { takeBlueprint } from "../world-interaction/blueprint"
+import { clearBuildableEntities, pasteBlueprint, takeBlueprint } from "../world-interaction/blueprint"
+import { ImportContent } from "./Import"
+import { pos } from "../lib/geometry/position"
+
+interface AssemblyImport {
+  content: ImportContent
+  relativePosition: MapPositionTable
+}
 
 @Classes.register()
 export class Assembly {
   public ownContents: PasteBlueprint
+  private imports: AssemblyImport[] = []
+
   private constructor(public name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
-    this.ownContents = MutableBlueprint.fromEntities(takeBlueprint(surface, area))
+    this.ownContents = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
@@ -47,6 +56,22 @@ export class Assembly {
 
   static getAllAssemblies(): ReadonlyLuaSet<Assembly> {
     return global.assemblies
+  }
+
+  refreshInWorld(): void {
+    clearBuildableEntities(this.surface, this.area)
+    for (const importContent of this.imports) {
+      const resultLocation = pos.add(this.area.left_top, importContent.relativePosition)
+      pasteBlueprint(this.surface, resultLocation, importContent.content.getContents().getAsBlueprint(), this.area)
+    }
+    pasteBlueprint(this.surface, this.area.left_top, this.ownContents.getAsBlueprint())
+  }
+
+  addImport(content: ImportContent, position: MapPositionTable): void {
+    this.imports.push({
+      content,
+      relativePosition: position,
+    })
   }
 }
 

@@ -44,6 +44,11 @@ namespace bbox {
     const { x: bx, y: by } = amount
     return bbox({ x: left_top.x + bx, y: left_top.y + by }, { x: right_bottom.x + bx, y: right_bottom.y + by })
   }
+  export function shiftNegative(box: BoundingBoxRead, amount: MapPositionTable): BoundingBoxClass {
+    const { left_top, right_bottom } = box
+    const { x: bx, y: by } = amount
+    return bbox({ x: left_top.x - bx, y: left_top.y - by }, { x: right_bottom.x - bx, y: right_bottom.y - by })
+  }
   export function shiftToOrigin(box: BoundingBoxRead): BoundingBoxClass {
     const { left_top, right_bottom } = box
     const { x: bx, y: by } = left_top

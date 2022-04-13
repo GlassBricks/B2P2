@@ -14,6 +14,7 @@ export interface Blueprint<E extends Entity = Entity> {
 
   getAtPos(x: number, y: number): LuaSet<E> | undefined
   getAt(pos: MapPositionTable): LuaSet<E> | undefined
+  getAsBlueprint(): readonly Entity[]
 }
 
 export interface MutableBlueprint<E extends Entity = Entity> extends Blueprint<E> {
@@ -31,7 +32,7 @@ export interface MutableBlueprint<E extends Entity = Entity> extends Blueprint<E
 
 interface MutableBlueprintConstructor {
   new <E extends Entity = Entity>(): MutableBlueprint<E>
-  fromEntities(entities: BlueprintEntityRead[]): MutableBlueprint
+  fromPlainEntities(entities: BlueprintEntityRead[]): MutableBlueprint
   copyOf<E extends Entity>(blueprint: Blueprint<E>): MutableBlueprint<E>
 }
 
@@ -40,7 +41,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
   entities: Record<EntityNumber, E> = {}
   private byPosition: PRecord<NumberPair, LuaSet<E>> = {}
 
-  static fromEntities(entities: BlueprintEntityRead[]): MutableBlueprint {
+  static fromPlainEntities(entities: BlueprintEntityRead[]): MutableBlueprint {
     const blueprint = new BlueprintImpl<Entity>()
     for (const rawEntity of entities) {
       const entity = createEntity(rawEntity)
@@ -61,6 +62,18 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     return (luaLength(this.entities) + 1) as EntityNumber
   }
 
+  getAtPos(x: number, y: number): LuaSet<E> | undefined {
+    return this.byPosition[pair(floor(x), floor(y))]
+  }
+
+  getAt(pos: MapPositionTable): LuaSet<E> | undefined {
+    return this.byPosition[pair(floor(pos.x), floor(pos.y))]
+  }
+
+  getAsBlueprint(): readonly Entity[] {
+    return this.entities as unknown as Entity[]
+  }
+
   addSingle(entity: E): E {
     const number = this.nextEntityNumber()
     const newEntity = withEntityNumber(entity, number)
@@ -75,14 +88,6 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     }
 
     return entity
-  }
-
-  getAtPos(x: number, y: number): LuaSet<E> | undefined {
-    return this.byPosition[pair(floor(x), floor(y))]
-  }
-
-  getAt(pos: MapPositionTable): LuaSet<E> | undefined {
-    return this.byPosition[pair(floor(pos.x), floor(pos.y))]
   }
 
   replaceUnsafe(old: E, cur: E): E {

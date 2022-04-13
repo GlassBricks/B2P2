@@ -1,14 +1,22 @@
 import { isEmpty } from "../lib/util"
 import { pos } from "../lib/geometry/position"
 import { Mutable } from "../lib/util-types"
-import { getTempItemStack } from "./temp-item-stack"
 import { getPlayer } from "../lib/testUtil"
 import { bbox } from "../lib/geometry/bounding-box"
+import { Entity } from "../entity/entity"
 
+declare const global: {
+  __tempBlueprintInventory: LuaInventory
+}
+
+function getTempItemStack(): BlueprintItemStack {
+  const inventory = (global.__tempBlueprintInventory ??= game.create_inventory(1))[0]
+  inventory.set_stack("blueprint")
+  return inventory
+}
 export function takeBlueprint(surface: SurfaceIdentification, box: BoundingBox): BlueprintEntityRead[] {
   const area = bbox.normalize(box)
   const item = getTempItemStack()
-  item.set_stack("blueprint")
   const index = item.create_blueprint({
     surface,
     area,
@@ -36,8 +44,29 @@ export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: MapPositionTable,
   entities: readonly BlueprintEntityRead[],
+): LuaEntity[]
+export function pasteBlueprint(
+  surface: SurfaceIdentification,
+  location: MapPositionTable,
+  entities: readonly Entity[],
+  areaRestriction?: BoundingBox,
+): LuaEntity[]
+export function pasteBlueprint(
+  surface: SurfaceIdentification,
+  location: MapPositionTable,
+  entities: readonly BlueprintEntityRead[],
+  areaRestriction?: BoundingBox,
 ): LuaEntity[] {
   if (entities.length === 0) return []
+
+  if (areaRestriction) {
+    // for performance reasons, instead of creating a new list, we remove entities outside the area and restore them later
+    const area = bbox.normalize(areaRestriction).shiftNegative(location)
+    entities = (entities as Entity[]).filter((entity) => {
+      const entityBox = entity.tileBox
+      return area.contains(entityBox.left_top) && area.contains(entityBox.right_bottom)
+    })
+  }
 
   const stack = getTempItemStack()
   stack.set_stack("blueprint")
@@ -56,11 +85,14 @@ export function pasteBlueprint(
   })
 }
 
-export function clearArea(surface: SurfaceIdentification, area: BoundingBoxRead): void {
+export function clearBuildableEntities(surface: SurfaceIdentification, area: BoundingBoxRead): void {
   const actualSurface =
     typeof surface === "object" ? surface : game.get_surface(surface) ?? error("surface not found: " + surface)
-  const entities = actualSurface.find_entities(area)
+  const entities = actualSurface.find_entities_filtered({
+    area,
+    collision_mask: ["ghost-layer", "object-layer"],
+  })
   for (const entity of entities) {
-    entity.destroy()
+    if (entity.type !== "character") entity.destroy()
   }
 }

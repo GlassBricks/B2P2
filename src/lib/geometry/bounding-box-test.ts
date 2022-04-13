@@ -40,6 +40,12 @@ test("shift", () => {
   assert.same({ x: 2, y: 3 }, box2.left_top)
   assert.same({ x: 4, y: 5 }, box2.right_bottom)
 })
+test("shiftNegative", () => {
+  const box = bbox({ x: 1, y: 2 }, { x: 3, y: 4 })
+  const box2 = box.shiftNegative({ x: 1, y: 1 })
+  assert.same({ x: 0, y: 1 }, box2.left_top)
+  assert.same({ x: 2, y: 3 }, box2.right_bottom)
+})
 
 test("roundTile", () => {
   const box = bbox({ x: 1.5, y: 2.5 }, { x: 3.5, y: 4.5 })
