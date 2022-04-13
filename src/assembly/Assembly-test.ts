@@ -1,12 +1,10 @@
-import { AssembliesGlobal, Assembly, AssemblyId } from "./Assembly"
+import { Assembly } from "./Assembly"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { get_area } from "__testorio__/testUtil/areas"
 import { clearArea, pasteBlueprint } from "../world-interaction/blueprint"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { MutableBlueprint } from "../blueprint/Blueprint"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
-
-declare const global: AssembliesGlobal
 
 let area: BoundingBoxClass
 let area2: BoundingBoxClass
@@ -19,7 +17,7 @@ before_all(() => {
   area2 = bbox.normalize(area1)
 })
 after_each(() => {
-  for (const [, assembly] of pairs(global.assemblies)) {
+  for (const [assembly] of Assembly.getAllAssemblies()) {
     assembly.delete()
   }
 })
@@ -34,24 +32,15 @@ describe("lifecycle", () => {
       assert.is_true(assembly.isValid())
     })
 
-    it("assigns unique ids", () => {
-      const assembly1 = Assembly.create("test1", surface, area)
-      const assembly2 = Assembly.create("test2", surface, area2)
-      assert.not_equal(assembly1.id, assembly2.id)
-    })
-
     it("errors if intersects with existing assembly", () => {
       Assembly.create("test1", surface, area)
       assert.error(() => Assembly.create("test2", surface, area))
     })
-  })
 
-  test("getById returns assembly", () => {
-    const assembly = Assembly.create("test", surface, area)
-    assert.equal(assembly, Assembly.getById(assembly.id))
-  })
-  test("getById returns undefined when does not exist", () => {
-    assert.is_nil(Assembly.getById(1 as AssemblyId))
+    it("shows up in getAllAssemblies", () => {
+      const assembly = Assembly.create("test", surface, area)
+      assert.is_true(Assembly.getAllAssemblies().has(assembly))
+    })
   })
 
   test("becomes invalid when surface deleted", () => {
@@ -91,10 +80,16 @@ describe("contents", () => {
   })
 })
 
+declare const global: {
+  foo?: Assembly
+}
 test("persists across game reload", () => {
-  Assembly.create("test", surface, area)
-  assert.equal(1, luaLength(global.assemblies))
+  global.foo = Assembly.create("reload test", surface, area)
 }).after_mod_reload(() => {
-  const assembly = Assembly.getById(1 as AssemblyId)
-  assert.equal("test", assembly?.name)
+  assert.is_true(global.foo instanceof Assembly)
+  assert.is_true(global.foo?.isValid())
+  assert.is_true(global.foo?.name === "reload test")
+})
+after_all(() => {
+  delete global.foo
 })
