@@ -1,20 +1,20 @@
-import { createEntity, Entity, EntityNumber, withEntityNumber } from "../entity/entity"
-import { Mutable, PRecord, RRecord } from "../lib/util-types"
+import { createEntity, Entity, EntityNumber, PlainEntity, withEntityNumber } from "../entity/entity"
+import { PRecord, RRecord } from "../lib/util-types"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { bbox } from "../lib/geometry/bounding-box"
-import { shallowCopy } from "../lib/util"
+import { mutableShallowCopy, shallowCopy } from "../lib/util"
 import { table as utilTable } from "util"
 import floor = math.floor
 import deepcopy = utilTable.deepcopy
 import sort = table.sort
 
-export interface Blueprint<E extends Entity = Entity> {
+export interface Blueprint<E extends Entity = PlainEntity> {
   readonly entities: RRecord<EntityNumber, E>
 
-  getAtPos(x: number, y: number): LuaSet<E> | undefined
-  getAt(pos: MapPositionTable): LuaSet<E> | undefined
-  getAsBlueprint(): readonly Entity[]
+  getAtPos(x: number, y: number): ReadonlyLuaSet<E> | undefined
+  getAt(pos: MapPositionTable): ReadonlyLuaSet<E> | undefined
+  getAsArray(): readonly Entity[]
 }
 
 export interface MutableBlueprint<E extends Entity = Entity> extends Blueprint<E> {
@@ -70,7 +70,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     return this.byPosition[pair(floor(pos.x), floor(pos.y))]
   }
 
-  getAsBlueprint(): readonly Entity[] {
+  getAsArray(): readonly Entity[] {
     return this.entities as unknown as Entity[]
   }
 
@@ -147,17 +147,16 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
       remapConnectionData(connectionPoint.red)
       remapConnectionData(connectionPoint.green)
     }
-    function remapEntityConnections(entity: Mutable<Entity>) {
+    for (const [key, entity] of pairs(entities)) {
       const connection = entity.connections
-      if (connection === undefined) return
-      const result = deepcopy(connection)
-      remapConnectionPoint(result["1"])
-      remapConnectionPoint(result["2"])
-      entity.connections = result
-    }
+      if (connection === undefined) continue
 
-    for (const [, entity] of pairs(entities)) {
-      remapEntityConnections(entity)
+      const result = mutableShallowCopy(entity)
+      const resultConnection = deepcopy(connection)
+      remapConnectionPoint(resultConnection["1"])
+      remapConnectionPoint(resultConnection["2"])
+      result.connections = resultConnection
+      entities[key] = result
     }
   }
 

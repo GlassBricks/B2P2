@@ -3,16 +3,16 @@ import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { get_area } from "__testorio__/testUtil/areas"
 import { clearBuildableEntities, pasteBlueprint, takeBlueprint } from "../world-interaction/blueprint"
 import { getBlueprintSample } from "../test/blueprint-sample"
-import { MutableBlueprint } from "../blueprint/Blueprint"
+import { Blueprint, MutableBlueprint } from "../blueprint/Blueprint"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
-import { ImportContent } from "./Import"
 import { pos } from "../lib/geometry/position"
+import { mockImport } from "./import-mock"
 
 let area: BoundingBoxClass
 let area2: BoundingBoxClass
 let surface: LuaSurface
 
-let originalBlueprintSample: BlueprintEntityRead[]
+let originalBlueprintSample: Blueprint
 
 before_all(() => {
   let [, area1] = get_area(1 as SurfaceIdentification, "working area 1")
@@ -20,7 +20,7 @@ before_all(() => {
   ;[surface, area1] = get_area(1 as SurfaceIdentification, "working area 2")
   area2 = bbox.normalize(area1)
 
-  originalBlueprintSample = getBlueprintSample("original")
+  originalBlueprintSample = MutableBlueprint.fromPlainEntities(getBlueprintSample("original"))
 })
 after_each(() => {
   for (const [assembly] of Assembly.getAllAssemblies()) {
@@ -78,10 +78,9 @@ describe("initializing contents", () => {
   })
 
   test("initializing in an area with entities sets ownContents", () => {
-    pasteBlueprint(surface, area.left_top, originalBlueprintSample)
-    const bp = MutableBlueprint.fromPlainEntities(originalBlueprintSample)
+    pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
     const assembly = Assembly.create("test", surface, area)
-    assertBlueprintsEquivalent(bp, assembly.ownContents)
+    assertBlueprintsEquivalent(originalBlueprintSample, assembly.ownContents)
   })
 })
 
@@ -91,11 +90,11 @@ describe("refreshInWorld", () => {
   })
   test("refreshing an empty assembly clears area", () => {
     const assembly = Assembly.create("test", surface, area)
-    pasteBlueprint(surface, area.left_top, originalBlueprintSample)
+    pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
     assembly.refreshInWorld()
   })
   test("refreshing an assembly with entities sets entities", () => {
-    pasteBlueprint(surface, area.left_top, originalBlueprintSample)
+    pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
     const assembly = Assembly.create("test", surface, area)
     assembly.refreshInWorld()
     const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
@@ -109,30 +108,22 @@ describe("import", () => {
   })
   test("adding import to blueprint adds to in world", () => {
     const assembly = Assembly.create("test", surface, area)
-    const mockImport: ImportContent = {
-      getContents: () => MutableBlueprint.fromPlainEntities(originalBlueprintSample),
-    }
-    assembly.addImport(mockImport, pos(0, 0))
+    assembly.addImport(mockImport(originalBlueprintSample), pos(0, 0))
     assert.same({}, assembly.ownContents.entities)
     assembly.refreshInWorld()
     const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
-    const expected = MutableBlueprint.fromPlainEntities(originalBlueprintSample)
-    assertBlueprintsEquivalent(expected, bp)
+    assertBlueprintsEquivalent(originalBlueprintSample, bp)
   })
   test("adding import to blueprint adds to in world at specified location", () => {
     const assembly = Assembly.create("test", surface, area)
-    const mockImport: ImportContent = {
-      getContents: () => MutableBlueprint.fromPlainEntities(originalBlueprintSample),
-    }
-    assembly.addImport(mockImport, pos(1, 1))
+    assembly.addImport(mockImport(originalBlueprintSample), pos(1, 1))
     assert.same({}, assembly.ownContents.entities)
     assembly.refreshInWorld()
     const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, bbox.shift(area, pos(1, 1))))
-    const expected = MutableBlueprint.fromPlainEntities(originalBlueprintSample)
-    assertBlueprintsEquivalent(expected, bp)
+    assertBlueprintsEquivalent(originalBlueprintSample, bp)
   })
   test("imported entities do not extend beyond bounding box", () => {
-    const fakeEntities: BlueprintEntityRead[] = [
+    const mockEntities: BlueprintEntityRead[] = [
       {
         name: "iron-chest",
         position: pos(0.5, 0.5),
@@ -145,14 +136,34 @@ describe("import", () => {
       },
     ]
     const assembly = Assembly.create("test", surface, bbox(area.left_top, pos.add(area.left_top, pos(5, 5))))
-    const mockImport: ImportContent = {
-      getContents: () => MutableBlueprint.fromPlainEntities(fakeEntities),
-    }
-    assembly.addImport(mockImport, pos(0, 0))
+    assembly.addImport(mockImport(MutableBlueprint.fromPlainEntities(mockEntities)), pos(0, 0))
     assembly.refreshInWorld()
     const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
-    const expected = MutableBlueprint.fromPlainEntities(fakeEntities.slice(0, 1))
+    const expected = MutableBlueprint.fromPlainEntities(mockEntities.slice(0, 1))
     assertBlueprintsEquivalent(expected, bp)
+  })
+})
+describe("getResultContent", () => {
+  before_each(() => {
+    clearBuildableEntities(surface, area)
+  })
+  test("resultContents returns empty blueprint when empty", () => {
+    const assembly = Assembly.create("test", surface, area)
+    const bp = assembly.getLastResultContent()
+    assert.same({}, bp.entities)
+  })
+  test("resultContents returns contents when initialized with contents", () => {
+    pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
+    const assembly = Assembly.create("test", surface, area)
+    const bp = assembly.getLastResultContent()
+    assertBlueprintsEquivalent(originalBlueprintSample, bp)
+  })
+  test("resultContents returns contents of imports", () => {
+    const assembly = Assembly.create("test", surface, area)
+    assembly.addImport(mockImport(originalBlueprintSample), pos(0, 0))
+    assembly.refreshInWorld() // refresh to get the import in the world
+    const bp = assembly.getLastResultContent()
+    assertBlueprintsEquivalent(originalBlueprintSample, bp)
   })
 })
 

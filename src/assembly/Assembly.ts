@@ -1,7 +1,7 @@
 import { Classes, Events } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
 import { PasteBlueprint } from "../blueprint/paste-entity"
-import { MutableBlueprint } from "../blueprint/Blueprint"
+import { Blueprint, MutableBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint, takeBlueprint } from "../world-interaction/blueprint"
 import { ImportContent } from "./Import"
 import { pos } from "../lib/geometry/position"
@@ -15,9 +15,11 @@ interface AssemblyImport {
 export class Assembly {
   public ownContents: PasteBlueprint
   private imports: AssemblyImport[] = []
+  private resultContent: Blueprint
 
   private constructor(public name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
-    this.ownContents = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
+    this.resultContent = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
+    this.ownContents = this.resultContent
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
@@ -62,9 +64,11 @@ export class Assembly {
     clearBuildableEntities(this.surface, this.area)
     for (const importContent of this.imports) {
       const resultLocation = pos.add(this.area.left_top, importContent.relativePosition)
-      pasteBlueprint(this.surface, resultLocation, importContent.content.getContents().getAsBlueprint(), this.area)
+      pasteBlueprint(this.surface, resultLocation, importContent.content.getContents().getAsArray(), this.area)
     }
-    pasteBlueprint(this.surface, this.area.left_top, this.ownContents.getAsBlueprint())
+    pasteBlueprint(this.surface, this.area.left_top, this.ownContents.getAsArray())
+    const contents = takeBlueprint(this.surface, this.area)
+    this.resultContent = MutableBlueprint.fromPlainEntities(contents)
   }
 
   addImport(content: ImportContent, position: MapPositionTable): void {
@@ -72,6 +76,15 @@ export class Assembly {
       content,
       relativePosition: position,
     })
+  }
+
+  getLastResultContent(): Blueprint {
+    return this.resultContent
+  }
+
+  refreshAndGetResultContent(): Blueprint {
+    this.refreshInWorld()
+    return this.getLastResultContent()!
   }
 }
 

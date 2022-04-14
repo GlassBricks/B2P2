@@ -9,13 +9,13 @@ export interface Entity extends BlueprintEntityRead {
   readonly entity_number: EntityNumber
   readonly tileBox: BoundingBoxRead
 }
+export interface PlainEntity extends Entity {
+  readonly diffType?: never
+}
 
-export function createEntity(
-  entity: BlueprintEntityRead,
-  number: EntityNumber = entity.entity_number as EntityNumber,
-): Entity {
+export function createEntity(entity: BlueprintEntityRead, number?: EntityNumber): Entity {
   const result = shallowCopy(entity) as Mutable<Entity>
-  result.entity_number = number
+  if (number !== undefined) result.entity_number = number
   result.tileBox ??= getTileBox(result)
   return result
 }

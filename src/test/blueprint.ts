@@ -1,6 +1,7 @@
 import { Blueprint, MutableBlueprint } from "../blueprint/Blueprint"
+import { Entity } from "../entity/entity"
 
-export function assertBlueprintsEquivalent(expected: Blueprint, actual: Blueprint): void {
+export function assertBlueprintsEquivalent(expected: Blueprint<Entity>, actual: Blueprint<Entity>): void {
   const bp1 = MutableBlueprint.copyOf(expected)
   const bp2 = MutableBlueprint.copyOf(actual)
   bp1.sortEntities()
