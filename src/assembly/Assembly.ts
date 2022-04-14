@@ -3,19 +3,19 @@ import { bbox } from "../lib/geometry/bounding-box"
 import { PasteBlueprint } from "../blueprint/paste-entity"
 import { Blueprint, MutableBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint, takeBlueprint } from "../world-interaction/blueprint"
-import { ImportContent } from "./Import"
+import { Import } from "./Import"
 import { pos } from "../lib/geometry/position"
 
-interface AssemblyImport {
-  content: ImportContent
+interface InternalAssemblyImport {
+  readonly content: Import
   relativePosition: MapPositionTable
 }
 
 @Classes.register()
 export class Assembly {
+  private imports: InternalAssemblyImport[] = []
   public ownContents: PasteBlueprint
-  private imports: AssemblyImport[] = []
-  private resultContent: Blueprint
+  private resultContent: Blueprint | undefined
 
   private constructor(public name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
     this.resultContent = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
@@ -54,6 +54,8 @@ export class Assembly {
   }
   delete(): void {
     global.assemblies.delete(this)
+    this.ownContents = undefined!
+    this.resultContent = undefined!
   }
 
   static getAllAssemblies(): ReadonlyLuaSet<Assembly> {
@@ -61,24 +63,29 @@ export class Assembly {
   }
 
   refreshInWorld(): void {
+    assert(this.isValid())
     clearBuildableEntities(this.surface, this.area)
-    for (const importContent of this.imports) {
-      const resultLocation = pos.add(this.area.left_top, importContent.relativePosition)
-      pasteBlueprint(this.surface, resultLocation, importContent.content.getContents().getAsArray(), this.area)
+    for (const theImport of this.imports) {
+      const resultLocation = pos.add(this.area.left_top, theImport.relativePosition)
+      const contents = theImport.content.getContents()
+      if (contents) {
+        pasteBlueprint(this.surface, resultLocation, contents.getAsArray(), this.area)
+      }
     }
-    pasteBlueprint(this.surface, this.area.left_top, this.ownContents.getAsArray())
+    pasteBlueprint(this.surface, this.area.left_top, this.ownContents!.getAsArray())
     const contents = takeBlueprint(this.surface, this.area)
     this.resultContent = MutableBlueprint.fromPlainEntities(contents)
   }
 
-  addImport(content: ImportContent, position: MapPositionTable): void {
+  addImport(content: Import, position: MapPositionTable): void {
     this.imports.push({
       content,
       relativePosition: position,
     })
   }
 
-  getLastResultContent(): Blueprint {
+  // undefined if this is invalid
+  getLastResultContent(): Blueprint | undefined {
     return this.resultContent
   }
 

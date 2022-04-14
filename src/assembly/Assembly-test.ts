@@ -6,7 +6,7 @@ import { getBlueprintSample } from "../test/blueprint-sample"
 import { Blueprint, MutableBlueprint } from "../blueprint/Blueprint"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { pos } from "../lib/geometry/position"
-import { mockImport } from "./import-mock"
+import { invalidMockImport, mockImport } from "./import-mock"
 
 let area: BoundingBoxClass
 let area2: BoundingBoxClass
@@ -142,28 +142,41 @@ describe("import", () => {
     const expected = MutableBlueprint.fromPlainEntities(mockEntities.slice(0, 1))
     assertBlueprintsEquivalent(expected, bp)
   })
+
+  test("does not paste invalid import", () => {
+    const assembly = Assembly.create("test", surface, area)
+    assembly.addImport(invalidMockImport(), pos(0, 0))
+    assembly.refreshInWorld()
+    const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
+    assert.same({}, bp.entities)
+  })
 })
-describe("getResultContent", () => {
+describe("getLastResultContent", () => {
   before_each(() => {
     clearBuildableEntities(surface, area)
   })
-  test("resultContents returns empty blueprint when empty", () => {
+  it("returns empty blueprint when empty", () => {
     const assembly = Assembly.create("test", surface, area)
-    const bp = assembly.getLastResultContent()
+    const bp = assembly.getLastResultContent()!
     assert.same({}, bp.entities)
   })
-  test("resultContents returns contents when initialized with contents", () => {
+  it("returns contents when initialized with contents", () => {
     pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
     const assembly = Assembly.create("test", surface, area)
-    const bp = assembly.getLastResultContent()
+    const bp = assembly.getLastResultContent()!
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
   })
-  test("resultContents returns contents of imports", () => {
+  it("returns contents of imports", () => {
     const assembly = Assembly.create("test", surface, area)
     assembly.addImport(mockImport(originalBlueprintSample), pos(0, 0))
     assembly.refreshInWorld() // refresh to get the import in the world
-    const bp = assembly.getLastResultContent()
+    const bp = assembly.getLastResultContent()!
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
+  })
+  test("returns undefined if invalid", () => {
+    const assembly = Assembly.create("test", surface, area)
+    assembly.delete()
+    assert.is_nil(assembly.getLastResultContent())
   })
 })
 

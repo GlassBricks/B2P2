@@ -1,9 +1,16 @@
 import { Blueprint } from "../blueprint/Blueprint"
-import { ImportContent } from "./Import"
+import { Import } from "./Import"
 
-export function mockImport(content: Blueprint): ImportContent {
+export function mockImport(content: Blueprint): Import {
   return {
     getContents: () => content,
     isValid: () => true,
+  }
+}
+
+export function invalidMockImport(): Import {
+  return {
+    getContents: () => undefined,
+    isValid: () => false,
   }
 }
