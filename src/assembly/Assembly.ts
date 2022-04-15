@@ -88,11 +88,6 @@ export class Assembly {
   getLastResultContent(): Blueprint | undefined {
     return this.resultContent
   }
-
-  refreshAndGetResultContent(): Blueprint {
-    this.refreshInWorld()
-    return this.getLastResultContent()!
-  }
 }
 
 declare const global: {

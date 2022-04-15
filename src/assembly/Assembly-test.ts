@@ -9,16 +9,14 @@ import { pos } from "../lib/geometry/position"
 import { invalidMockImport, mockImport } from "./import-mock"
 
 let area: BoundingBoxClass
-let area2: BoundingBoxClass
 let surface: LuaSurface
 
 let originalBlueprintSample: Blueprint
 
 before_all(() => {
-  let [, area1] = get_area(1 as SurfaceIdentification, "working area 1")
+  const [surface1, area1] = get_area(1 as SurfaceIdentification, "working area 1")
+  surface = surface1
   area = bbox.normalize(area1)
-  ;[surface, area1] = get_area(1 as SurfaceIdentification, "working area 2")
-  area2 = bbox.normalize(area1)
 
   originalBlueprintSample = MutableBlueprint.fromPlainEntities(getBlueprintSample("original"))
 })
@@ -183,7 +181,7 @@ describe("getLastResultContent", () => {
 declare const global: {
   foo?: Assembly
 }
-test("persists across game reload", () => {
+test("Assembly persists across game reload", () => {
   global.foo = Assembly.create("reload test", surface, area)
 }).after_mod_reload(() => {
   assert.is_true(global.foo instanceof Assembly)
