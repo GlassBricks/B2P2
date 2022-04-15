@@ -2,7 +2,7 @@ import { Assembly } from "./Assembly"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { get_area } from "__testorio__/testUtil/areas"
 import { clearBuildableEntities, pasteBlueprint, takeBlueprint } from "../world-interaction/blueprint"
-import { getBlueprintSample } from "../test/blueprint-sample"
+import { BlueprintSampleName, getBlueprintSample } from "../test/blueprint-sample"
 import { Blueprint, MutableBlueprint } from "../blueprint/Blueprint"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { pos } from "../lib/geometry/position"
@@ -25,6 +25,21 @@ after_each(() => {
     assembly.delete()
   }
 })
+
+function assertNoGhosts() {
+  const ghosts = surface.find_entities_filtered({ type: "ghost" })
+  assert.same(
+    {},
+    ghosts.map((x) => ({ name: x.name, position: x.position })),
+    "ghosts found",
+  )
+  const itemRequestProxies = surface.find_entities_filtered({ type: "item-request-proxy" })
+  assert.same(
+    {},
+    itemRequestProxies.map((x) => ({ position: x.position })),
+    "item-request-proxies found",
+  )
+}
 
 describe("lifecycle", () => {
   describe("create", () => {
@@ -90,14 +105,22 @@ describe("refreshInWorld", () => {
     const assembly = Assembly.create("test", surface, area)
     pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
     assembly.refreshInWorld()
-  })
-  test("refreshing an assembly with entities sets entities", () => {
-    pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
-    const assembly = Assembly.create("test", surface, area)
-    assembly.refreshInWorld()
     const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
-    assertBlueprintsEquivalent(bp, assembly.ownContents)
+    assert.same({}, bp.entities)
   })
+  test.each<BlueprintSampleName>(
+    ["original", "module change", "module purple sci"],
+    "refreshing an assembly with entities sets entities: %s",
+    (sampleName) => {
+      const sample = MutableBlueprint.fromPlainEntities(getBlueprintSample(sampleName))
+      pasteBlueprint(surface, area.left_top, sample.getAsArray())
+      const assembly = Assembly.create("test", surface, area)
+      assembly.refreshInWorld()
+      const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
+      assertBlueprintsEquivalent(sample, bp)
+      assertNoGhosts()
+    },
+  )
 })
 
 describe("import", () => {
@@ -111,6 +134,7 @@ describe("import", () => {
     assembly.refreshInWorld()
     const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
+    assertNoGhosts()
   })
   test("adding import to blueprint adds to in world at specified location", () => {
     const assembly = Assembly.create("test", surface, area)
@@ -119,6 +143,7 @@ describe("import", () => {
     assembly.refreshInWorld()
     const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, bbox.shift(area, pos(1, 1))))
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
+    assertNoGhosts()
   })
   test("imported entities do not extend beyond bounding box", () => {
     const mockEntities: BlueprintEntityRead[] = [
@@ -139,6 +164,7 @@ describe("import", () => {
     const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
     const expected = MutableBlueprint.fromPlainEntities(mockEntities.slice(0, 1))
     assertBlueprintsEquivalent(expected, bp)
+    assertNoGhosts()
   })
 
   test("does not paste invalid import", () => {
@@ -163,13 +189,16 @@ describe("getLastResultContent", () => {
     const assembly = Assembly.create("test", surface, area)
     const bp = assembly.getLastResultContent()!
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
+    assertNoGhosts()
   })
   it("returns contents of imports", () => {
     const assembly = Assembly.create("test", surface, area)
+    const originalBlueprintSample = MutableBlueprint.fromPlainEntities(getBlueprintSample("module change"))
     assembly.addImport(mockImport(originalBlueprintSample), pos(0, 0))
     assembly.refreshInWorld() // refresh to get the import in the world
     const bp = assembly.getLastResultContent()!
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
+    assertNoGhosts()
   })
   test("returns undefined if invalid", () => {
     const assembly = Assembly.create("test", surface, area)

@@ -39,25 +39,49 @@ export function takeBlueprint(surface: SurfaceIdentification, box: BoundingBox):
   return entities
 }
 
-const debugAdapterEnabled = script.active_mods.debugadapter !== undefined
+function reviveGhost(ghost: GhostEntity): boolean {
+  const [, entity, requestProxy] = ghost.silent_revive({
+    return_item_request_proxy: true,
+  })
+  if (entity === undefined) return false
+
+  if (!requestProxy) return true
+
+  // manually add items from request proxy
+  const requests = requestProxy.item_requests
+  const moduleInventory = entity.get_module_inventory()
+  if (moduleInventory) {
+    for (const [item, amount] of pairs(requests)) {
+      moduleInventory.insert({ name: item, count: amount })
+    }
+  } else {
+    for (const [item, amount] of pairs(requests)) {
+      entity.insert({ name: item, count: amount })
+    }
+  }
+  requestProxy.destroy()
+  return true
+}
+
 export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: MapPositionTable,
   entities: readonly BlueprintEntityRead[],
-): LuaEntity[]
+): void
 export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: MapPositionTable,
   entities: readonly Entity[],
   areaRestriction?: BoundingBox,
-): LuaEntity[]
+  revive?: boolean,
+): void
 export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: MapPositionTable,
   entities: readonly BlueprintEntityRead[],
   areaRestriction?: BoundingBox,
-): LuaEntity[] {
-  if (entities.length === 0) return []
+): void {
+  if (isEmpty(entities)) return
 
   if (areaRestriction) {
     // for performance reasons, instead of creating a new list, we remove entities outside the area and restore them later
@@ -73,16 +97,25 @@ export function pasteBlueprint(
   stack.blueprint_snap_to_grid = [1, 1]
   stack.blueprint_absolute_snapping = true
   stack.set_blueprint_entities(entities)
-  if (debugAdapterEnabled) {
+  if (__DebugAdapter) {
     getPlayer().insert(stack)
   }
-  return stack.build_blueprint({
+  const ghosts = stack.build_blueprint({
     surface,
     position: location,
     force: "player",
     force_build: true,
     skip_fog_of_war: false,
   })
+  const attemptReRevive: LuaEntity[] = []
+  for (const ghost of ghosts) {
+    if (!reviveGhost(ghost)) {
+      attemptReRevive.push(ghost)
+    }
+  }
+  for (const entity of attemptReRevive) {
+    reviveGhost(entity)
+  }
 }
 
 export function clearBuildableEntities(surface: SurfaceIdentification, area: BoundingBoxRead): void {
@@ -90,9 +123,15 @@ export function clearBuildableEntities(surface: SurfaceIdentification, area: Bou
     typeof surface === "object" ? surface : game.get_surface(surface) ?? error("surface not found: " + surface)
   const entities = actualSurface.find_entities_filtered({
     area,
-    collision_mask: ["ghost-layer", "object-layer"],
+    collision_mask: ["ghost-layer", "object-layer", "item-layer"],
   })
   for (const entity of entities) {
     if (entity.type !== "character") entity.destroy()
+  }
+  const otherEntities = actualSurface.find_entities_filtered({
+    type: "item-request-proxy",
+  })
+  for (const entity of otherEntities) {
+    entity.destroy()
   }
 }

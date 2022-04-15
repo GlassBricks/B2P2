@@ -15,6 +15,7 @@ interface InternalAssemblyImport {
 export class Assembly {
   private imports: InternalAssemblyImport[] = []
   public ownContents: PasteBlueprint
+  private importsContent: Blueprint | undefined
   private resultContent: Blueprint | undefined
 
   private constructor(public name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
@@ -65,6 +66,7 @@ export class Assembly {
   refreshInWorld(): void {
     assert(this.isValid())
     clearBuildableEntities(this.surface, this.area)
+
     for (const theImport of this.imports) {
       const resultLocation = pos.add(this.area.left_top, theImport.relativePosition)
       const contents = theImport.content.getContents()
@@ -72,6 +74,9 @@ export class Assembly {
         pasteBlueprint(this.surface, resultLocation, contents.getAsArray(), this.area)
       }
     }
+    const currentContent = takeBlueprint(this.surface, this.area)
+    this.importsContent = MutableBlueprint.fromPlainEntities(currentContent)
+
     pasteBlueprint(this.surface, this.area.left_top, this.ownContents!.getAsArray())
     const contents = takeBlueprint(this.surface, this.area)
     this.resultContent = MutableBlueprint.fromPlainEntities(contents)

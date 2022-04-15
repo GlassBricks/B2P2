@@ -17,6 +17,7 @@ const blueprintSampleNames = {
   "stack size change": true,
   "circuit wire add": true,
   "circuit wire remove": true,
+  "module purple sci": true,
 }
 export type BlueprintSampleName = keyof typeof blueprintSampleNames
 
