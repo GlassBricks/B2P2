@@ -11,8 +11,8 @@ import {
 } from "../blueprint/blueprint-paste"
 import { Diagnostic, DiagnosticFactory } from "../diagnostics/Diagnostic"
 import { L_Diagnostic } from "../locale"
-import { describeEntity, Entity } from "../entity/entity"
-import { PropUpdateBehaviors, UnhandledProp } from "../entity/entity-props"
+import { describeEntity, Entity, isUnhandledProp, UnhandledProp } from "../entity/entity"
+import { assertNever } from "../lib/util"
 
 interface InternalAssemblyImport {
   readonly content: Import
@@ -170,8 +170,10 @@ export class Assembly {
         diagnostics.push(CannotUpgrade(below, above))
       } else if (prop === "items") {
         diagnostics.push(ItemsIgnored(above))
-      } else if (PropUpdateBehaviors[prop] === undefined) {
+      } else if (isUnhandledProp(prop)) {
         diagnostics.push(UnsupportedProp(above, prop))
+      } else {
+        assertNever(prop)
       }
     }
     return diagnostics

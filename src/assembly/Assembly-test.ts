@@ -1,4 +1,4 @@
-import { Assembly, CannotUpgrade, ItemsIgnored, Overlap, PasteDiagnostics, UnsupportedProp } from "./Assembly"
+import { Assembly, CannotUpgrade, ItemsIgnored, Overlap, PasteDiagnostics } from "./Assembly"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { get_area } from "__testorio__/testUtil/areas"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
@@ -8,7 +8,6 @@ import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { pos } from "../lib/geometry/position"
 import { invalidMockImport, mockImport } from "./import-mock"
 import { Diagnostic } from "../diagnostics/Diagnostic"
-import { UnhandledProp } from "../entity/entity-props"
 
 let area: BoundingBoxClass
 let surface: LuaSurface
@@ -224,7 +223,7 @@ describe("paste diagnostics", () => {
   interface ExpectedConflict {
     aboveEntity: string
     belowEntity: string
-    type: "overlap" | "upgrade" | "items" | "unsupported"
+    type: "overlap" | "upgrade" | "items"
     prop?: string
   }
 
@@ -301,8 +300,6 @@ describe("paste diagnostics", () => {
       expectedDiagnostic = CannotUpgrade(belowEntity, aboveEntity)
     } else if (expected.type === "items") {
       expectedDiagnostic = ItemsIgnored(aboveEntity)
-    } else if (expected.type === "unsupported") {
-      expectedDiagnostic = UnsupportedProp(aboveEntity, expected.prop as UnhandledProp)
     } else {
       error("unexpected type")
     }

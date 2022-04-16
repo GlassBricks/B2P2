@@ -1,4 +1,4 @@
-import { Entity, EntityNumber, PasteEntity, PlainEntity, ReferenceEntity } from "../entity/entity"
+import { ConflictingProp, Entity, EntityNumber, PasteEntity, PlainEntity, ReferenceEntity } from "../entity/entity"
 import {
   Blueprint,
   getBlueprintFromWorld,
@@ -6,7 +6,6 @@ import {
   PasteBlueprint,
   UpdateablePasteBlueprint,
 } from "./Blueprint"
-import { ConflictingProp } from "../entity/entity-props"
 import { findCompatibleEntity, findOverlappingEntity } from "./blueprint-diff"
 import { computeEntityDiff, findEntityPasteConflictAndUpdate } from "../entity/entity-paste"
 

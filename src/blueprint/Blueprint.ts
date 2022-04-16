@@ -2,7 +2,7 @@ import {
   createEntity,
   Entity,
   EntityNumber,
-  makeIntoEntity,
+  makeEntityInPlace,
   PasteEntity,
   PlainEntity,
   UpdateablePasteEntity,
@@ -76,7 +76,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
   }
 
   static createInPlace(entities: BlueprintEntityRead[]): Blueprint {
-    entities.forEach(makeIntoEntity)
+    entities.forEach(makeEntityInPlace)
     return BlueprintImpl.fromEntities(entities as Entity[])
   }
 
