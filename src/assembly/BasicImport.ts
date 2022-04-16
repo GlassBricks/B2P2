@@ -6,10 +6,13 @@ import { Classes } from "../lib"
 @Classes.register()
 export class BasicImport implements Import {
   constructor(private readonly assembly: Assembly) {}
-  getContents(): Blueprint | undefined {
+  getContent(): Blueprint | undefined {
     return this.assembly.getLastResultContent()
   }
   isValid(): boolean {
     return this.assembly.isValid()
+  }
+  getName(): string {
+    return this.assembly.name
   }
 }

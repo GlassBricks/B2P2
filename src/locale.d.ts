@@ -7,10 +7,12 @@ export declare const enum L_Bbpp {
 export declare const enum L_Diagnostic {
   /** __1__ overlaps with __2__. */
   Overlap = "bbpp.diagnostic.overlap",
-  /** The property "__1__" cannot be pasted (from __2__ to __3__). */
-  PropCannotBePasted = "bbpp.diagnostic.prop-cannot-be-pasted",
+  /** __1__ was upgraded to __2__, which is not pasteable. */
+  CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
   /** A change in item requests (modules, fuel) will have no effect when pasted. */
   ItemsIgnoredOnPaste = "bbpp.diagnostic.items-ignored-on-paste",
   /** The property "__1__" is not yet supported. Please report this to the mod author! */
-  PropNotSupported = "bbpp.diagnostic.prop-not-supported",
+  UnsupportedProp = "bbpp.diagnostic.unsupported-prop",
+  /** The import "__1__" is no longer valid. */
+  InvalidImport = "bbpp.diagnostic.invalid-import",
 }

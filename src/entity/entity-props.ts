@@ -12,6 +12,7 @@ export const PropUpdateBehaviors = {
   entity_number: PropUpdateBehavior.Unchecked,
   position: PropUpdateBehavior.Unchecked,
   neighbours: PropUpdateBehavior.Unchecked,
+  connections: PropUpdateBehavior.Unchecked, // todo: create references for connections
 
   name: PropUpdateBehavior.UpdateableOnly,
 
@@ -23,7 +24,6 @@ export const PropUpdateBehaviors = {
   schedule: PropUpdateBehavior.Pasteable,
   direction: PropUpdateBehavior.Pasteable, // if direction not pasteable, then entities should not be compatible
 
-  connections: undefined,
   tags: undefined,
 } as const
 

@@ -30,3 +30,7 @@ export function withEntityNumber<T extends Entity>(entity: T, number: EntityNumb
   result.entity_number = number
   return result
 }
+
+export function describeEntity(entity: BlueprintEntityRead): LocalisedString {
+  return ["entity-name." + entity.name]
+}

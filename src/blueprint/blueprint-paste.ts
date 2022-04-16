@@ -1,5 +1,5 @@
 import { Entity, EntityNumber, PlainEntity } from "../entity/entity"
-import { Blueprint, MutableBlueprint, MutablePasteBlueprint, PasteBlueprint } from "./Blueprint"
+import { Blueprint, getBlueprintFromWorld, MutableBlueprint, MutablePasteBlueprint, PasteBlueprint } from "./Blueprint"
 import { PasteEntity } from "../entity/reference-entity"
 import { ConflictingProp } from "../entity/entity-props"
 import { findCompatibleEntity, findOverlappingEntity } from "./blueprint-diff"
@@ -52,12 +52,25 @@ export function findBlueprintPasteConflicts(below: Blueprint, above: PasteBluepr
   return { overlaps, propConflicts }
 }
 
+export function findBlueprintPasteConflictsInWorld(
+  surface: SurfaceIdentification,
+  area: BoundingBoxRead,
+  content: PasteBlueprint,
+  location: MapPositionTable,
+): BlueprintPasteConflicts {
+  const contentArea = content.computeBoundingBox().shift(location).intersect(area)
+  const below = getBlueprintFromWorld(surface, contentArea, location)
+  return findBlueprintPasteConflicts(below, content)
+}
+
 export interface BlueprintDiff {
   readonly content: PasteBlueprint
   readonly deletions: PlainEntity[]
 }
 
 // complementary to findBlueprintPasteConflicts after this
+// todo: create reference entities for connections/neighbours
+// todo: replace "Blueprint" entities?
 export function computeBlueprintDiff(below: Blueprint, current: Blueprint): BlueprintDiff {
   const deletions: PlainEntity[] = []
   const content: MutablePasteBlueprint = new MutableBlueprint()

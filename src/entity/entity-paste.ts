@@ -12,8 +12,12 @@ import { ReferenceEntity } from "./reference-entity"
 import { Mutable } from "../lib/util-types"
 
 // for compiler to assert that the only ignored on paste prop (as currently implemented) is "items"
+declare function testAccept<T extends keyof any>(value: Record<T, true>): void
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _: Record<IgnoredOnPasteProp, true> = { items: true }
+function compilerAssert() {
+  testAccept<IgnoredOnPasteProp>({ items: true })
+  testAccept<UnpasteableProp>({ name: true })
+}
 
 function findEntityPasteConflictInReference(
   below: BlueprintEntityRead,

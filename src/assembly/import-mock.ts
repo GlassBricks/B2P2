@@ -3,14 +3,16 @@ import { Import } from "./Import"
 
 export function mockImport(content: Blueprint): Import {
   return {
-    getContents: () => content,
+    getContent: () => content,
     isValid: () => true,
+    getName: () => "",
   }
 }
 
 export function invalidMockImport(): Import {
   return {
-    getContents: () => undefined,
+    getContent: () => undefined,
     isValid: () => false,
+    getName: () => "",
   }
 }

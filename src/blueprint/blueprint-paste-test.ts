@@ -1,16 +1,20 @@
 import { Blueprint, MutableBlueprint } from "./Blueprint"
 import { createEntity, Entity } from "../entity/entity"
 import { getEntitySample } from "../test/entity-sample"
-import { pos } from "../lib/geometry/position"
+import { pos, PositionClass } from "../lib/geometry/position"
 import {
   BlueprintDiff,
   BlueprintPasteConflicts,
   computeBlueprintDiff,
   findBlueprintPasteConflicts,
+  findBlueprintPasteConflictsInWorld,
 } from "./blueprint-paste"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { ReferenceEntity } from "../entity/reference-entity"
+import { get_area } from "__testorio__/testUtil/areas"
+import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
+import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 
 let emptyBlueprint: Blueprint
 let assemblingMachine: Entity
@@ -92,6 +96,44 @@ describe("findBlueprintPasteConflicts", () => {
       conflicts.propConflicts,
     )
     assert.same([], conflicts.overlaps)
+  })
+})
+
+describe("findBlueprintPasteConflictsInWorld", () => {
+  let surface: LuaSurface
+  let area: BoundingBoxClass
+  let pasteLocation: PositionClass
+  before_all(() => {
+    const [surface1, area1] = get_area(1 as SurfaceIdentification, "working area 1")
+    area = bbox.normalize(area1)
+    surface = surface1
+    clearBuildableEntities(surface, area)
+    pasteLocation = pos.add(area.left_top, pos(2, 2))
+    pasteBlueprint(surface, pasteLocation, singleAssemblerBlueprint.getAsArray(), area)
+  })
+  test("overlap", () => {
+    const movedAssemblingMachine = createEntity({
+      ...assemblingMachine,
+      position: pos(3.5, 3.5),
+    })
+    const blueprint2 = new MutableBlueprint()
+    blueprint2.addSingle(movedAssemblingMachine)
+    const conflicts = findBlueprintPasteConflictsInWorld(surface, area, blueprint2, pasteLocation)
+    assert.same(
+      [
+        {
+          below: assemblingMachine,
+          above: movedAssemblingMachine,
+        },
+      ],
+      conflicts.overlaps,
+    )
+    assert.same([], conflicts.propConflicts)
+  })
+  test("no overlap", () => {
+    const conflicts = findBlueprintPasteConflictsInWorld(surface, area, singleAssemblerBlueprint, pasteLocation)
+    assert.same([], conflicts.overlaps)
+    assert.same([], conflicts.propConflicts)
   })
 })
 

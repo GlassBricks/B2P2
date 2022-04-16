@@ -2,7 +2,7 @@ import { createEntity, Entity, EntityNumber, makeIntoEntity, PlainEntity, withEn
 import { PRecord, RRecord } from "../lib/util-types"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
-import { bbox } from "../lib/geometry/bounding-box"
+import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { isEmpty, mutableShallowCopy, shallowCopy } from "../lib/util"
 import { table as utilTable } from "util"
 import { PasteEntity } from "../entity/reference-entity"
@@ -17,7 +17,7 @@ export interface Blueprint<E extends Entity = PlainEntity> {
   getAtPos(x: number, y: number): ReadonlyLuaSet<E> | undefined
   getAt(pos: MapPositionTable): ReadonlyLuaSet<E> | undefined
   getAsArray(): readonly Entity[]
-  computeBoundingBox(): BoundingBoxRead
+  computeBoundingBox(): BoundingBoxClass
 
   withEntityNumberRemap(map: Record<number, number>): Blueprint<E>
   sorted(): Blueprint<E>
@@ -88,7 +88,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     return this.entities as unknown as Entity[]
   }
 
-  computeBoundingBox(): BoundingBoxRead {
+  computeBoundingBox(): BoundingBoxClass {
     if (isEmpty(this.entities)) {
       return bbox.fromCorners(0, 0, 0, 0)
     }
@@ -231,7 +231,11 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
 
 export const MutableBlueprint: MutableBlueprintConstructor = BlueprintImpl
 
-export function getBlueprintFromWorld(surface: SurfaceIdentification, area: BoundingBox): Blueprint {
-  const entities = takeBlueprint(surface, area)
+export function getBlueprintFromWorld(
+  surface: SurfaceIdentification,
+  area: BoundingBoxRead,
+  worldTopLeft: MapPositionTable = area.left_top,
+): Blueprint {
+  const entities = takeBlueprint(surface, area, worldTopLeft)
   return BlueprintImpl.createInPlace(entities)
 }

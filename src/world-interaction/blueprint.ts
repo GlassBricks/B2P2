@@ -14,8 +14,11 @@ function getTempItemStack(): BlueprintItemStack {
   inventory.set_stack("blueprint")
   return inventory
 }
-export function takeBlueprint(surface: SurfaceIdentification, box: BoundingBox): BlueprintEntityRead[] {
-  const area = bbox.normalize(box)
+export function takeBlueprint(
+  surface: SurfaceIdentification,
+  area: BoundingBoxRead,
+  worldTopLeft: MapPositionTable = area.left_top,
+): BlueprintEntityRead[] {
   const item = getTempItemStack()
   const index = item.create_blueprint({
     surface,
@@ -26,7 +29,7 @@ export function takeBlueprint(surface: SurfaceIdentification, box: BoundingBox):
   })
   if (isEmpty(index)) return []
   const entities = item.get_blueprint_entities()! as Mutable<BlueprintEntityRead>[]
-  const targetPos = pos.sub(index[1].position, area.left_top)
+  const targetPos = pos.sub(index[1].position, worldTopLeft)
   const actualPos = item.get_blueprint_entities()![0].position
   const offset = pos.sub(targetPos, actualPos)
   if (offset.x !== 0 || offset.y !== 0) {
@@ -73,7 +76,6 @@ export function pasteBlueprint(
   location: MapPositionTable,
   entities: readonly Entity[],
   areaRestriction?: BoundingBox,
-  revive?: boolean,
 ): void
 export function pasteBlueprint(
   surface: SurfaceIdentification,

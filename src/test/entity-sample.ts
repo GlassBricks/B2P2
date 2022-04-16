@@ -1,5 +1,6 @@
 import { get_area } from "__testorio__/testUtil/areas"
 import { takeBlueprint } from "../world-interaction/blueprint"
+import { bbox } from "../lib/geometry/bounding-box"
 
 const entitySamples = {
   chest: true,
@@ -44,7 +45,7 @@ function loadSamplesFromWorld() {
   }
   samples = {}
   const [surface, area] = get_area(1 as SurfaceIdentification, "entity samples")
-  const entities = takeBlueprint(surface, area)
+  const entities = takeBlueprint(surface, bbox.normalize(area))
   for (const entity of entities) {
     const name = entity.name
     const sampleName = samplesInOrderByName[name]?.shift()

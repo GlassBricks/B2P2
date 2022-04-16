@@ -1,7 +1,8 @@
 import { Blueprint } from "../blueprint/Blueprint"
 
 export interface Import {
+  getName(): string
   // undefined means is not valid
-  getContents(): Blueprint | undefined
+  getContent(): Blueprint | undefined
   isValid(): boolean
 }
