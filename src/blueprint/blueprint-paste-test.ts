@@ -1,5 +1,5 @@
 import { Blueprint, MutableBlueprint } from "./Blueprint"
-import { createEntity, Entity, ReferenceEntity, UpdateablePasteEntity } from "../entity/entity"
+import { createEntity, Entity, PasteEntity, ReferenceEntity, UpdateablePasteEntity } from "../entity/entity"
 import { getEntitySample } from "../test/entity-sample"
 import { pos, PositionClass } from "../lib/geometry/position"
 import {
@@ -162,7 +162,8 @@ describe("findBlueprintPasteConflicts", () => {
 describe("findBlueprintPasteConflictsAndUpdate", () => {
   it("detects reference entities without reference", () => {
     const asm = createReferenceOnlyEntity(assemblingMachine)
-    const bp2 = MutableBlueprint.fromEntities([asm])
+    const bp2 = new MutableBlueprint<PasteEntity>()
+    bp2.addSingle(asm)
     const conflicts = findBlueprintPasteConflictAndUpdate(emptyBlueprint, bp2)
     assert.same([], conflicts.overlaps)
     assert.same([], conflicts.propConflicts)
@@ -288,9 +289,11 @@ describe("computeBlueprintDiff", () => {
       ...asm2,
       changedProps: new LuaSet("name"),
     }
+    const expectedContent = new MutableBlueprint<PasteEntity>()
+    expectedContent.addSingle(asm2Diff)
     assertDiffsSame(
       {
-        content: MutableBlueprint.fromEntities([asm2Diff]),
+        content: expectedContent,
         deletions: [],
       },
       diff,

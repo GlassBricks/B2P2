@@ -47,37 +47,28 @@ export type UpdateablePasteBlueprint = Blueprint<UpdateablePasteEntity>
 interface MutableBlueprintConstructor {
   new <E extends Entity = PlainEntity>(): MutableBlueprint<E>
   fromPlainEntities(entities: BlueprintEntityRead[]): MutableBlueprint
-  fromEntities<E extends Entity>(entities: E[]): MutableBlueprint<E>
   copyOf<E extends Entity>(blueprint: Blueprint<E>): MutableBlueprint<E>
 }
 
 @Classes.register("Blueprint")
 class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
-  entities: Record<EntityNumber, E> = {}
-  private byPosition: PRecord<NumberPair, LuaSet<E>> = {}
+  private byPosition?: PRecord<NumberPair, LuaSet<E>>
+
+  constructor(public entities: Record<EntityNumber, E> = {}) {}
 
   static fromPlainEntities(entities: readonly BlueprintEntityRead[]): MutableBlueprint {
-    return BlueprintImpl.fromEntities(entities.map((e) => createEntity(e)))
-  }
-
-  static fromEntities<E extends Entity>(entities: E[]): MutableBlueprint<E> {
-    const blueprint = new BlueprintImpl<E>()
-    for (const entity of entities) {
-      blueprint.addEntityUnchecked(entity, entity.entity_number)
-    }
-    return blueprint
+    return new BlueprintImpl(entities.map((e) => createEntity(e)))
   }
 
   static copyOf<E extends Entity>(blueprint: Blueprint<E>): MutableBlueprint<E> {
-    const result = new BlueprintImpl<E>()
-    result.entities = shallowCopy(blueprint.entities)
-    result.recomputeByPosition()
-    return result
+    return new BlueprintImpl<E>(shallowCopy(blueprint.entities))
   }
 
   static createInPlace(entities: BlueprintEntityRead[]): Blueprint {
-    entities.forEach(makeEntityInPlace)
-    return BlueprintImpl.fromEntities(entities as Entity[])
+    for (const entity of entities) {
+      makeEntityInPlace(entity)
+    }
+    return new BlueprintImpl(entities as unknown as Record<EntityNumber, Entity>)
   }
 
   private nextEntityNumber(): EntityNumber {
@@ -85,11 +76,22 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
   }
 
   getAtPos(x: number, y: number): LuaSet<E> | undefined {
-    return this.byPosition[pair(floor(x), floor(y))]
+    return this.getOrComputeByPosition()[pair(floor(x), floor(y))]
   }
 
   getAt(pos: MapPositionTable): LuaSet<E> | undefined {
-    return this.byPosition[pair(floor(pos.x), floor(pos.y))]
+    return this.getOrComputeByPosition()[pair(floor(pos.x), floor(pos.y))]
+  }
+
+  private getOrComputeByPosition(): PRecord<NumberPair, LuaSet<E>> {
+    return (this.byPosition ??= this.recomputeByPosition())
+  }
+  recomputeByPosition(): PRecord<NumberPair, LuaSet<E>> {
+    const result: PRecord<NumberPair, LuaSet<E>> = {}
+    for (const [, entity] of pairs(this.entities)) {
+      addToByPosition(result, entity)
+    }
+    return result
   }
 
   getAsArray(): readonly Entity[] {
@@ -118,18 +120,13 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     return bbox.fromCorners(minX, minY, maxX, maxY)
   }
 
-  addSingle(entity: E): E {
+  addSingle(rawEntity: E): E {
     const number = this.nextEntityNumber()
-    const newEntity = withEntityNumber(entity, number)
-    return this.addEntityUnchecked(newEntity, number)
-  }
-
-  private addEntityUnchecked(entity: E, number: EntityNumber): E {
+    const entity = withEntityNumber(rawEntity, number)
     this.entities[number] = entity
-    for (const [x, y] of bbox.iterateTiles(entity.tileBox)) {
-      const set = (this.byPosition[pair(x, y)] ??= new LuaSet())
-      set.add(entity)
-    }
+
+    const byPosition = this.byPosition
+    if (byPosition) addToByPosition(byPosition, entity)
 
     return entity
   }
@@ -141,10 +138,14 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
 
     const newEntity = withEntityNumber(cur, number)
     this.entities[number] = newEntity
-    for (const [x, y] of bbox.iterateTiles(newEntity.tileBox)) {
-      const set = this.byPosition[pair(x, y)]!
-      set.delete(old)
-      set.add(newEntity)
+
+    const byPosition = this.byPosition
+    if (byPosition) {
+      for (const [x, y] of bbox.iterateTiles(newEntity.tileBox)) {
+        const set = byPosition[pair(x, y)]!
+        set.delete(old)
+        set.add(newEntity)
+      }
     }
 
     return newEntity
@@ -156,11 +157,15 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     if (oldEntity !== entity) error("tried to remove entity that doesn't exist in blueprint: " + serpent.block(entity))
 
     delete this.entities[number]
-    for (const [x, y] of bbox.iterateTiles(oldEntity.tileBox)) {
-      const index = pair(x, y)
-      const set = this.byPosition[index]!
-      set.delete(oldEntity)
-      if (!set.first()) delete this.byPosition[index]
+
+    const byPosition = this.byPosition
+    if (byPosition) {
+      for (const [x, y] of bbox.iterateTiles(oldEntity.tileBox)) {
+        const index = pair(x, y)
+        const set = byPosition[index]!
+        set.delete(oldEntity)
+        if (!set.first()) delete byPosition[index]
+      }
     }
 
     return oldEntity
@@ -176,7 +181,6 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     BlueprintImpl.remapConnections(newEntities, map)
     const result = new BlueprintImpl<E>()
     result.entities = newEntities
-    result.recomputeByPosition()
     return result
   }
 
@@ -212,16 +216,6 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     }
   }
 
-  private recomputeByPosition(): void {
-    this.byPosition = {}
-    for (const [, entity] of pairs(this.entities)) {
-      for (const [x, y] of bbox.iterateTiles(entity.tileBox)) {
-        const set = (this.byPosition[pair(x, y)] ??= new LuaSet())
-        set.add(entity)
-      }
-    }
-  }
-
   sorted(): MutableBlueprint<E> {
     const entities = Object.values(this.entities)
     const compareByPosition = ({ position: a }: Entity, { position: b }: Entity): boolean => {
@@ -234,6 +228,13 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
       remap[entity.entity_number] = newNumber
     }
     return this.withEntityNumberRemap(remap)
+  }
+}
+
+function addToByPosition<E extends Entity>(byPosition: PRecord<NumberPair, LuaSet<E>>, entity: E) {
+  for (const [x, y] of bbox.iterateTiles(entity.tileBox)) {
+    const set = (byPosition[pair(x, y)] ??= new LuaSet())
+    set.add(entity)
   }
 }
 

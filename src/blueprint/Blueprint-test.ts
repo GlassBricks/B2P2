@@ -143,14 +143,6 @@ describe("remove", () => {
   })
 })
 
-test("fromEntities", () => {
-  b.addSingle(mockEntity)
-  b.addSingle(mockEntity2)
-  const entities = [mockEntity, mockEntity2]
-  const b2 = MutableBlueprint.fromPlainEntities(entities)
-  assert.same(b.entities, b2.entities)
-})
-
 test("withEntityNumberRemap", () => {
   const connections2: BlueprintCircuitConnection = {
     "1": {
