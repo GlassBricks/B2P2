@@ -4,7 +4,11 @@ import { Blueprint, getBlueprintFromWorld, MutableBlueprint, UpdateablePasteBlue
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { Import } from "./Import"
 import { pos } from "../lib/geometry/position"
-import { computeBlueprintDiff, findBlueprintPasteConflictsInWorldAndUpdate } from "../blueprint/blueprint-paste"
+import {
+  BlueprintDiff,
+  computeBlueprintDiff,
+  findBlueprintPasteConflictsInWorldAndUpdate,
+} from "../blueprint/blueprint-paste"
 import { Diagnostic, DiagnosticFactory } from "../diagnostics/Diagnostic"
 import { L_Diagnostic } from "../locale"
 import { describeEntity, Entity } from "../entity/entity"
@@ -173,16 +177,16 @@ export class Assembly {
     return diagnostics
   }
 
-  saveChanges(): void {
-    if (!this.importsContent) return
-    const diff = computeBlueprintDiff(this.importsContent!, getBlueprintFromWorld(this.surface, this.area))
-    // todo: deal with deletions
+  getChanges(): BlueprintDiff {
+    return computeBlueprintDiff(this.importsContent, getBlueprintFromWorld(this.surface, this.area))
+  }
+
+  commitChanges(diff: BlueprintDiff): void {
     this.ownContents = diff.content
   }
 
-  saveAndRefresh(): void {
-    this.saveChanges()
-    this.refreshInWorld()
+  forceSaveChanges(): void {
+    this.commitChanges(this.getChanges())
   }
 
   // diagnostics

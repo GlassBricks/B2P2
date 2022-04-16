@@ -283,7 +283,7 @@ describe("paste diagnostics", () => {
     const assembly = Assembly.create("test", surface, area)
     const aboveBlueprint = MutableBlueprint.fromPlainEntities(below)
     assembly.addImport(mockImport(aboveBlueprint), pos(0, 0))
-    assembly.saveChanges()
+    assembly.forceSaveChanges()
     assembly.refreshInWorld()
 
     const expected = expectedConflicts[sampleName]
@@ -317,7 +317,7 @@ describe("saveChanges", () => {
   })
   it("does not change anything if completely empty", () => {
     const assembly = Assembly.create("test", surface, area)
-    assembly.saveChanges()
+    assembly.forceSaveChanges()
     assert.same({}, getBlueprintFromWorld(surface, area).entities)
     assertNoGhosts()
   })
@@ -325,7 +325,7 @@ describe("saveChanges", () => {
   it("sets ownContents", () => {
     const assembly = Assembly.create("test", surface, area)
     pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
-    assembly.saveChanges()
+    assembly.forceSaveChanges()
     assertBlueprintsEquivalent(originalBlueprintSample, assembly.ownContents)
     assertNoGhosts()
   })
@@ -334,7 +334,7 @@ describe("saveChanges", () => {
     const assembly = Assembly.create("test", surface, area)
     assembly.addImport(mockImport(originalBlueprintSample), pos(0, 0))
     assembly.refreshInWorld()
-    assembly.saveChanges()
+    assembly.forceSaveChanges()
     assert.same({}, assembly.ownContents.entities)
     assertNoGhosts()
   })
