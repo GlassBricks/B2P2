@@ -40,8 +40,8 @@ export function findBlueprintPasteConflictAndUpdate(
       const conflict = findEntityPasteConflictAndUpdate(compatible, aboveEntity)
       if (conflict !== undefined) {
         propConflicts.push({
-          below: compatible,
           above: aboveEntity,
+          below: compatible,
           prop: conflict,
         })
       }

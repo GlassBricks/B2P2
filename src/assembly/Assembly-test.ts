@@ -273,15 +273,17 @@ describe("paste diagnostics", () => {
   }
 
   test.each(BlueprintSampleNames, "diagnostics match expected for changing to sample: %s", (sampleName) => {
-    // test.only("diagnostics match expected for changing to sample: module change", () => {
-    //   const sampleName = "module change"
+    // test("diagnostics match expected for changing to sample: module change", () => {
+    //   const sampleName: BlueprintSampleName = "inserter fast replace"
 
     const below = getBlueprintSample("original")
-    pasteBlueprint(surface, area.left_top, below)
-    const assembly = Assembly.create("test", surface, area)
     const above = getBlueprintSample(sampleName)
-    const aboveBlueprint = MutableBlueprint.fromPlainEntities(above)
+
+    pasteBlueprint(surface, area.left_top, above)
+    const assembly = Assembly.create("test", surface, area)
+    const aboveBlueprint = MutableBlueprint.fromPlainEntities(below)
     assembly.addImport(mockImport(aboveBlueprint), pos(0, 0))
+    assembly.saveChanges()
     assembly.refreshInWorld()
 
     const expected = expectedConflicts[sampleName]
@@ -294,9 +296,9 @@ describe("paste diagnostics", () => {
     const belowEntity = below.find((x) => x.name === expected.belowEntity)!
     let expectedDiagnostic: Diagnostic<PasteDiagnostics>
     if (expected.type === "overlap") {
-      expectedDiagnostic = Overlap(aboveEntity, belowEntity)
+      expectedDiagnostic = Overlap(belowEntity, aboveEntity)
     } else if (expected.type === "upgrade") {
-      expectedDiagnostic = CannotUpgrade(aboveEntity, belowEntity)
+      expectedDiagnostic = CannotUpgrade(belowEntity, aboveEntity)
     } else if (expected.type === "items") {
       expectedDiagnostic = ItemsIgnored(aboveEntity)
     } else if (expected.type === "unsupported") {

@@ -23,36 +23,36 @@ export type PasteDiagnostics =
 export const Overlap = DiagnosticFactory(
   L_Diagnostic.Overlap,
   "error",
-  (pasted: BlueprintEntityRead, overlapped: BlueprintEntityRead) => ({
-    message: [L_Diagnostic.Overlap, describeEntity(pasted), describeEntity(overlapped)],
-    location: pasted.position,
+  (below: BlueprintEntityRead, above: BlueprintEntityRead) => ({
+    message: [L_Diagnostic.Overlap, describeEntity(above), describeEntity(below)],
+    location: above.position,
   }),
 )
 
 export const CannotUpgrade = DiagnosticFactory(
   L_Diagnostic.CannotUpgrade,
   "error",
-  (pasted: BlueprintEntityRead, overlapped: BlueprintEntityRead) => ({
-    message: [L_Diagnostic.CannotUpgrade, describeEntity(pasted), describeEntity(overlapped)],
-    location: pasted.position,
+  (below: BlueprintEntityRead, above: BlueprintEntityRead) => ({
+    message: [L_Diagnostic.CannotUpgrade, describeEntity(above), describeEntity(below)],
+    location: above.position,
   }),
 )
 
 export const ItemsIgnored = DiagnosticFactory(
   L_Diagnostic.ItemsIgnoredOnPaste,
   "warning",
-  (pasted: BlueprintEntityRead) => ({
-    message: [L_Diagnostic.ItemsIgnoredOnPaste, describeEntity(pasted)],
-    location: pasted.position,
+  (entity: BlueprintEntityRead) => ({
+    message: [L_Diagnostic.ItemsIgnoredOnPaste, describeEntity(entity)],
+    location: entity.position,
   }),
 )
 
 export const UnsupportedProp = DiagnosticFactory(
   L_Diagnostic.UnsupportedProp,
   "warning",
-  (pasted: BlueprintEntityRead, property: UnhandledProp) => ({
-    message: [L_Diagnostic.UnsupportedProp, describeEntity(pasted), property],
-    location: pasted.position,
+  (entity: BlueprintEntityRead, property: UnhandledProp) => ({
+    message: [L_Diagnostic.UnsupportedProp, describeEntity(entity), property],
+    location: entity.position,
   }),
 )
 
@@ -156,8 +156,8 @@ export class Assembly {
   ): Diagnostic<PasteDiagnostics>[] {
     const conflicts = findBlueprintPasteContentsInWorldAndUpdate(this.surface, this.area, content, resultLocation)
     const diagnostics: Diagnostic<PasteDiagnostics>[] = []
-    for (const overlap of conflicts.overlaps) {
-      diagnostics.push(Overlap(overlap.above, overlap.below))
+    for (const { below, above } of conflicts.overlaps) {
+      diagnostics.push(Overlap(below, above))
     }
     for (const { prop, below, above } of conflicts.propConflicts) {
       // this relies on "name" being the only unpasteable prop (while still being compatible)
