@@ -9,6 +9,8 @@ import {
   findBlueprintPasteConflictAndUpdate,
   findBlueprintPasteConflicts,
   findBlueprintPasteConflictsInWorldAndUpdate,
+  findCompatibleEntity,
+  findOverlappingEntity,
 } from "./blueprint-paste"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
@@ -41,6 +43,61 @@ const noConflicts: BlueprintPasteConflicts = {
   propConflicts: [],
   lostReferences: [],
 }
+
+let b: MutableBlueprint
+before_each(() => {
+  b = new MutableBlueprint()
+})
+
+describe("findCompatibleEntity", () => {
+  it("Finds compatible entity", () => {
+    const rawEntity = getEntitySample("assembling-machine-1")
+    const rawEntity2 = {
+      ...getEntitySample("assembling-machine-2"),
+      position: rawEntity.position,
+    }
+    const entity = createEntity(rawEntity)
+    b.addSingle(entity)
+    const result = findCompatibleEntity(b, rawEntity2)
+    assert.equal(entity, result)
+  })
+
+  it("returns undefined if no compatible entity is found", () => {
+    const rawEntity1 = getEntitySample("assembling-machine-1")
+    const rawEntity2 = getEntitySample("chest")
+    const entity = createEntity(rawEntity1)
+    b.addSingle(entity)
+    const result = findCompatibleEntity(b, rawEntity2)
+    assert.is_nil(result)
+  })
+})
+
+describe("findOverlappingEntity", () => {
+  it("returns overlapping entity", () => {
+    const entity = createEntity(getEntitySample("assembling-machine-1"))
+    const entity2 = createEntity({
+      ...getEntitySample("assembling-machine-2"),
+      position: pos.add(entity.position, pos(1, 0)),
+    })
+
+    b.addSingle(entity)
+
+    const result = findOverlappingEntity(b, entity2)
+    assert.equal(entity, result)
+  })
+  it("returns undefined when overlapping entity not found", () => {
+    const entity = createEntity(getEntitySample("assembling-machine-1"))
+    const entity2 = createEntity({
+      ...getEntitySample("assembling-machine-2"),
+      position: pos.add(entity.position, pos(3, 3)),
+    })
+
+    b.addSingle(entity)
+
+    const result = findOverlappingEntity(b, entity2)
+    assert.is_nil(result)
+  })
+})
 
 describe("findBlueprintPasteConflicts", () => {
   it("pasting empty on empty produces no conflicts", () => {
@@ -187,7 +244,7 @@ function assertDiffsSame(expected: BlueprintDiff, actual: BlueprintDiff) {
   assertBlueprintsEquivalent(expected.content, actual.content)
 }
 
-describe("getBlueprintDiffContent", () => {
+describe("computeBlueprintDiff", () => {
   it("should return empty diff if no changes", () => {
     const blueprintSample = MutableBlueprint.fromPlainEntities(getBlueprintSample("original"))
     const diff = computeBlueprintDiff(blueprintSample, blueprintSample)
