@@ -4,7 +4,7 @@ import { Blueprint, getBlueprintFromWorld, MutableBlueprint, UpdateablePasteBlue
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { Import } from "./Import"
 import { pos } from "../lib/geometry/position"
-import { computeBlueprintDiff, findBlueprintPasteContentsInWorldAndUpdate } from "../blueprint/blueprint-paste"
+import { computeBlueprintDiff, findBlueprintPasteConflictsInWorldAndUpdate } from "../blueprint/blueprint-paste"
 import { Diagnostic, DiagnosticFactory } from "../diagnostics/Diagnostic"
 import { L_Diagnostic } from "../locale"
 import { describeEntity, Entity } from "../entity/entity"
@@ -154,7 +154,7 @@ export class Assembly {
     content: Blueprint<Entity>,
     resultLocation: MapPositionTable,
   ): Diagnostic<PasteDiagnostics>[] {
-    const conflicts = findBlueprintPasteContentsInWorldAndUpdate(this.surface, this.area, content, resultLocation)
+    const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(this.surface, this.area, content, resultLocation)
     const diagnostics: Diagnostic<PasteDiagnostics>[] = []
     for (const { below, above } of conflicts.overlaps) {
       diagnostics.push(Overlap(below, above))

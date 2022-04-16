@@ -70,7 +70,7 @@ export function findBlueprintPasteConflictAndUpdate(
 export const findBlueprintPasteConflicts = (below: Blueprint, above: Blueprint): BlueprintPasteConflicts =>
   findBlueprintPasteConflictAndUpdate(below, above)
 
-export function findBlueprintPasteContentsInWorldAndUpdate(
+export function findBlueprintPasteConflictsInWorldAndUpdate(
   surface: SurfaceIdentification,
   area: BoundingBoxRead,
   content: UpdateablePasteBlueprint,

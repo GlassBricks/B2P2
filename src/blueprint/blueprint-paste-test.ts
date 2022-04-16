@@ -8,7 +8,7 @@ import {
   computeBlueprintDiff,
   findBlueprintPasteConflictAndUpdate,
   findBlueprintPasteConflicts,
-  findBlueprintPasteContentsInWorldAndUpdate,
+  findBlueprintPasteConflictsInWorldAndUpdate,
 } from "./blueprint-paste"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
@@ -158,7 +158,7 @@ describe("findBlueprintPasteConflictsInWorld", () => {
     })
     const blueprint2 = new MutableBlueprint()
     blueprint2.addSingle(movedAssemblingMachine)
-    const conflicts = findBlueprintPasteContentsInWorldAndUpdate(surface, area, blueprint2, pasteLocation)
+    const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(surface, area, blueprint2, pasteLocation)
     assert.same(
       [
         {
@@ -171,7 +171,12 @@ describe("findBlueprintPasteConflictsInWorld", () => {
     assert.same([], conflicts.propConflicts)
   })
   test("no overlap", () => {
-    const conflicts = findBlueprintPasteContentsInWorldAndUpdate(surface, area, singleAssemblerBlueprint, pasteLocation)
+    const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(
+      surface,
+      area,
+      singleAssemblerBlueprint,
+      pasteLocation,
+    )
     assert.same([], conflicts.overlaps)
     assert.same([], conflicts.propConflicts)
   })
