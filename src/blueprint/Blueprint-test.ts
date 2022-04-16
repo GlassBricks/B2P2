@@ -151,7 +151,7 @@ test("fromEntities", () => {
   assert.same(b.entities, b2.entities)
 })
 
-test("remapEntityNumbers", () => {
+test("withEntityNumberRemap", () => {
   const connections2: BlueprintCircuitConnection = {
     "1": {
       red: [
@@ -194,7 +194,7 @@ test("remapEntityNumbers", () => {
 
   b.addSingle(entity1)
   b.addSingle(entity2)
-  b.remapEntityNumbers({
+  b = b.withEntityNumberRemap({
     1: 2,
     2: 1,
   })
@@ -217,7 +217,7 @@ test("sortEntities", () => {
   b.addSingle(entity3)
   b.addSingle(entity1)
   b.addSingle(entity2)
-  b.sortEntities()
+  b = b.sorted()
   const expected = new MutableBlueprint()
   expected.addSingle(entity1)
   expected.addSingle(entity2)

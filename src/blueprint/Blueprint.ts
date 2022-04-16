@@ -3,7 +3,7 @@ import { PRecord, RRecord } from "../lib/util-types"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { bbox } from "../lib/geometry/bounding-box"
-import { mutableShallowCopy, shallowCopy } from "../lib/util"
+import { isEmpty, mutableShallowCopy, shallowCopy } from "../lib/util"
 import { table as utilTable } from "util"
 import { PasteEntity } from "../entity/reference-entity"
 import { takeBlueprint } from "../world-interaction/blueprint"
@@ -17,19 +17,20 @@ export interface Blueprint<E extends Entity = PlainEntity> {
   getAtPos(x: number, y: number): ReadonlyLuaSet<E> | undefined
   getAt(pos: MapPositionTable): ReadonlyLuaSet<E> | undefined
   getAsArray(): readonly Entity[]
+  computeBoundingBox(): BoundingBoxRead
+
+  withEntityNumberRemap(map: Record<number, number>): Blueprint<E>
+  sorted(): Blueprint<E>
 }
 
 export interface MutableBlueprint<E extends Entity = Entity> extends Blueprint<E> {
   // returns the new entity, which may have a different entity number
   addSingle(entity: E): E
-
   replaceUnsafe(old: E, cur: E): E
-
   remove(entity: E): E
 
-  remapEntityNumbers(map: Record<number, number>): void
-
-  sortEntities(): void
+  withEntityNumberRemap(map: Record<number, number>): MutableBlueprint<E>
+  sorted(): MutableBlueprint<E>
 }
 
 export type PasteBlueprint = Blueprint<PasteEntity>
@@ -87,6 +88,28 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     return this.entities as unknown as Entity[]
   }
 
+  computeBoundingBox(): BoundingBoxRead {
+    if (isEmpty(this.entities)) {
+      return bbox.fromCorners(0, 0, 0, 0)
+    }
+    let minX = Infinity
+    let minY = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
+    function expandTo(pos: MapPositionTable) {
+      if (pos.x < minX) minX = pos.x
+      if (pos.y < minY) minY = pos.y
+      if (pos.x > maxX) maxX = pos.x
+      if (pos.y > maxY) maxY = pos.y
+    }
+    for (const [, entity] of pairs(this.entities)) {
+      const tileBox = entity.tileBox
+      expandTo(tileBox.left_top)
+      expandTo(tileBox.right_bottom)
+    }
+    return bbox.fromCorners(minX, minY, maxX, maxY)
+  }
+
   addSingle(entity: E): E {
     const number = this.nextEntityNumber()
     const newEntity = withEntityNumber(entity, number)
@@ -135,7 +158,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     return oldEntity
   }
 
-  remapEntityNumbers(map: Record<number, number>): void {
+  withEntityNumberRemap(map: Record<number, number>): MutableBlueprint<E> {
     const newEntities: Record<EntityNumber, E> = {}
     for (const [oldNumber, entity] of pairs(this.entities)) {
       const newNumber = map[oldNumber]
@@ -143,9 +166,10 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
       newEntities[newNumber as EntityNumber] = withEntityNumber(entity, newNumber as EntityNumber)
     }
     BlueprintImpl.remapConnections(newEntities, map)
-
-    this.entities = newEntities
-    this.recomputeByPosition()
+    const result = new BlueprintImpl<E>()
+    result.entities = newEntities
+    result.recomputeByPosition()
+    return result
   }
 
   private static remapConnections(entities: Record<EntityNumber, Entity>, map: Record<number, number>): void {
@@ -190,7 +214,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     }
   }
 
-  sortEntities(): void {
+  sorted(): MutableBlueprint<E> {
     const entities = Object.values(this.entities)
     const compareByPosition = ({ position: a }: Entity, { position: b }: Entity): boolean => {
       if (a.y !== b.y) return a.y < b.y
@@ -201,7 +225,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     for (const [newNumber, entity] of ipairs(entities)) {
       remap[entity.entity_number] = newNumber
     }
-    this.remapEntityNumbers(remap)
+    return this.withEntityNumberRemap(remap)
   }
 }
 
