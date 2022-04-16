@@ -1,7 +1,7 @@
 import { Blueprint, MutableBlueprint } from "./Blueprint"
-import { createEntity, Entity, PasteEntity, ReferenceEntity, UpdateablePasteEntity } from "../entity/entity"
+import { Entity, PasteEntity, ReferenceEntity, UpdateablePasteEntity } from "../entity/entity"
 import { getEntitySample } from "../test/entity-sample"
-import { pos, PositionClass } from "../lib/geometry/position"
+import { pos } from "../lib/geometry/position"
 import {
   BlueprintDiff,
   BlueprintPasteConflicts,
@@ -20,18 +20,20 @@ import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { createReferenceOnlyEntity } from "../entity/entity-paste"
 
 let emptyBlueprint: Blueprint
-let assemblingMachine: Entity
+function getAssemblingMachineEntity(): Entity {
+  return {
+    ...getEntitySample("assembling-machine-1"),
+    position: pos(3.5, 3.5),
+  }
+}
 let singleAssemblerBlueprint: Blueprint
 let noDiff: BlueprintDiff
 
 before_all(() => {
   emptyBlueprint = new MutableBlueprint()
-  assemblingMachine = createEntity({
-    ...getEntitySample("assembling-machine-1"),
-    position: pos(0.5, 0.5),
-  })
+
   const saBlueprint = new MutableBlueprint()
-  saBlueprint.addSingle(assemblingMachine)
+  saBlueprint.addSingle(getAssemblingMachineEntity())
   singleAssemblerBlueprint = saBlueprint
   noDiff = {
     content: emptyBlueprint,
@@ -56,17 +58,15 @@ describe("findCompatibleEntity", () => {
       ...getEntitySample("assembling-machine-2"),
       position: rawEntity.position,
     }
-    const entity = createEntity(rawEntity)
-    b.addSingle(entity)
+    b.addSingle(rawEntity)
     const result = findCompatibleEntity(b, rawEntity2)
-    assert.equal(entity, result)
+    assert.equal(rawEntity, result)
   })
 
   it("returns undefined if no compatible entity is found", () => {
     const rawEntity1 = getEntitySample("assembling-machine-1")
     const rawEntity2 = getEntitySample("chest")
-    const entity = createEntity(rawEntity1)
-    b.addSingle(entity)
+    b.addSingle(rawEntity1)
     const result = findCompatibleEntity(b, rawEntity2)
     assert.is_nil(result)
   })
@@ -74,11 +74,11 @@ describe("findCompatibleEntity", () => {
 
 describe("findOverlappingEntity", () => {
   it("returns overlapping entity", () => {
-    const entity = createEntity(getEntitySample("assembling-machine-1"))
-    const entity2 = createEntity({
+    const entity = getEntitySample("assembling-machine-1")
+    const entity2 = {
       ...getEntitySample("assembling-machine-2"),
       position: pos.add(entity.position, pos(1, 0)),
-    })
+    }
 
     b.addSingle(entity)
 
@@ -86,11 +86,11 @@ describe("findOverlappingEntity", () => {
     assert.equal(entity, result)
   })
   it("returns undefined when overlapping entity not found", () => {
-    const entity = createEntity(getEntitySample("assembling-machine-1"))
-    const entity2 = createEntity({
+    const entity = getEntitySample("assembling-machine-1")
+    const entity2 = {
       ...getEntitySample("assembling-machine-2"),
       position: pos.add(entity.position, pos(3, 3)),
-    })
+    }
 
     b.addSingle(entity)
 
@@ -117,17 +117,17 @@ describe("findBlueprintPasteConflicts", () => {
   })
 
   it("detects overlapping entities", () => {
-    const movedAssemblingMachine = createEntity({
-      ...assemblingMachine,
+    const movedAssemblingMachine = {
+      ...getAssemblingMachineEntity(),
       position: pos(1.5, 1.5),
-    })
+    }
     const blueprint2 = new MutableBlueprint()
     blueprint2.addSingle(movedAssemblingMachine)
     const conflicts = findBlueprintPasteConflicts(singleAssemblerBlueprint, blueprint2)
     assert.same(
       [
         {
-          below: assemblingMachine,
+          below: getAssemblingMachineEntity(),
           above: movedAssemblingMachine,
         },
       ],
@@ -138,17 +138,17 @@ describe("findBlueprintPasteConflicts", () => {
   })
 
   it("detects entity incompatibilities", () => {
-    const asm2 = createEntity({
-      ...assemblingMachine,
+    const asm2 = {
+      ...getAssemblingMachineEntity(),
       name: "assembling-machine-2",
-    })
+    }
     const blueprint2 = new MutableBlueprint()
     blueprint2.addSingle(asm2)
     const conflicts = findBlueprintPasteConflicts(singleAssemblerBlueprint, blueprint2)
     assert.same(
       [
         {
-          below: assemblingMachine,
+          below: getAssemblingMachineEntity(),
           above: asm2,
           prop: "name",
         },
@@ -161,7 +161,7 @@ describe("findBlueprintPasteConflicts", () => {
 })
 describe("findBlueprintPasteConflictsAndUpdate", () => {
   it("detects reference entities without reference", () => {
-    const asm = createReferenceOnlyEntity(assemblingMachine)
+    const asm = createReferenceOnlyEntity(getAssemblingMachineEntity())
     const bp2 = new MutableBlueprint<PasteEntity>()
     bp2.addSingle(asm)
     const conflicts = findBlueprintPasteConflictAndUpdate(emptyBlueprint, bp2)
@@ -173,7 +173,7 @@ describe("findBlueprintPasteConflictsAndUpdate", () => {
   it("updates other props to match", () => {
     // this largely relies on findEntityPasteConflictAndUpdate
     const updatedAssemblingMachine: ReferenceEntity = {
-      ...assemblingMachine,
+      ...getAssemblingMachineEntity(),
       name: "assembling-machine-2",
       recipe: "furnace",
       changedProps: new LuaSet("recipe"), // name not considered
@@ -187,7 +187,7 @@ describe("findBlueprintPasteConflictsAndUpdate", () => {
 
     assert.same(
       {
-        ...assemblingMachine,
+        ...getAssemblingMachineEntity(),
         // name: "assembling-machine-2",
         recipe: "furnace",
         changedProps: new LuaSet("recipe"),
@@ -200,40 +200,39 @@ describe("findBlueprintPasteConflictsAndUpdate", () => {
 describe("findBlueprintPasteConflictsInWorld", () => {
   let surface: LuaSurface
   let area: BoundingBoxClass
-  let pasteLocation: PositionClass
   before_all(() => {
     const [surface1, area1] = get_area(1 as SurfaceIdentification, "working area 1")
     area = bbox.normalize(area1)
     surface = surface1
     clearBuildableEntities(surface, area)
-    pasteLocation = pos.add(area.left_top, pos(2, 2))
-    pasteBlueprint(surface, pasteLocation, singleAssemblerBlueprint.getAsArray(), area)
+    pasteBlueprint(surface, area.left_top, singleAssemblerBlueprint.getAsArray(), area)
   })
   test("overlap", () => {
-    const movedAssemblingMachine = createEntity({
-      ...assemblingMachine,
-      position: pos(3.5, 3.5),
-    })
+    const movedAssemblingMachine = {
+      ...getAssemblingMachineEntity(),
+      position: pos(1.5, 1.5),
+    }
     const blueprint2 = new MutableBlueprint()
     blueprint2.addSingle(movedAssemblingMachine)
-    const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(surface, area, blueprint2, pasteLocation)
+    const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(surface, area, blueprint2, area.left_top)
     assert.same(
       [
         {
-          below: assemblingMachine,
+          below: getAssemblingMachineEntity(),
           above: movedAssemblingMachine,
         },
       ],
       conflicts.overlaps,
     )
     assert.same([], conflicts.propConflicts)
+    assert.same([], conflicts.lostReferences)
   })
   test("no overlap", () => {
     const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(
       surface,
       area,
       singleAssemblerBlueprint,
-      pasteLocation,
+      area.left_top,
     )
     assert.same([], conflicts.overlaps)
     assert.same([], conflicts.propConflicts)
@@ -271,7 +270,7 @@ describe("computeBlueprintDiff", () => {
     assertDiffsSame(
       {
         content: result,
-        deletions: [assemblingMachine],
+        deletions: [getAssemblingMachineEntity()],
       },
       diff,
     )
@@ -279,10 +278,10 @@ describe("computeBlueprintDiff", () => {
 
   it("should create update entities when compatible", () => {
     const asm1Bp = singleAssemblerBlueprint
-    const asm2 = createEntity({
-      ...assemblingMachine,
+    const asm2 = {
+      ...getAssemblingMachineEntity(),
       name: "assembling-machine-2",
-    })
+    }
     const asm2Bp = MutableBlueprint.fromPlainEntities([asm2])
     const diff = computeBlueprintDiff(asm1Bp, asm2Bp)
     const asm2Diff: ReferenceEntity = {

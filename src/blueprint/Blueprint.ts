@@ -1,8 +1,7 @@
 import {
-  createEntity,
   Entity,
   EntityNumber,
-  makeEntityInPlace,
+  getTileBox,
   PasteEntity,
   PlainEntity,
   UpdateablePasteEntity,
@@ -57,7 +56,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
   constructor(public entities: Record<EntityNumber, E> = {}) {}
 
   static fromPlainEntities(entities: readonly BlueprintEntityRead[]): MutableBlueprint {
-    return new BlueprintImpl(entities.map((e) => createEntity(e)))
+    return new BlueprintImpl(shallowCopy(entities))
   }
 
   static copyOf<E extends Entity>(blueprint: Blueprint<E>): MutableBlueprint<E> {
@@ -65,9 +64,6 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
   }
 
   static createInPlace(entities: BlueprintEntityRead[]): Blueprint {
-    for (const entity of entities) {
-      makeEntityInPlace(entity)
-    }
     return new BlueprintImpl(entities as unknown as Record<EntityNumber, Entity>)
   }
 
@@ -113,7 +109,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
       if (pos.y > maxY) maxY = pos.y
     }
     for (const [, entity] of pairs(this.entities)) {
-      const tileBox = entity.tileBox
+      const tileBox = getTileBox(entity)
       expandTo(tileBox.left_top)
       expandTo(tileBox.right_bottom)
     }
@@ -141,7 +137,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
 
     const byPosition = this.byPosition
     if (byPosition) {
-      for (const [x, y] of bbox.iterateTiles(newEntity.tileBox)) {
+      for (const [x, y] of bbox.iterateTiles(getTileBox(newEntity))) {
         const set = byPosition[pair(x, y)]!
         set.delete(old)
         set.add(newEntity)
@@ -160,7 +156,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
 
     const byPosition = this.byPosition
     if (byPosition) {
-      for (const [x, y] of bbox.iterateTiles(oldEntity.tileBox)) {
+      for (const [x, y] of bbox.iterateTiles(getTileBox(oldEntity))) {
         const index = pair(x, y)
         const set = byPosition[index]!
         set.delete(oldEntity)
@@ -232,7 +228,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
 }
 
 function addToByPosition<E extends Entity>(byPosition: PRecord<NumberPair, LuaSet<E>>, entity: E) {
-  for (const [x, y] of bbox.iterateTiles(entity.tileBox)) {
+  for (const [x, y] of bbox.iterateTiles(getTileBox(entity))) {
     const set = (byPosition[pair(x, y)] ??= new LuaSet())
     set.add(entity)
   }

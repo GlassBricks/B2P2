@@ -1,5 +1,5 @@
 import { MutableBlueprint } from "./Blueprint"
-import { createEntity, Entity, EntityNumber } from "../entity/entity"
+import { Entity, getTileBox } from "../entity/entity"
 import { bbox } from "../lib/geometry/bounding-box"
 
 let b: MutableBlueprint
@@ -13,27 +13,21 @@ test("new blueprint is empty", () => {
 
 let mockEntity: Entity, mockEntity2: Entity, mockEntity3: Entity
 before_all(() => {
-  mockEntity = createEntity({
+  mockEntity = {
     name: "assembling-machine-1",
     position: { x: 0.5, y: 0.5 },
     entity_number: 1,
-  })
-  mockEntity2 = createEntity(
-    {
-      name: "assembling-machine-2",
-      position: { x: 0.5, y: 0.5 },
-      entity_number: 1,
-    },
-    2 as EntityNumber,
-  )
-  mockEntity3 = createEntity(
-    {
-      name: "assembling-machine-2",
-      position: { x: 0.5, y: 0.5 },
-      entity_number: 1,
-    },
-    3 as EntityNumber,
-  )
+  }
+  mockEntity2 = {
+    name: "assembling-machine-2",
+    position: { x: 0.5, y: 0.5 },
+    entity_number: 2,
+  }
+  mockEntity3 = {
+    name: "assembling-machine-2",
+    position: { x: 0.5, y: 0.5 },
+    entity_number: 3,
+  }
 })
 test("adding entity adds to .entities", () => {
   b.addSingle(mockEntity)
@@ -55,7 +49,7 @@ describe("getAtPos", () => {
 
   it("returns entity at all tiles covered after add", () => {
     const e = b.addSingle(mockEntity)
-    for (const [x, y] of bbox.iterateTiles(e.tileBox)) {
+    for (const [x, y] of bbox.iterateTiles(getTileBox(e))) {
       assert.same(new LuaSet(e), b.getAtPos(x, y))
     }
   })
@@ -97,7 +91,7 @@ describe("replaceUnsafe", () => {
   it("replaces entity at all tiles covered", () => {
     const e1 = b.addSingle(mockEntity)
     const e2 = b.replaceUnsafe(e1, mockEntity2)
-    for (const [x, y] of bbox.iterateTiles(e2.tileBox)) {
+    for (const [x, y] of bbox.iterateTiles(getTileBox(e2))) {
       assert.same(new LuaSet(e2), b.getAtPos(x, y))
     }
   })
@@ -107,7 +101,7 @@ describe("replaceUnsafe", () => {
     const e2 = b.addSingle(mockEntity2)
     const e3 = b.replaceUnsafe(e1, mockEntity3)
     assert.same(new LuaSet(e2, e3), b.getAtPos(0.5, 0.5))
-    for (const [x, y] of bbox.iterateTiles(e3.tileBox)) {
+    for (const [x, y] of bbox.iterateTiles(getTileBox(e3))) {
       assert.same(new LuaSet(e2, e3), b.getAtPos(x, y))
     }
   })
@@ -127,7 +121,7 @@ describe("remove", () => {
   it("removes entity from all tiles covered", () => {
     const e = b.addSingle(mockEntity)
     b.remove(e)
-    for (const [x, y] of bbox.iterateTiles(e.tileBox)) {
+    for (const [x, y] of bbox.iterateTiles(getTileBox(e))) {
       assert.same(undefined, b.getAtPos(x, y))
     }
   })
@@ -137,7 +131,7 @@ describe("remove", () => {
     const e2 = b.addSingle(mockEntity2)
     b.remove(e1)
     assert.same(new LuaSet(e2), b.getAtPos(0.5, 0.5))
-    for (const [x, y] of bbox.iterateTiles(e2.tileBox)) {
+    for (const [x, y] of bbox.iterateTiles(getTileBox(e2))) {
       assert.same(new LuaSet(e2), b.getAtPos(x, y))
     }
   })
@@ -197,21 +191,20 @@ test("withEntityNumberRemap", () => {
 })
 
 test("sortEntities", () => {
-  const entity1 = mockEntity
-  const entity2 = createEntity({
+  const entity2 = {
     ...mockEntity,
     position: { x: 1.5, y: 0.5 },
-  })
-  const entity3 = createEntity({
+  }
+  const entity3 = {
     ...mockEntity,
     position: { x: 0.5, y: 1.5 },
-  })
+  }
   b.addSingle(entity3)
-  b.addSingle(entity1)
+  b.addSingle(mockEntity)
   b.addSingle(entity2)
   b = b.sorted()
   const expected = new MutableBlueprint()
-  expected.addSingle(entity1)
+  expected.addSingle(mockEntity)
   expected.addSingle(entity2)
   expected.addSingle(entity3)
   assert.same(expected.entities, b.entities)

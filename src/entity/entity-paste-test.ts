@@ -8,7 +8,7 @@ import {
 } from "./entity-paste"
 import { mutableShallowCopy } from "../lib/util"
 import { Mutable } from "../lib/util-types"
-import { createEntity, ReferenceEntity } from "./entity"
+import { ReferenceEntity } from "./entity"
 
 describe("isCompatibleEntity", () => {
   test("identical entities are compatible", () => {
@@ -150,7 +150,7 @@ describe("findEntityPasteConflictsAndUpdate", () => {
   test("does not give conflict for compatible changedProps and updates other props", () => {
     const assemblingMachine = getEntitySample("assembling-machine-1")
     const updatedAssemblingMachine: ReferenceEntity = {
-      ...createEntity(assemblingMachine),
+      ...assemblingMachine,
       name: "assembling-machine-2",
       recipe: "furnace",
       changedProps: new LuaSet("recipe"), // name not considered
@@ -160,7 +160,7 @@ describe("findEntityPasteConflictsAndUpdate", () => {
 
     assert.same(
       {
-        ...createEntity(assemblingMachine),
+        ...assemblingMachine,
         // name: "assembling-machine-2",
         recipe: "furnace",
         changedProps: new LuaSet("recipe"),
@@ -171,7 +171,7 @@ describe("findEntityPasteConflictsAndUpdate", () => {
   test("returns conflict if is in changedProps", () => {
     const assemblingMachine = getEntitySample("assembling-machine-1")
     const updatedAssemblingMachine: ReferenceEntity = {
-      ...createEntity(assemblingMachine),
+      ...assemblingMachine,
       name: "assembling-machine-2",
       changedProps: new LuaSet("name"),
     }
@@ -179,7 +179,7 @@ describe("findEntityPasteConflictsAndUpdate", () => {
     assert.equal("name", prop)
 
     const updatedAssemblingMachine2: ReferenceEntity = {
-      ...createEntity(assemblingMachine),
+      ...assemblingMachine,
       items: { "productivity-module": 1 },
       changedProps: new LuaSet("items"),
     }
@@ -190,7 +190,7 @@ describe("findEntityPasteConflictsAndUpdate", () => {
   test("updates other props even if there is conflict", () => {
     const assemblingMachine = getEntitySample("assembling-machine-1")
     const updatedAssemblingMachine: ReferenceEntity = {
-      ...createEntity(assemblingMachine),
+      ...assemblingMachine,
       name: "assembling-machine-2",
       recipe: "furnace",
       changedProps: new LuaSet("name"), // name not considered
@@ -200,7 +200,7 @@ describe("findEntityPasteConflictsAndUpdate", () => {
 
     assert.same(
       {
-        ...createEntity(assemblingMachine),
+        ...assemblingMachine,
         name: "assembling-machine-2",
         changedProps: new LuaSet("name"),
       },

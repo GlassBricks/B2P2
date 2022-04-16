@@ -3,7 +3,7 @@ import { pos } from "../lib/geometry/position"
 import { Mutable } from "../lib/util-types"
 import { getPlayer } from "../lib/testUtil"
 import { bbox } from "../lib/geometry/bounding-box"
-import { Entity } from "../entity/entity"
+import { Entity, getTileBox } from "../entity/entity"
 
 declare const global: {
   __tempBlueprintInventory: LuaInventory
@@ -89,7 +89,7 @@ export function pasteBlueprint(
     // for performance reasons, instead of creating a new list, we remove entities outside the area and restore them later
     const area = bbox.normalize(areaRestriction).shiftNegative(location)
     entities = (entities as Entity[]).filter((entity) => {
-      const entityBox = entity.tileBox
+      const entityBox = getTileBox(entity)
       return area.contains(entityBox.left_top) && area.contains(entityBox.right_bottom)
     })
   }

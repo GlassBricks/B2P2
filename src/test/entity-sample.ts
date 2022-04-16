@@ -1,6 +1,7 @@
 import { get_area } from "__testorio__/testUtil/areas"
 import { takeBlueprint } from "../world-interaction/blueprint"
 import { bbox } from "../lib/geometry/bounding-box"
+import { shallowCopy } from "../lib/util"
 
 const entitySamples = {
   chest: true,
@@ -56,9 +57,10 @@ function loadSamplesFromWorld() {
   }
 }
 
-export function getEntitySample(sample: EntitySampleName): BlueprintEntityRead {
+export function getEntitySample(sampleName: EntitySampleName): BlueprintEntityRead {
   if (!samples) {
     loadSamplesFromWorld()
   }
-  return samples[sample] ?? error(`no entity sample found for ${sample}`)
+  const sample = samples[sampleName] ?? error(`no entity sample found for ${sampleName}`)
+  return shallowCopy(sample)
 }

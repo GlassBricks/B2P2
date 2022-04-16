@@ -1,4 +1,12 @@
-import { ConflictingProp, Entity, EntityNumber, PasteEntity, PlainEntity, ReferenceEntity } from "../entity/entity"
+import {
+  ConflictingProp,
+  Entity,
+  EntityNumber,
+  getTileBox,
+  PasteEntity,
+  PlainEntity,
+  ReferenceEntity,
+} from "../entity/entity"
 import {
   Blueprint,
   getBlueprintFromWorld,
@@ -23,7 +31,7 @@ export function findCompatibleEntity<T extends Entity>(
 
 // may report compatible entities as overlapping
 export function findOverlappingEntity<T extends Entity>(blueprint: Blueprint<T>, entity: Entity): T | undefined {
-  for (const [x, y] of bbox.iterateTiles(entity.tileBox)) {
+  for (const [x, y] of bbox.iterateTiles(getTileBox(entity))) {
     const entities = blueprint.getAtPos(x, y)
     if (entities !== undefined) {
       const entity = entities.first()
@@ -97,10 +105,10 @@ export function findBlueprintPasteConflictsInWorldAndUpdate(
   surface: SurfaceIdentification,
   area: BoundingBoxRead,
   content: UpdateablePasteBlueprint,
-  location: MapPositionTable,
+  pasteLocation: MapPositionTable,
 ): BlueprintPasteConflicts {
-  const contentArea = content.computeBoundingBox().shift(location).intersect(area)
-  const below = getBlueprintFromWorld(surface, contentArea, location)
+  const contentArea = content.computeBoundingBox().shift(pasteLocation).intersect(area)
+  const below = getBlueprintFromWorld(surface, contentArea, pasteLocation)
   return findBlueprintPasteConflictAndUpdate(below, content)
 }
 

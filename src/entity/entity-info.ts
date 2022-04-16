@@ -27,7 +27,7 @@ export function getEntityInfo(entityName: string): EntityInfo {
 }
 
 // gets the area a blueprint entity takes, rounded to the nearest tile
-export function getTileBox(entity: BlueprintEntityRead): BoundingBoxClass {
+export function computeTileBox(entity: BlueprintEntityRead): BoundingBoxClass {
   // only conservative because of offshore pumps, is this worth it?
   return getEntityInfo(entity.name)
     .collisionBox.rotateAboutOrigin(entity.direction ?? UP)
