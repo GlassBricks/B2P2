@@ -16,6 +16,8 @@ function bbox(left_top: MapPositionTable, right_bottom: MapPositionTable): Bound
 }
 
 namespace bbox {
+  import max = math.max
+  import min = math.min
   export function from(data: BoundingBoxRead): BoundingBoxClass {
     return setmetatable(
       {
@@ -86,6 +88,16 @@ namespace bbox {
     if (direction === RIGHT) return bbox({ x: -ry, y: lx }, { x: -ly, y: rx })
 
     error(`invalid direction ${defines.direction[direction]}`)
+  }
+  export function intersect(box1: BoundingBoxRead, box2: BoundingBoxRead): BoundingBoxClass {
+    const { left_top, right_bottom } = box1
+    const { left_top: lt2, right_bottom: rb2 } = box2
+    return bbox.fromCorners(
+      max(left_top.x, lt2.x),
+      max(left_top.y, lt2.y),
+      min(right_bottom.x, rb2.x),
+      min(right_bottom.y, rb2.y),
+    )
   }
   export function iterateTiles(box: BoundingBoxRead): LuaIterable<LuaMultiReturn<[x: number, y: number] | []>> {
     const { left_top, right_bottom } = box

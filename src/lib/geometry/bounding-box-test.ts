@@ -121,6 +121,14 @@ test("iterateTiles", () => {
   )
 })
 
+test("intersect", () => {
+  const box = bbox({ x: 1, y: 2 }, { x: 3, y: 4 })
+  const box2 = bbox({ x: 2, y: 3 }, { x: 4, y: 5 })
+  const box3 = box.intersect(box2)
+  assert.same({ x: 2, y: 3 }, box3.left_top)
+  assert.same({ x: 3, y: 4 }, box3.right_bottom)
+})
+
 test("isCenteredSquare", () => {
   const box = bbox({ x: 2, y: 3 }, { x: -2, y: -3 })
   assert.is_false(box.isCenteredSquare())
