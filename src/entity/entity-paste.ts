@@ -1,4 +1,5 @@
 import {
+  ConflictingProp,
   IgnoredOnPasteProp,
   PropUpdateBehavior,
   PropUpdateBehaviors,
@@ -14,12 +15,32 @@ import { Mutable } from "../lib/util-types"
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _: Record<IgnoredOnPasteProp, true> = { items: true }
 
-// this will replace the above function eventually
-export function findEntityPasteConflict(
+function findEntityPasteConflictInReference(
   below: BlueprintEntityRead,
-  above: BlueprintEntityRead,
-): UnpasteableProp | IgnoredOnPasteProp | UnhandledProp | undefined {
-  let unhandledProp: keyof BlueprintEntityRead | undefined
+  above: ReferenceEntity,
+): ConflictingProp | undefined {
+  let unhandledProp: UnhandledProp | undefined
+  for (const [prop] of above.changedProps) {
+    const behavior = PropUpdateBehaviors[prop]
+    if (behavior === PropUpdateBehavior.UpdateableOnly && !deepCompare(below[prop], above[prop])) {
+      return prop as UnpasteableProp
+    }
+    if (behavior === undefined && !deepCompare(below[prop], above[prop])) {
+      unhandledProp = prop as UnhandledProp
+    }
+  }
+  if (above.changedProps.has("items")) {
+    if (!deepCompare(below.items, above.items)) {
+      return "items"
+    }
+  }
+  if (unhandledProp !== undefined) {
+    return unhandledProp
+  }
+  return undefined
+}
+function findEntityConflictsInPlainEntities(above: BlueprintEntityRead | ReferenceEntity, below: BlueprintEntityRead) {
+  let unhandledProp: UnhandledProp | undefined
 
   for (const [prop, value] of pairs(above)) {
     const behavior = PropUpdateBehaviors[prop]
@@ -27,7 +48,7 @@ export function findEntityPasteConflict(
       return prop as UnpasteableProp
     }
     if (behavior === undefined && !deepCompare(below[prop], value)) {
-      unhandledProp = prop
+      unhandledProp = prop as UnhandledProp
     }
   }
   for (const [prop] of pairs(below)) {
@@ -38,21 +59,30 @@ export function findEntityPasteConflict(
       return prop as UnpasteableProp
     }
     if (behavior === undefined) {
-      unhandledProp = prop
+      unhandledProp = prop as UnhandledProp
     }
   }
 
   // hardcoded for now
-  const belowItems = below.items
-  if (!deepCompare(belowItems, above.items)) {
+  if (!deepCompare(below.items, above.items)) {
     return "items"
   }
 
   if (unhandledProp !== undefined) {
-    return unhandledProp as UnhandledProp
+    return unhandledProp
   }
 
   return undefined
+}
+// this will replace the above function eventually
+export function findEntityPasteConflict(
+  below: BlueprintEntityRead,
+  above: BlueprintEntityRead | ReferenceEntity,
+): ConflictingProp | undefined {
+  if ((above as ReferenceEntity).diffType === "reference") {
+    return findEntityPasteConflictInReference(below, above as ReferenceEntity)
+  }
+  return findEntityConflictsInPlainEntities(above, below)
 }
 
 export function computeEntityDiff(
@@ -77,5 +107,12 @@ export function computeEntityDiff(
   const result = shallowCopy(after) as Mutable<ReferenceEntity>
   result.diffType = "reference"
   result.changedProps = changedProps
+  return result
+}
+
+export function createReferenceOnlyEntity(entity: BlueprintEntity): ReferenceEntity {
+  const result = shallowCopy(entity) as Mutable<ReferenceEntity>
+  result.diffType = "reference"
+  result.changedProps = new LuaSet<UpdateableProp>()
   return result
 }

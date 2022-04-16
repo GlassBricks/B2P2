@@ -1,6 +1,8 @@
 import { EntitySampleName, getEntitySample } from "../test/entity-sample"
-import { computeEntityDiff, findEntityPasteConflict } from "./entity-paste"
+import { computeEntityDiff, createReferenceOnlyEntity, findEntityPasteConflict } from "./entity-paste"
 import { mutableShallowCopy } from "../lib/util"
+import { Mutable } from "../lib/util-types"
+import { ReferenceEntity } from "./reference-entity"
 
 describe("findEntityPasteConflict", () => {
   test("pasting an entity on itself is successful", () => {
@@ -53,7 +55,7 @@ describe("findEntityPasteConflict", () => {
     },
   )
 
-  test("reports unhandled props", () => {
+  it("reports unhandled props", () => {
     const entity = getEntitySample("assembling-machine-1")
     const entity2 = mutableShallowCopy(entity) as any
     entity2.foo = "bar"
@@ -61,11 +63,30 @@ describe("findEntityPasteConflict", () => {
     assert.equal("foo", findEntityPasteConflict(entity2, entity))
   })
 
-  test("does not report unhandled props if identical", () => {
+  it("does not report unhandled props if identical", () => {
     const entity = getEntitySample("assembling-machine-1")
     const entity2 = mutableShallowCopy(entity) as any
     entity2.foo = "bar"
     assert.equal(undefined, findEntityPasteConflict(entity2, entity2))
+  })
+
+  it("does not report conflict for empty reference entities", () => {
+    const entity1 = getEntitySample("assembling-machine-1")
+    const entity2 = { ...getEntitySample("assembling-machine-2"), position: entity1.position }
+    const emptyReferenceEntity = createReferenceOnlyEntity(entity2)
+    assert.is_nil(findEntityPasteConflict(entity1, emptyReferenceEntity))
+  })
+
+  it("only cares about entities in changedProps", () => {
+    const entity1 = getEntitySample("assembling-machine-1")
+    const entity2: BlueprintEntityRead = {
+      ...getEntitySample("assembling-machine-2"),
+      position: entity1.position,
+      items: { "productivity-module": 1 },
+    }
+    const diffEntity = computeEntityDiff(entity1, entity2) as Mutable<ReferenceEntity>
+    diffEntity.changedProps = new LuaSet("items") // ignore "name"
+    assert.same("items", findEntityPasteConflict(entity1, diffEntity))
   })
 })
 
