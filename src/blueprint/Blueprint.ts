@@ -1,4 +1,4 @@
-import { createEntity, Entity, EntityNumber, PlainEntity, withEntityNumber } from "../entity/entity"
+import { createEntity, Entity, EntityNumber, makeIntoEntity, PlainEntity, withEntityNumber } from "../entity/entity"
 import { PRecord, RRecord } from "../lib/util-types"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
@@ -6,6 +6,7 @@ import { bbox } from "../lib/geometry/bounding-box"
 import { mutableShallowCopy, shallowCopy } from "../lib/util"
 import { table as utilTable } from "util"
 import { PasteEntity } from "../entity/reference-entity"
+import { takeBlueprint } from "../world-interaction/blueprint"
 import floor = math.floor
 import deepcopy = utilTable.deepcopy
 import sort = table.sort
@@ -46,7 +47,7 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
   entities: Record<EntityNumber, E> = {}
   private byPosition: PRecord<NumberPair, LuaSet<E>> = {}
 
-  static fromPlainEntities(entities: BlueprintEntityRead[]): MutableBlueprint {
+  static fromPlainEntities(entities: readonly BlueprintEntityRead[]): MutableBlueprint {
     return BlueprintImpl.fromEntities(entities.map((e) => createEntity(e)))
   }
 
@@ -63,6 +64,11 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
     result.entities = shallowCopy(blueprint.entities)
     result.recomputeByPosition()
     return result
+  }
+
+  static createInPlace(entities: BlueprintEntityRead[]): Blueprint {
+    entities.forEach(makeIntoEntity)
+    return BlueprintImpl.fromEntities(entities as Entity[])
   }
 
   private nextEntityNumber(): EntityNumber {
@@ -193,3 +199,8 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
 }
 
 export const MutableBlueprint: MutableBlueprintConstructor = BlueprintImpl
+
+export function getBlueprintFromWorld(surface: SurfaceIdentification, area: BoundingBox): Blueprint {
+  const entities = takeBlueprint(surface, area)
+  return BlueprintImpl.createInPlace(entities)
+}

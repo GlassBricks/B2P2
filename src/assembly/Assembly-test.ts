@@ -1,9 +1,9 @@
 import { Assembly } from "./Assembly"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { get_area } from "__testorio__/testUtil/areas"
-import { clearBuildableEntities, pasteBlueprint, takeBlueprint } from "../world-interaction/blueprint"
+import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { BlueprintSampleName, getBlueprintSample } from "../test/blueprint-sample"
-import { Blueprint, MutableBlueprint } from "../blueprint/Blueprint"
+import { Blueprint, getBlueprintFromWorld, MutableBlueprint } from "../blueprint/Blueprint"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { pos } from "../lib/geometry/position"
 import { invalidMockImport, mockImport } from "./import-mock"
@@ -105,7 +105,7 @@ describe("refreshInWorld", () => {
     const assembly = Assembly.create("test", surface, area)
     pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
     assembly.refreshInWorld()
-    const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
+    const bp = getBlueprintFromWorld(surface, area)
     assert.same({}, bp.entities)
   })
   test.each<BlueprintSampleName>(
@@ -116,7 +116,7 @@ describe("refreshInWorld", () => {
       pasteBlueprint(surface, area.left_top, sample.getAsArray())
       const assembly = Assembly.create("test", surface, area)
       assembly.refreshInWorld()
-      const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
+      const bp = getBlueprintFromWorld(surface, area)
       assertBlueprintsEquivalent(sample, bp)
       assertNoGhosts()
     },
@@ -132,7 +132,7 @@ describe("import", () => {
     assembly.addImport(mockImport(originalBlueprintSample), pos(0, 0))
     assert.same({}, assembly.ownContents.entities)
     assembly.refreshInWorld()
-    const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
+    const bp = getBlueprintFromWorld(surface, area)
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
     assertNoGhosts()
   })
@@ -141,7 +141,7 @@ describe("import", () => {
     assembly.addImport(mockImport(originalBlueprintSample), pos(1, 1))
     assert.same({}, assembly.ownContents.entities)
     assembly.refreshInWorld()
-    const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, bbox.shift(area, pos(1, 1))))
+    const bp = getBlueprintFromWorld(surface, bbox.shift(area, pos(1, 1)))
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
     assertNoGhosts()
   })
@@ -161,7 +161,7 @@ describe("import", () => {
     const assembly = Assembly.create("test", surface, bbox(area.left_top, pos.add(area.left_top, pos(5, 5))))
     assembly.addImport(mockImport(MutableBlueprint.fromPlainEntities(mockEntities)), pos(0, 0))
     assembly.refreshInWorld()
-    const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
+    const bp = getBlueprintFromWorld(surface, area)
     const expected = MutableBlueprint.fromPlainEntities(mockEntities.slice(0, 1))
     assertBlueprintsEquivalent(expected, bp)
     assertNoGhosts()
@@ -171,7 +171,7 @@ describe("import", () => {
     const assembly = Assembly.create("test", surface, area)
     assembly.addImport(invalidMockImport(), pos(0, 0))
     assembly.refreshInWorld()
-    const bp = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area))
+    const bp = getBlueprintFromWorld(surface, area)
     assert.same({}, bp.entities)
   })
 })

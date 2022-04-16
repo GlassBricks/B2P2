@@ -1,9 +1,9 @@
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { Blueprint, MutableBlueprint } from "../blueprint/Blueprint"
+import { Blueprint, getBlueprintFromWorld, MutableBlueprint } from "../blueprint/Blueprint"
 import { get_area } from "__testorio__/testUtil/areas"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { Assembly } from "./Assembly"
-import { pasteBlueprint, takeBlueprint } from "../world-interaction/blueprint"
+import { pasteBlueprint } from "../world-interaction/blueprint"
 import { BasicImport } from "./BasicImport"
 import { pos } from "../lib/geometry/position"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
@@ -35,7 +35,7 @@ test("BasicImport imports contents of another", () => {
   const basicImport = new BasicImport(sourceAssembly)
   targetAssembly.addImport(basicImport, pos(0, 0))
   targetAssembly.refreshInWorld()
-  const results = MutableBlueprint.fromPlainEntities(takeBlueprint(surface, area2))
+  const results = getBlueprintFromWorld(surface, area2)
   assertBlueprintsEquivalent(originalBlueprintSample, results)
 })
 

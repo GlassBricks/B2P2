@@ -20,6 +20,10 @@ export function createEntity(entity: BlueprintEntityRead, number?: EntityNumber)
   return result
 }
 
+export function makeIntoEntity(this: unknown, entity: Mutable<BlueprintEntityRead>): asserts entity is Entity {
+  ;(entity as Mutable<Entity>).tileBox ??= getTileBox(entity)
+}
+
 export function withEntityNumber<T extends Entity>(entity: T, number: EntityNumber): T {
   if (entity.entity_number === number) return entity
   const result = mutableShallowCopy(entity)
