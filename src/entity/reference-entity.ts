@@ -1,6 +1,5 @@
-import { Entity } from "../entity/entity"
-import { UpdateableProp } from "../entity/entity-props"
-import { Blueprint } from "./Blueprint"
+import { Entity } from "./entity"
+import { UpdateableProp } from "./entity-props"
 
 export interface ReferenceEntity extends Entity {
   readonly diffType: "reference"
@@ -8,5 +7,3 @@ export interface ReferenceEntity extends Entity {
 }
 
 export type PasteEntity = Entity | ReferenceEntity
-
-export type PasteBlueprint = Blueprint<PasteEntity>

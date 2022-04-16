@@ -1,7 +1,6 @@
 import { Classes, Events } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
-import { PasteBlueprint } from "../blueprint/paste-entity"
-import { Blueprint, MutableBlueprint } from "../blueprint/Blueprint"
+import { Blueprint, MutableBlueprint, PasteBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint, takeBlueprint } from "../world-interaction/blueprint"
 import { Import } from "./Import"
 import { pos } from "../lib/geometry/position"

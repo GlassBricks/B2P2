@@ -5,6 +5,7 @@ import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { bbox } from "../lib/geometry/bounding-box"
 import { mutableShallowCopy, shallowCopy } from "../lib/util"
 import { table as utilTable } from "util"
+import { PasteEntity } from "../entity/reference-entity"
 import floor = math.floor
 import deepcopy = utilTable.deepcopy
 import sort = table.sort
@@ -30,9 +31,13 @@ export interface MutableBlueprint<E extends Entity = Entity> extends Blueprint<E
   sortEntities(): void
 }
 
+export type PasteBlueprint = Blueprint<PasteEntity>
+export type MutablePasteBlueprint = MutableBlueprint<PasteEntity>
+
 interface MutableBlueprintConstructor {
-  new <E extends Entity = Entity>(): MutableBlueprint<E>
+  new <E extends Entity = PlainEntity>(): MutableBlueprint<E>
   fromPlainEntities(entities: BlueprintEntityRead[]): MutableBlueprint
+  fromEntities<E extends Entity>(entities: E[]): MutableBlueprint<E>
   copyOf<E extends Entity>(blueprint: Blueprint<E>): MutableBlueprint<E>
 }
 
@@ -42,12 +47,14 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
   private byPosition: PRecord<NumberPair, LuaSet<E>> = {}
 
   static fromPlainEntities(entities: BlueprintEntityRead[]): MutableBlueprint {
-    const blueprint = new BlueprintImpl<Entity>()
-    for (const rawEntity of entities) {
-      const entity = createEntity(rawEntity)
+    return BlueprintImpl.fromEntities(entities.map((e) => createEntity(e)))
+  }
+
+  static fromEntities<E extends Entity>(entities: E[]): MutableBlueprint<E> {
+    const blueprint = new BlueprintImpl<E>()
+    for (const entity of entities) {
       blueprint.addEntityUnchecked(entity, entity.entity_number)
     }
-
     return blueprint
   }
 

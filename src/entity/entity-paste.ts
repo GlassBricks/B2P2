@@ -4,8 +4,11 @@ import {
   PropUpdateBehaviors,
   UnhandledProp,
   UnpasteableProp,
+  UpdateableProp,
 } from "./entity-props"
-import { deepCompare } from "../lib/util"
+import { deepCompare, isEmpty, shallowCopy } from "../lib/util"
+import { ReferenceEntity } from "./reference-entity"
+import { Mutable } from "../lib/util-types"
 
 // for compiler to assert that the only ignored on paste prop (as currently implemented) is "items"
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -50,4 +53,29 @@ export function findEntityPasteConflict(
   }
 
   return undefined
+}
+
+export function computeEntityDiff(
+  before: BlueprintEntityRead,
+  after: BlueprintEntityRead,
+): ReferenceEntity | undefined {
+  const changedProps = new LuaSet<UpdateableProp>()
+  for (const [prop, value] of pairs(after)) {
+    if (PropUpdateBehaviors[prop] !== PropUpdateBehavior.Unchecked && !deepCompare(before[prop], value)) {
+      changedProps.add(prop as UpdateableProp)
+    }
+  }
+  for (const [prop] of pairs(before)) {
+    if (after[prop] !== undefined) continue // already handled above
+    if (PropUpdateBehaviors[prop] !== PropUpdateBehavior.Unchecked) {
+      changedProps.add(prop as UpdateableProp)
+    }
+  }
+
+  if (isEmpty(changedProps)) return undefined
+
+  const result = shallowCopy(after) as Mutable<ReferenceEntity>
+  result.diffType = "reference"
+  result.changedProps = changedProps
+  return result
 }
