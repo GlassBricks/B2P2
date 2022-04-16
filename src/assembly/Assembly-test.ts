@@ -200,10 +200,39 @@ describe("getLastResultContent", () => {
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
     assertNoGhosts()
   })
-  test("returns undefined if invalid", () => {
+  it("returns undefined if invalid", () => {
     const assembly = Assembly.create("test", surface, area)
     assembly.delete()
     assert.is_nil(assembly.getLastResultContent())
+  })
+})
+
+describe("saveChanges", () => {
+  before_each(() => {
+    clearBuildableEntities(surface, area)
+  })
+  it("does not change anything if completely empty", () => {
+    const assembly = Assembly.create("test", surface, area)
+    assembly.saveChanges()
+    assert.same({}, getBlueprintFromWorld(surface, area).entities)
+    assertNoGhosts()
+  })
+
+  it("sets ownContents", () => {
+    const assembly = Assembly.create("test", surface, area)
+    pasteBlueprint(surface, area.left_top, originalBlueprintSample.getAsArray())
+    assembly.saveChanges()
+    assertBlueprintsEquivalent(originalBlueprintSample, assembly.ownContents)
+    assertNoGhosts()
+  })
+
+  it("is empty when content exactly matches imports", () => {
+    const assembly = Assembly.create("test", surface, area)
+    assembly.addImport(mockImport(originalBlueprintSample), pos(0, 0))
+    assembly.refreshInWorld()
+    assembly.saveChanges()
+    assert.same({}, assembly.ownContents.entities)
+    assertNoGhosts()
   })
 })
 

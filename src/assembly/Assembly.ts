@@ -4,6 +4,7 @@ import { Blueprint, getBlueprintFromWorld, MutableBlueprint, PasteBlueprint } fr
 import { clearBuildableEntities, pasteBlueprint, takeBlueprint } from "../world-interaction/blueprint"
 import { Import } from "./Import"
 import { pos } from "../lib/geometry/position"
+import { computeBlueprintDiff } from "../blueprint/blueprint-paste"
 
 interface InternalAssemblyImport {
   readonly content: Import
@@ -14,12 +15,13 @@ interface InternalAssemblyImport {
 export class Assembly {
   private imports: InternalAssemblyImport[] = []
   public ownContents: PasteBlueprint
-  private importsContent: Blueprint | undefined
+  private importsContent: Blueprint
   private resultContent: Blueprint | undefined
 
   private constructor(public name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
     this.resultContent = getBlueprintFromWorld(surface, area)
     this.ownContents = this.resultContent
+    this.importsContent = new MutableBlueprint()
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
@@ -84,6 +86,12 @@ export class Assembly {
 
   private pasteOwnContent() {
     pasteBlueprint(this.surface, this.area.left_top, this.ownContents!.getAsArray())
+  }
+
+  saveChanges(): void {
+    if (!this.importsContent) return
+    const diff = computeBlueprintDiff(this.importsContent!, getBlueprintFromWorld(this.surface, this.area))
+    this.ownContents = diff.content
   }
 
   addImport(content: Import, position: MapPositionTable): void {
