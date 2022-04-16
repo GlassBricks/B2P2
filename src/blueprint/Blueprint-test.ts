@@ -174,18 +174,22 @@ test("remapEntityNumbers", () => {
   const entity1 = {
     ...mockEntity,
     connections: connections2,
+    neighbours: [2],
   }
   const entity2 = {
     ...mockEntity2,
     connections: connections1,
+    neighbours: [1],
   }
   const swappedEntity1 = {
     ...mockEntity,
     connections: connections1,
+    neighbours: [1],
   }
   const swappedEntity2 = {
     ...mockEntity2,
     connections: connections2,
+    neighbours: [2],
   }
 
   b.addSingle(entity1)

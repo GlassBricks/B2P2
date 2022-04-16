@@ -160,15 +160,22 @@ class BlueprintImpl<E extends Entity> implements MutableBlueprint<E> {
       remapConnectionData(connectionPoint.red)
       remapConnectionData(connectionPoint.green)
     }
+
     for (const [key, entity] of pairs(entities)) {
       const connection = entity.connections
-      if (connection === undefined) continue
+      const neighbours = entity.neighbours
+      if (connection === undefined && neighbours === undefined) continue
 
       const result = mutableShallowCopy(entity)
-      const resultConnection = deepcopy(connection)
-      remapConnectionPoint(resultConnection["1"])
-      remapConnectionPoint(resultConnection["2"])
-      result.connections = resultConnection
+      if (connection !== undefined) {
+        const resultConnection = deepcopy(connection)
+        remapConnectionPoint(resultConnection["1"])
+        remapConnectionPoint(resultConnection["2"])
+        result.connections = resultConnection
+      }
+      if (neighbours !== undefined) {
+        result.neighbours = neighbours.map((n) => map[n])
+      }
       entities[key] = result
     }
   }
