@@ -1,9 +1,14 @@
-import { Entity, EntityNumber, PlainEntity } from "../entity/entity"
-import { Blueprint, getBlueprintFromWorld, MutableBlueprint, MutablePasteBlueprint, PasteBlueprint } from "./Blueprint"
-import { PasteEntity } from "../entity/reference-entity"
+import { Entity, EntityNumber, PasteEntity, PlainEntity, ReferenceEntity } from "../entity/entity"
+import {
+  Blueprint,
+  getBlueprintFromWorld,
+  MutableBlueprint,
+  PasteBlueprint,
+  UpdateablePasteBlueprint,
+} from "./Blueprint"
 import { ConflictingProp } from "../entity/entity-props"
 import { findCompatibleEntity, findOverlappingEntity } from "./blueprint-diff"
-import { computeEntityDiff, findEntityPasteConflict } from "../entity/entity-paste"
+import { computeEntityDiff, findEntityPasteConflictAndUpdate } from "../entity/entity-paste"
 
 export interface Overlap {
   readonly below: Entity
@@ -19,15 +24,20 @@ export interface PropConflict {
 export interface BlueprintPasteConflicts {
   readonly overlaps: Overlap[]
   readonly propConflicts: PropConflict[]
+  readonly lostReferences: ReferenceEntity[]
 }
 
-export function findBlueprintPasteConflicts(below: Blueprint, above: PasteBlueprint): BlueprintPasteConflicts {
+export function findBlueprintPasteConflictAndUpdate(
+  below: Blueprint,
+  above: UpdateablePasteBlueprint,
+): BlueprintPasteConflicts {
   const overlaps: Overlap[] = []
   const propConflicts: PropConflict[] = []
+  const lostReferences: ReferenceEntity[] = []
   for (const [, aboveEntity] of pairs(above.entities)) {
     const compatible = findCompatibleEntity(below, aboveEntity)
     if (compatible) {
-      const conflict = findEntityPasteConflict(compatible, aboveEntity)
+      const conflict = findEntityPasteConflictAndUpdate(compatible, aboveEntity)
       if (conflict !== undefined) {
         propConflicts.push({
           below: compatible,
@@ -37,6 +47,11 @@ export function findBlueprintPasteConflicts(below: Blueprint, above: PasteBluepr
       }
 
       continue
+    }
+
+    if (aboveEntity.changedProps) {
+      lostReferences.push(aboveEntity)
+      // fall through to treating like a normal entity
     }
 
     const overlapping = findOverlappingEntity(below, aboveEntity)
@@ -49,18 +64,21 @@ export function findBlueprintPasteConflicts(below: Blueprint, above: PasteBluepr
   }
 
   // stub
-  return { overlaps, propConflicts }
+  return { overlaps, propConflicts, lostReferences }
 }
 
-export function findBlueprintPasteConflictsInWorld(
+export const findBlueprintPasteConflicts = (below: Blueprint, above: Blueprint): BlueprintPasteConflicts =>
+  findBlueprintPasteConflictAndUpdate(below, above)
+
+export function findBlueprintPasteContentsInWorldAndUpdate(
   surface: SurfaceIdentification,
   area: BoundingBoxRead,
-  content: PasteBlueprint,
+  content: UpdateablePasteBlueprint,
   location: MapPositionTable,
 ): BlueprintPasteConflicts {
   const contentArea = content.computeBoundingBox().shift(location).intersect(area)
   const below = getBlueprintFromWorld(surface, contentArea, location)
-  return findBlueprintPasteConflicts(below, content)
+  return findBlueprintPasteConflictAndUpdate(below, content)
 }
 
 export interface BlueprintDiff {
@@ -73,7 +91,7 @@ export interface BlueprintDiff {
 // todo: replace "Blueprint" entities?
 export function computeBlueprintDiff(below: Blueprint, current: Blueprint): BlueprintDiff {
   const deletions: PlainEntity[] = []
-  const content: MutablePasteBlueprint = new MutableBlueprint()
+  const content = new MutableBlueprint<PasteEntity>()
 
   const belowAccountedFor = new LuaSet<EntityNumber>()
   for (const [, currentEntity] of pairs(current.entities)) {

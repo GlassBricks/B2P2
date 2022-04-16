@@ -1,18 +1,19 @@
-import { Entity } from "./entity"
+import { Entity, PasteEntity } from "./entity"
 
 // this is only in consideration when entities are compatible
 export const enum PropUpdateBehavior {
-  Unchecked = 0, // not relevant for pasting
+  Ignored = 0, // not relevant for pasting
   UpdateableOnly = 1, // can be changed manually, but can't be pasted
   IgnoredOnPaste = 2, // does not prevent pasting, but has no effect
   Pasteable = 3, // prop is updated upon paste
 }
 
 export const PropUpdateBehaviors = {
-  entity_number: PropUpdateBehavior.Unchecked,
-  position: PropUpdateBehavior.Unchecked,
-  neighbours: PropUpdateBehavior.Unchecked,
-  connections: PropUpdateBehavior.Unchecked, // todo: create references for connections
+  entity_number: PropUpdateBehavior.Ignored,
+  position: PropUpdateBehavior.Ignored,
+  neighbours: PropUpdateBehavior.Ignored,
+  tileBox: PropUpdateBehavior.Ignored,
+  changedProps: PropUpdateBehavior.Ignored,
 
   name: PropUpdateBehavior.UpdateableOnly,
 
@@ -23,12 +24,13 @@ export const PropUpdateBehaviors = {
   recipe: PropUpdateBehavior.Pasteable,
   schedule: PropUpdateBehavior.Pasteable,
   direction: PropUpdateBehavior.Pasteable, // if direction not pasteable, then entities should not be compatible
+  connections: PropUpdateBehavior.Pasteable, // todo: create references for connections
 
   tags: undefined,
 } as const
 
 // get compiler to check that all props are accounted for
-;((_: Record<keyof BlueprintEntityRead, PropUpdateBehavior | undefined>) => _)(PropUpdateBehaviors)
+;((_: Record<keyof PasteEntity, PropUpdateBehavior | undefined>) => _)(PropUpdateBehaviors)
 
 type UpdateablePropsWithType<T> = keyof {
   [P in keyof BlueprintEntityRead as typeof PropUpdateBehaviors[P] extends T ? P : never]: true

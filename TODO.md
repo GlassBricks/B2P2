@@ -1,4 +1,6 @@
 ## v0.1
+- references for connections
+- track connections in reference entities
 
 - create gui
     - protected actions (error boundary)

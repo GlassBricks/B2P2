@@ -1,8 +1,13 @@
 import { EntitySampleName, getEntitySample } from "../test/entity-sample"
-import { computeEntityDiff, createReferenceOnlyEntity, findEntityPasteConflict } from "./entity-paste"
+import {
+  computeEntityDiff,
+  createReferenceOnlyEntity,
+  findEntityPasteConflict,
+  findEntityPasteConflictAndUpdate,
+} from "./entity-paste"
 import { mutableShallowCopy } from "../lib/util"
 import { Mutable } from "../lib/util-types"
-import { ReferenceEntity } from "./reference-entity"
+import { createEntity, ReferenceEntity } from "./entity"
 
 describe("findEntityPasteConflict", () => {
   test("pasting an entity on itself is successful", () => {
@@ -87,6 +92,69 @@ describe("findEntityPasteConflict", () => {
     const diffEntity = computeEntityDiff(entity1, entity2) as Mutable<ReferenceEntity>
     diffEntity.changedProps = new LuaSet("items") // ignore "name"
     assert.same("items", findEntityPasteConflict(entity1, diffEntity))
+  })
+})
+
+describe("findEntityPasteConflictsAndUpdate", () => {
+  test("does not give conflict for compatible changedProps and updates other props", () => {
+    const assemblingMachine = getEntitySample("assembling-machine-1")
+    const updatedAssemblingMachine: ReferenceEntity = {
+      ...createEntity(assemblingMachine),
+      name: "assembling-machine-2",
+      recipe: "furnace",
+      changedProps: new LuaSet("recipe"), // name not considered
+    }
+    const prop = findEntityPasteConflictAndUpdate(assemblingMachine, updatedAssemblingMachine)
+    assert.is_nil(prop)
+
+    assert.same(
+      {
+        ...createEntity(assemblingMachine),
+        // name: "assembling-machine-2",
+        recipe: "furnace",
+        changedProps: new LuaSet("recipe"),
+      },
+      updatedAssemblingMachine,
+    )
+  })
+  test("returns conflict if is in changedProps", () => {
+    const assemblingMachine = getEntitySample("assembling-machine-1")
+    const updatedAssemblingMachine: ReferenceEntity = {
+      ...createEntity(assemblingMachine),
+      name: "assembling-machine-2",
+      changedProps: new LuaSet("name"),
+    }
+    const prop = findEntityPasteConflictAndUpdate(assemblingMachine, updatedAssemblingMachine)
+    assert.equal("name", prop)
+
+    const updatedAssemblingMachine2: ReferenceEntity = {
+      ...createEntity(assemblingMachine),
+      items: { "productivity-module": 1 },
+      changedProps: new LuaSet("items"),
+    }
+    const prop2 = findEntityPasteConflictAndUpdate(assemblingMachine, updatedAssemblingMachine2)
+    assert.equal("items", prop2)
+  })
+
+  test("updates other props even if there is conflict", () => {
+    const assemblingMachine = getEntitySample("assembling-machine-1")
+    const updatedAssemblingMachine: ReferenceEntity = {
+      ...createEntity(assemblingMachine),
+      name: "assembling-machine-2",
+      recipe: "furnace",
+      changedProps: new LuaSet("name"), // name not considered
+    }
+    const prop = findEntityPasteConflictAndUpdate(assemblingMachine, updatedAssemblingMachine)
+    assert.equal("name", prop)
+
+    assert.same(
+      {
+        ...createEntity(assemblingMachine),
+        name: "assembling-machine-2",
+        changedProps: new LuaSet("name"),
+      },
+      updatedAssemblingMachine,
+    )
   })
 })
 

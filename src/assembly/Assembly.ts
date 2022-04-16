@@ -1,10 +1,10 @@
 import { Classes, Events } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
-import { Blueprint, getBlueprintFromWorld, MutableBlueprint, PasteBlueprint } from "../blueprint/Blueprint"
+import { Blueprint, getBlueprintFromWorld, MutableBlueprint, UpdateablePasteBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { Import } from "./Import"
 import { pos } from "../lib/geometry/position"
-import { computeBlueprintDiff, findBlueprintPasteConflictsInWorld } from "../blueprint/blueprint-paste"
+import { computeBlueprintDiff, findBlueprintPasteContentsInWorldAndUpdate } from "../blueprint/blueprint-paste"
 import { Diagnostic, DiagnosticFactory } from "../diagnostics/Diagnostic"
 import { L_Diagnostic } from "../locale"
 import { describeEntity, Entity } from "../entity/entity"
@@ -59,7 +59,7 @@ export const UnsupportedProp = DiagnosticFactory(
 @Classes.register()
 export class Assembly {
   private imports: InternalAssemblyImport[] = []
-  public ownContents: PasteBlueprint
+  public ownContents: UpdateablePasteBlueprint
   private importsContent: Blueprint
   private resultContent: Blueprint | undefined
 
@@ -154,7 +154,7 @@ export class Assembly {
     content: Blueprint<Entity>,
     resultLocation: MapPositionTable,
   ): Diagnostic<PasteDiagnostics>[] {
-    const conflicts = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, resultLocation)
+    const conflicts = findBlueprintPasteContentsInWorldAndUpdate(this.surface, this.area, content, resultLocation)
     const diagnostics: Diagnostic<PasteDiagnostics>[] = []
     for (const overlap of conflicts.overlaps) {
       diagnostics.push(Overlap(overlap.above, overlap.below))
@@ -176,6 +176,7 @@ export class Assembly {
   saveChanges(): void {
     if (!this.importsContent) return
     const diff = computeBlueprintDiff(this.importsContent!, getBlueprintFromWorld(this.surface, this.area))
+    // todo: deal with deletions
     this.ownContents = diff.content
   }
 

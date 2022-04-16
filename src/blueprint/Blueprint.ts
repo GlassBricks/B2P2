@@ -1,11 +1,19 @@
-import { createEntity, Entity, EntityNumber, makeIntoEntity, PlainEntity, withEntityNumber } from "../entity/entity"
+import {
+  createEntity,
+  Entity,
+  EntityNumber,
+  makeIntoEntity,
+  PasteEntity,
+  PlainEntity,
+  UpdateablePasteEntity,
+  withEntityNumber,
+} from "../entity/entity"
 import { PRecord, RRecord } from "../lib/util-types"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { isEmpty, mutableShallowCopy, shallowCopy } from "../lib/util"
 import { table as utilTable } from "util"
-import { PasteEntity } from "../entity/reference-entity"
 import { takeBlueprint } from "../world-interaction/blueprint"
 import floor = math.floor
 import deepcopy = utilTable.deepcopy
@@ -34,7 +42,7 @@ export interface MutableBlueprint<E extends Entity = Entity> extends Blueprint<E
 }
 
 export type PasteBlueprint = Blueprint<PasteEntity>
-export type MutablePasteBlueprint = MutableBlueprint<PasteEntity>
+export type UpdateablePasteBlueprint = Blueprint<UpdateablePasteEntity>
 
 interface MutableBlueprintConstructor {
   new <E extends Entity = PlainEntity>(): MutableBlueprint<E>

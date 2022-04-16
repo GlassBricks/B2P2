@@ -27,6 +27,5 @@ if (script.active_mods.testorio) {
       force.enable_all_recipes()
     },
     log_passed_tests: false,
-    // test_pattern: "blueprint.*%-test",
   } as Testorio.Config)
 }

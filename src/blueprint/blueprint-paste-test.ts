@@ -1,20 +1,21 @@
 import { Blueprint, MutableBlueprint } from "./Blueprint"
-import { createEntity, Entity } from "../entity/entity"
+import { createEntity, Entity, ReferenceEntity, UpdateablePasteEntity } from "../entity/entity"
 import { getEntitySample } from "../test/entity-sample"
 import { pos, PositionClass } from "../lib/geometry/position"
 import {
   BlueprintDiff,
   BlueprintPasteConflicts,
   computeBlueprintDiff,
+  findBlueprintPasteConflictAndUpdate,
   findBlueprintPasteConflicts,
-  findBlueprintPasteConflictsInWorld,
+  findBlueprintPasteContentsInWorldAndUpdate,
 } from "./blueprint-paste"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
-import { ReferenceEntity } from "../entity/reference-entity"
 import { get_area } from "__testorio__/testUtil/areas"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
+import { createReferenceOnlyEntity } from "../entity/entity-paste"
 
 let emptyBlueprint: Blueprint
 let assemblingMachine: Entity
@@ -38,6 +39,7 @@ before_all(() => {
 const noConflicts: BlueprintPasteConflicts = {
   overlaps: [],
   propConflicts: [],
+  lostReferences: [],
 }
 
 describe("findBlueprintPasteConflicts", () => {
@@ -75,6 +77,7 @@ describe("findBlueprintPasteConflicts", () => {
       conflicts.overlaps,
     )
     assert.same([], conflicts.propConflicts)
+    assert.same([], conflicts.lostReferences)
   })
 
   it("detects entity incompatibilities", () => {
@@ -96,6 +99,43 @@ describe("findBlueprintPasteConflicts", () => {
       conflicts.propConflicts,
     )
     assert.same([], conflicts.overlaps)
+    assert.same([], conflicts.lostReferences)
+  })
+})
+describe("findBlueprintPasteConflictsAndUpdate", () => {
+  it("detects reference entities without reference", () => {
+    const asm = createReferenceOnlyEntity(assemblingMachine)
+    const bp2 = MutableBlueprint.fromEntities([asm])
+    const conflicts = findBlueprintPasteConflictAndUpdate(emptyBlueprint, bp2)
+    assert.same([], conflicts.overlaps)
+    assert.same([], conflicts.propConflicts)
+    assert.same([asm], conflicts.lostReferences)
+  })
+
+  it("updates other props to match", () => {
+    // this largely relies on findEntityPasteConflictAndUpdate
+    const updatedAssemblingMachine: ReferenceEntity = {
+      ...assemblingMachine,
+      name: "assembling-machine-2",
+      recipe: "furnace",
+      changedProps: new LuaSet("recipe"), // name not considered
+    }
+    const blueprint2 = new MutableBlueprint<UpdateablePasteEntity>()
+    const resultEntity = blueprint2.addSingle(updatedAssemblingMachine)
+    const conflicts = findBlueprintPasteConflictAndUpdate(singleAssemblerBlueprint, blueprint2)
+    assert.same([], conflicts.propConflicts) // "name" not considered
+    assert.same([], conflicts.overlaps)
+    assert.same([], conflicts.lostReferences)
+
+    assert.same(
+      {
+        ...assemblingMachine,
+        // name: "assembling-machine-2",
+        recipe: "furnace",
+        changedProps: new LuaSet("recipe"),
+      },
+      resultEntity,
+    )
   })
 })
 
@@ -118,7 +158,7 @@ describe("findBlueprintPasteConflictsInWorld", () => {
     })
     const blueprint2 = new MutableBlueprint()
     blueprint2.addSingle(movedAssemblingMachine)
-    const conflicts = findBlueprintPasteConflictsInWorld(surface, area, blueprint2, pasteLocation)
+    const conflicts = findBlueprintPasteContentsInWorldAndUpdate(surface, area, blueprint2, pasteLocation)
     assert.same(
       [
         {
@@ -131,7 +171,7 @@ describe("findBlueprintPasteConflictsInWorld", () => {
     assert.same([], conflicts.propConflicts)
   })
   test("no overlap", () => {
-    const conflicts = findBlueprintPasteConflictsInWorld(surface, area, singleAssemblerBlueprint, pasteLocation)
+    const conflicts = findBlueprintPasteContentsInWorldAndUpdate(surface, area, singleAssemblerBlueprint, pasteLocation)
     assert.same([], conflicts.overlaps)
     assert.same([], conflicts.propConflicts)
   })
@@ -185,7 +225,6 @@ describe("getBlueprintDiffContent", () => {
     const asm2Diff: ReferenceEntity = {
       ...asm2,
       changedProps: new LuaSet("name"),
-      diffType: "reference",
     }
     assertDiffsSame(
       {
