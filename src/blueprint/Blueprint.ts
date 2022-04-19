@@ -3,7 +3,7 @@ import { PRecord, PRRecord } from "../lib/util-types"
 import { Classes } from "../lib"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { isEmpty, mutableShallowCopy } from "../lib/util"
+import { isEmpty, shallowCopy } from "../lib/util"
 import { takeBlueprint } from "../world-interaction/blueprint"
 import floor = math.floor
 import iterateTiles = bbox.iterateTiles
@@ -13,10 +13,14 @@ import fromCorners = bbox.fromCorners
 export class Blueprint<E extends BlueprintEntityRead = PlainEntity> implements Blueprint<E> {
   private byPosition?: PRRecord<NumberPair, LuaSet<E>>
 
-  private constructor(readonly entities: Record<number, E>) {}
+  private constructor(public readonly entities: Record<number, E>) {}
 
   static fromArray<E extends Entity>(entities: readonly E[]): Blueprint<E> {
-    return new Blueprint(mutableShallowCopy(entities))
+    return new Blueprint(shallowCopy(entities))
+  }
+
+  static _new<E extends Entity>(entities: E[]): Blueprint<E> {
+    return new Blueprint(entities)
   }
 
   static of<E extends Entity>(...entities: E[]): Blueprint<E> {

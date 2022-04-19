@@ -116,18 +116,50 @@ export interface BlueprintDiff {
   readonly deletions: PlainEntity[]
 }
 
-// complementary to findBlueprintPasteConflicts after this
-// todo: create reference entities for connections/neighbours
-// todo: replace "Blueprint" entities?
 export function computeBlueprintDiff(below: Blueprint, current: Blueprint): BlueprintDiff {
+  const shouldAlwaysInclude = new LuaSet<number>()
+
+  const corresponding = new LuaMap<Entity, Entity>()
+  for (const [, entity] of pairs(current.entities)) {
+    const compatible = findCompatibleEntity(below, entity)
+    if (compatible) {
+      corresponding.set(entity, compatible)
+    } else {
+      // new entity
+      // search connection wires, add neighbors to shouldAlwaysInclude
+      const connections = entity.connections
+      if (connections) {
+        markConnectionPoint(connections["1"])
+        markConnectionPoint(connections["2"])
+      }
+    }
+  }
+  function markConnectionPoint(point: BlueprintConnectionPoint | undefined) {
+    if (point) {
+      markConnectionData(point.red)
+      markConnectionData(point.green)
+    }
+  }
+  function markConnectionData(point: BlueprintConnectionData[] | undefined) {
+    if (point) {
+      for (const data of point) {
+        shouldAlwaysInclude.add(data.entity_id)
+      }
+    }
+  }
+
   const deletions: PlainEntity[] = []
   const content: PasteEntity[] = []
 
   const belowAccountedFor = new LuaSet<EntityNumber>()
   for (const [, currentEntity] of pairs(current.entities)) {
-    const compatible = findCompatibleEntity(below, currentEntity)
+    const compatible = corresponding.get(currentEntity)
     if (compatible) {
-      const referenceEntity = computeEntityDiff(compatible, currentEntity)
+      const referenceEntity = computeEntityDiff(
+        compatible,
+        currentEntity,
+        shouldAlwaysInclude.has(currentEntity.entity_number),
+      )
       if (referenceEntity !== undefined) {
         content.push(referenceEntity)
       }

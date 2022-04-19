@@ -285,4 +285,19 @@ describe("computeBlueprintDiff", () => {
       diff,
     )
   })
+
+  describe("circuit connections", () => {
+    it("should create an reference entity when connected to new by circuit wire", () => {
+      const original = Blueprint.fromArray(getBlueprintSample("original"))
+      const added = Blueprint.fromArray(getBlueprintSample("pole circuit add"))
+      const diff = computeBlueprintDiff(original, added)
+      const contents = diff.content.asArray()
+      assert.equal(2, contents.length)
+      const inserter = contents.find((x) => x.name === "inserter")!
+      assert.same({}, inserter.changedProps)
+      const pole = contents.find((x) => x.name === "small-electric-pole")!
+      assert.not_nil(pole)
+      assert.is_nil(pole.changedProps)
+    })
+  })
 })
