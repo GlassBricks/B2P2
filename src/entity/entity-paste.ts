@@ -95,6 +95,7 @@ export const findEntityPasteConflict = (
 export function computeEntityDiff(
   before: BlueprintEntityRead,
   after: BlueprintEntityRead,
+  alwaysInclude?: boolean,
 ): ReferenceEntity | undefined {
   const changedProps = new LuaSet<UpdateableProp>()
   for (const [prop, value] of pairs(after)) {
@@ -108,7 +109,7 @@ export function computeEntityDiff(
     }
   }
 
-  if (isEmpty(changedProps)) return undefined
+  if (!alwaysInclude && isEmpty(changedProps)) return undefined
 
   const result = shallowCopy(after) as Mutable<ReferenceEntity>
   result.changedProps = changedProps

@@ -140,7 +140,7 @@ describe("findEntityPasteConflict", () => {
       position: entity1.position,
       items: { "productivity-module": 1 },
     }
-    const diffEntity = computeEntityDiff(entity1, entity2) as Mutable<ReferenceEntity>
+    const diffEntity = computeEntityDiff(entity1, entity2, false) as Mutable<ReferenceEntity>
     diffEntity.changedProps = new LuaSet("items") // ignore "name"
     assert.same("items", findEntityPasteConflict(entity1, diffEntity))
   })
@@ -212,14 +212,26 @@ describe("findEntityPasteConflictsAndUpdate", () => {
 describe("computeEntityDiff", () => {
   test("returns undefined for identical entities", () => {
     const entity = getEntitySample("assembling-machine-1")
-    assert.is_nil(computeEntityDiff(entity, entity))
+    assert.is_nil(computeEntityDiff(entity, entity, false))
+  })
+
+  test("still returns empty reference entity if alwaysInclude is set", () => {
+    const entity = getEntitySample("assembling-machine-1")
+    const diff = computeEntityDiff(entity, entity, true)
+    assert.same(
+      {
+        ...entity,
+        changedProps: {},
+      },
+      diff,
+    )
   })
 
   test.each(["iron-gear-wheel", false as any], "returns appropriate diff for different entities: %s", (value) => {
     const entity1 = getEntitySample("assembling-machine-1")
     const entity2 = mutableShallowCopy(entity1)
     entity2.recipe = value || undefined
-    const diff = computeEntityDiff(entity1, entity2)
+    const diff = computeEntityDiff(entity1, entity2, false)
     assert.not_nil(diff)
     assert.same(new LuaSet("recipe"), diff!.changedProps)
   })
@@ -229,7 +241,7 @@ describe("computeEntityDiff", () => {
     const entity2 = mutableShallowCopy(entity1)
     entity2.entity_number++
     entity2.recipe = "iron-gear-wheel"
-    const diff = computeEntityDiff(entity1, entity2)
+    const diff = computeEntityDiff(entity1, entity2, false)
     assert.equal(entity2.entity_number, diff!.entity_number)
   })
 })
