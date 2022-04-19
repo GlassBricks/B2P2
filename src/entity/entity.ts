@@ -32,6 +32,61 @@ export function withEntityNumber<T extends Entity>(entity: T, number: EntityNumb
   return result
 }
 
+function remapEntityNumbers<T extends BlueprintEntityRead>(
+  entities: readonly T[],
+  map: Record<EntityNumber, EntityNumber>,
+): T[] {
+  return entities.map((entity) => {
+    const newEntity = mutableShallowCopy(entity)
+
+    newEntity.entity_number = map[newEntity.entity_number]
+
+    const neighbours = newEntity.neighbours
+    if (neighbours) {
+      newEntity.neighbours = neighbours.map((n) => map[n])
+    }
+
+    const connection = entity.connections
+    if (connection !== undefined) {
+      newEntity.connections = {
+        "1": remapConnectionPoint(connection["1"]),
+        "2": remapConnectionPoint(connection["2"]),
+      }
+    }
+    return newEntity
+  })
+
+  function remapConnectionData(
+    connectionPoint: BlueprintConnectionData[] | undefined,
+  ): BlueprintConnectionData[] | undefined {
+    return (
+      connectionPoint &&
+      connectionPoint.map((c) => ({
+        entity_id: map[c.entity_id],
+        circuit_id: c.circuit_id,
+      }))
+    )
+  }
+  function remapConnectionPoint(
+    connectionPoint: BlueprintConnectionPoint | undefined,
+  ): BlueprintConnectionPoint | undefined {
+    return (
+      connectionPoint && {
+        red: remapConnectionData(connectionPoint.red),
+        green: remapConnectionData(connectionPoint.green),
+      }
+    )
+  }
+}
+
+export function remapEntityNumbersInArrayPosition<T extends BlueprintEntityRead>(entities: readonly T[]): T[] {
+  const map: Record<EntityNumber, EntityNumber> = {}
+  for (const [number, entity] of ipairs(entities)) {
+    map[entity.entity_number] = number
+  }
+  return remapEntityNumbers(entities, map)
+}
+
 export function describeEntity(entity: BlueprintEntityRead): LocalisedString {
   return ["entity-name." + entity.name]
 }
@@ -43,6 +98,7 @@ const ignoredProps = {
   neighbours: true,
   tileBox: true,
   changedProps: true,
+  connections: true, // handled separately
 } as const
 export type IgnoredProp = keyof typeof ignoredProps
 export const IgnoredProps = ignoredProps as RRecord<IgnoredProp, true>
@@ -59,7 +115,6 @@ export const PasteableProps = {
   recipe: true,
   schedule: true,
   direction: true,
-  connections: true,
 } as const
 export type PasteableProp = keyof typeof PasteableProps
 

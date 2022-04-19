@@ -20,7 +20,7 @@ before_all(() => {
   ;[surface, area] = get_area(1 as SurfaceIdentification, "working area 2")
   area2 = bbox.normalize(area)
 
-  originalBlueprintSample = MutableBlueprint.fromPlainEntities(getBlueprintSample("original"))
+  originalBlueprintSample = MutableBlueprint.fromArray(getBlueprintSample("original"))
 })
 after_each(() => {
   for (const [assembly] of Assembly.getAllAssemblies()) {

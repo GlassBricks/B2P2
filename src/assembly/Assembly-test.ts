@@ -19,7 +19,7 @@ before_all(() => {
   surface = surface1
   area = bbox.normalize(area1)
 
-  originalBlueprintSample = MutableBlueprint.fromPlainEntities(getBlueprintSample("original"))
+  originalBlueprintSample = MutableBlueprint.fromArray(getBlueprintSample("original"))
 })
 after_each(() => {
   for (const [assembly] of Assembly.getAllAssemblies()) {
@@ -113,7 +113,7 @@ describe("refreshInWorld", () => {
     ["original", "module change", "module purple sci"],
     "refreshing an assembly with entities sets entities: %s",
     (sampleName) => {
-      const sample = MutableBlueprint.fromPlainEntities(getBlueprintSample(sampleName))
+      const sample = MutableBlueprint.fromArray(getBlueprintSample(sampleName))
       pasteBlueprint(surface, area.left_top, sample.getAsArray())
       const assembly = Assembly.create("test", surface, area)
       assembly.refreshInWorld()
@@ -160,10 +160,10 @@ describe("import", () => {
       },
     ]
     const assembly = Assembly.create("test", surface, bbox(area.left_top, pos.add(area.left_top, pos(5, 5))))
-    assembly.addImport(mockImport(MutableBlueprint.fromPlainEntities(mockEntities)), pos(0, 0))
+    assembly.addImport(mockImport(MutableBlueprint.fromArray(mockEntities)), pos(0, 0))
     assembly.refreshInWorld()
     const bp = getBlueprintFromWorld(surface, area)
-    const expected = MutableBlueprint.fromPlainEntities(mockEntities.slice(0, 1))
+    const expected = MutableBlueprint.fromArray(mockEntities.slice(0, 1))
     assertBlueprintsEquivalent(expected, bp)
     assertNoGhosts()
   })
@@ -195,7 +195,7 @@ describe("getLastResultContent", () => {
   })
   it("returns contents of imports", () => {
     const assembly = Assembly.create("test", surface, area)
-    const originalBlueprintSample = MutableBlueprint.fromPlainEntities(getBlueprintSample("module change"))
+    const originalBlueprintSample = MutableBlueprint.fromArray(getBlueprintSample("module change"))
     assembly.addImport(mockImport(originalBlueprintSample), pos(0, 0))
     assembly.refreshInWorld() // refresh to get the import in the world
     const bp = assembly.getLastResultContent()!
@@ -282,7 +282,7 @@ describe("paste diagnostics", () => {
 
     pasteBlueprint(surface, area.left_top, above)
     const assembly = Assembly.create("test", surface, area)
-    const aboveBlueprint = MutableBlueprint.fromPlainEntities(below)
+    const aboveBlueprint = MutableBlueprint.fromArray(below)
     assembly.addImport(mockImport(aboveBlueprint), pos(0, 0))
     assembly.forceSaveChanges()
     assembly.refreshInWorld()

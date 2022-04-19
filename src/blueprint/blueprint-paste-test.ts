@@ -246,13 +246,13 @@ function assertDiffsSame(expected: BlueprintDiff, actual: BlueprintDiff) {
 
 describe("computeBlueprintDiff", () => {
   it("should return empty diff if no changes", () => {
-    const blueprintSample = MutableBlueprint.fromPlainEntities(getBlueprintSample("original"))
+    const blueprintSample = MutableBlueprint.fromArray(getBlueprintSample("original"))
     const diff = computeBlueprintDiff(blueprintSample, blueprintSample)
     assertDiffsSame(noDiff, diff)
   })
 
   it("should return exactly contents when compared to empty blueprint", () => {
-    const blueprintSample = MutableBlueprint.fromPlainEntities(getBlueprintSample("original"))
+    const blueprintSample = MutableBlueprint.fromArray(getBlueprintSample("original"))
     const diff = computeBlueprintDiff(emptyBlueprint, blueprintSample)
     assertDiffsSame(
       {
@@ -264,10 +264,10 @@ describe("computeBlueprintDiff", () => {
   })
 
   it("should only include changed entities", () => {
-    const original = MutableBlueprint.fromPlainEntities(getBlueprintSample("original"))
-    const added = MutableBlueprint.fromPlainEntities(getBlueprintSample("add chest"))
+    const original = MutableBlueprint.fromArray(getBlueprintSample("original"))
+    const added = MutableBlueprint.fromArray(getBlueprintSample("add chest"))
     const diff = computeBlueprintDiff(original, added)
-    const expectedDiff = MutableBlueprint.fromPlainEntities([added.getAsArray().find((x) => x.name === "iron-chest")!])
+    const expectedDiff = MutableBlueprint.fromArray([added.getAsArray().find((x) => x.name === "iron-chest")!])
     assertDiffsSame(
       {
         content: expectedDiff,
@@ -296,7 +296,7 @@ describe("computeBlueprintDiff", () => {
       ...getAssemblingMachineEntity(),
       name: "assembling-machine-2",
     }
-    const asm2Bp = MutableBlueprint.fromPlainEntities([asm2])
+    const asm2Bp = MutableBlueprint.fromArray([asm2])
     const diff = computeBlueprintDiff(asm1Bp, asm2Bp)
     const asm2Diff: ReferenceEntity = {
       ...asm2,
