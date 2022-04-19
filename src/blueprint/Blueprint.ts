@@ -10,17 +10,20 @@ import iterateTiles = bbox.iterateTiles
 import fromCorners = bbox.fromCorners
 
 @Classes.register("Blueprint")
-export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
+export class Blueprint<E extends BlueprintEntityRead = PlainEntity> implements Blueprint<E> {
   private byPosition?: PRRecord<NumberPair, LuaSet<E>>
 
   private constructor(readonly entities: Record<number, E>) {}
 
-  static fromArray<E extends Entity>(entities: readonly E[]): Blueprint<E>
-  static fromArray(entities: readonly BlueprintEntityRead[]): Blueprint
-  static fromArray(entities: readonly BlueprintEntityRead[]): Blueprint {
+  static fromArray<E extends Entity>(entities: readonly E[]): Blueprint<E> {
     return new Blueprint(mutableShallowCopy(entities))
   }
-  static fromWorld(
+
+  static of<E extends Entity>(...entities: E[]): Blueprint<E> {
+    return new Blueprint(entities)
+  }
+
+  static take(
     surface: SurfaceIdentification,
     area: BoundingBoxRead,
     worldTopLeft: MapPositionTable = area.left_top,

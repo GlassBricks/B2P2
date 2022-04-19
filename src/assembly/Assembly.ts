@@ -6,7 +6,9 @@ import { Import } from "./Import"
 import { pos } from "../lib/geometry/position"
 import {
   BlueprintDiff,
+  BlueprintPasteConflicts,
   computeBlueprintDiff,
+  findBlueprintPasteConflictAndUpdate,
   findBlueprintPasteConflictsInWorldAndUpdate,
 } from "../blueprint/blueprint-paste"
 import { Diagnostic, DiagnosticFactory } from "../diagnostics/Diagnostic"
@@ -73,9 +75,9 @@ export class Assembly {
   // lifecycle
 
   private constructor(public name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
-    this.resultContent = Blueprint.fromWorld(surface, area, area.left_top)
+    this.resultContent = Blueprint.take(surface, area, area.left_top)
     this.ownContents = this.resultContent
-    this.importsContent = Blueprint.fromArray([])
+    this.importsContent = Blueprint.of()
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
@@ -128,12 +130,12 @@ export class Assembly {
     for (const imp of this.imports) {
       pasteDiagnostics.push(this.pasteImportAndCheckConflicts(imp))
     }
-    this.importsContent = Blueprint.fromWorld(this.surface, this.area)
+    this.importsContent = Blueprint.take(this.surface, this.area)
 
-    pasteDiagnostics.push(this.pasteOwnContentAndCheckConflicts())
+    pasteDiagnostics.push(this.pasteOwnContentAndCheckConflicts(this.importsContent))
     this.pasteDiagnostics = pasteDiagnostics
 
-    this.resultContent = Blueprint.fromWorld(this.surface, this.area)
+    this.resultContent = Blueprint.take(this.surface, this.area)
   }
 
   private pasteImportAndCheckConflicts(imp: InternalAssemblyImport) {
@@ -141,24 +143,26 @@ export class Assembly {
     if (!content) return []
 
     const resultLocation = pos.add(this.area.left_top, imp.relativePosition)
-    const diagnostics = this.checkForPasteConflicts(content, resultLocation)
+    const diagnostics = this.checkForPasteImportPasteConflicts(content, resultLocation)
     pasteBlueprint(this.surface, resultLocation, content.entities, this.area)
     return diagnostics
   }
 
-  private pasteOwnContentAndCheckConflicts() {
-    const content = this.ownContents
-
-    const diagnostics = this.checkForPasteConflicts(content, this.area.left_top)
-    pasteBlueprint(this.surface, this.area.left_top, this.ownContents.entities)
-    return diagnostics
-  }
-
-  private checkForPasteConflicts(
+  private checkForPasteImportPasteConflicts(
     content: Blueprint<Entity>,
     resultLocation: MapPositionTable,
   ): Diagnostic<PasteDiagnostics>[] {
     const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(this.surface, this.area, content, resultLocation)
+    return Assembly.mapPasteConflictsToDiagnostics(conflicts)
+  }
+
+  private pasteOwnContentAndCheckConflicts(importsContent: Blueprint): Diagnostic<PasteDiagnostics>[] {
+    const conflicts = findBlueprintPasteConflictAndUpdate(importsContent, this.ownContents)
+    pasteBlueprint(this.surface, this.area.left_top, this.ownContents.entities)
+    return Assembly.mapPasteConflictsToDiagnostics(conflicts)
+  }
+
+  private static mapPasteConflictsToDiagnostics(conflicts: BlueprintPasteConflicts) {
     const diagnostics: Diagnostic<PasteDiagnostics>[] = []
     for (const { below, above } of conflicts.overlaps) {
       diagnostics.push(Overlap(below, above))
@@ -180,7 +184,7 @@ export class Assembly {
   }
 
   getChanges(): BlueprintDiff {
-    return computeBlueprintDiff(this.importsContent, Blueprint.fromWorld(this.surface, this.area))
+    return computeBlueprintDiff(this.importsContent, Blueprint.take(this.surface, this.area))
   }
 
   commitChanges(diff: BlueprintDiff): void {

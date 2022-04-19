@@ -35,7 +35,7 @@ test("BasicImport imports contents of another", () => {
   const basicImport = new BasicImport(sourceAssembly)
   targetAssembly.addImport(basicImport, pos(0, 0))
   targetAssembly.refreshInWorld()
-  const results = Blueprint.fromWorld(surface, area2)
+  const results = Blueprint.take(surface, area2)
   assertBlueprintsEquivalent(originalBlueprintSample, results)
 })
 

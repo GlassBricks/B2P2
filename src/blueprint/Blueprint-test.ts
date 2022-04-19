@@ -3,7 +3,7 @@ import { Entity, getTileBox } from "../entity/entity"
 import { bbox } from "../lib/geometry/bounding-box"
 
 test("new blueprint is empty", () => {
-  assert.same({}, Blueprint.fromArray([]).entities)
+  assert.same({}, Blueprint.of().entities)
 })
 
 let mockEntity: Entity, mockEntity2: Entity
@@ -27,25 +27,25 @@ test("contents matches given", () => {
 
 describe("getAtPos", () => {
   it("returns entity", () => {
-    const bp = Blueprint.fromArray([mockEntity])
+    const bp = Blueprint.of(mockEntity)
     const { x, y } = mockEntity.position
     assert.same(new LuaSet(mockEntity), bp.getAtPos(x, y))
   })
 
   it("returns entity at all tiles covered after add", () => {
-    const bp = Blueprint.fromArray([mockEntity])
+    const bp = Blueprint.of(mockEntity)
     for (const [x, y] of bbox.iterateTiles(getTileBox(mockEntity))) {
       assert.same(new LuaSet(mockEntity), bp.getAtPos(x, y))
     }
   })
 
   it("returns nil when empty", () => {
-    const bp = Blueprint.fromArray([])
+    const bp = Blueprint.of()
     assert.is_nil(bp.getAtPos(0, 0))
   })
 
   it("returns nil when no entity at pos", () => {
-    const bp = Blueprint.fromArray([mockEntity])
+    const bp = Blueprint.of(mockEntity)
     assert.same(undefined, bp.getAtPos(10, 10))
   })
 
@@ -57,7 +57,7 @@ describe("getAtPos", () => {
   })
 
   test("getAt same as getAtPos", () => {
-    const bp = Blueprint.fromArray([mockEntity])
+    const bp = Blueprint.of(mockEntity)
     const position = mockEntity.position
     assert.same(new LuaSet(mockEntity), bp.getAt(position))
   })

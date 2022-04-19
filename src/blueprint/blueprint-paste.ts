@@ -102,7 +102,7 @@ export function findBlueprintPasteConflictsInWorldAndUpdate(
   pasteLocation: MapPositionTable,
 ): BlueprintPasteConflicts {
   const contentArea = content.computeBoundingBox().shift(pasteLocation).intersect(area)
-  const below = Blueprint.fromWorld(surface, contentArea, pasteLocation)
+  const below = Blueprint.take(surface, contentArea, pasteLocation)
   return findBlueprintPasteConflictAndUpdate(below, content)
 }
 
