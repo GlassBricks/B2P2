@@ -7,13 +7,7 @@ import {
   PlainEntity,
   ReferenceEntity,
 } from "../entity/entity"
-import {
-  Blueprint,
-  getBlueprintFromWorld,
-  MutableBlueprint,
-  PasteBlueprint,
-  UpdateablePasteBlueprint,
-} from "./Blueprint"
+import { Blueprint, PasteBlueprint, UpdateablePasteBlueprint } from "./Blueprint"
 import { computeEntityDiff, findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
 import { bbox } from "../lib/geometry/bounding-box"
 
@@ -108,7 +102,7 @@ export function findBlueprintPasteConflictsInWorldAndUpdate(
   pasteLocation: MapPositionTable,
 ): BlueprintPasteConflicts {
   const contentArea = content.computeBoundingBox().shift(pasteLocation).intersect(area)
-  const below = getBlueprintFromWorld(surface, contentArea, pasteLocation)
+  const below = Blueprint.fromWorld(surface, contentArea, pasteLocation)
   return findBlueprintPasteConflictAndUpdate(below, content)
 }
 
@@ -122,7 +116,7 @@ export interface BlueprintDiff {
 // todo: replace "Blueprint" entities?
 export function computeBlueprintDiff(below: Blueprint, current: Blueprint): BlueprintDiff {
   const deletions: PlainEntity[] = []
-  const content = new MutableBlueprint<PasteEntity>()
+  const content: PasteEntity[] = []
 
   const belowAccountedFor = new LuaSet<EntityNumber>()
   for (const [, currentEntity] of pairs(current.entities)) {
@@ -130,12 +124,12 @@ export function computeBlueprintDiff(below: Blueprint, current: Blueprint): Blue
     if (compatible) {
       const referenceEntity = computeEntityDiff(compatible, currentEntity)
       if (referenceEntity !== undefined) {
-        content.addSingle(referenceEntity)
+        content.push(referenceEntity)
       }
 
       belowAccountedFor.add(compatible.entity_number)
     } else {
-      content.addSingle(currentEntity)
+      content.push(currentEntity)
     }
   }
   for (const [number, belowEntity] of pairs(below.entities)) {
@@ -145,7 +139,7 @@ export function computeBlueprintDiff(below: Blueprint, current: Blueprint): Blue
   }
 
   return {
-    content,
+    content: Blueprint.fromArray(content),
     deletions,
   }
 }

@@ -4,13 +4,13 @@ declare type LuaTableAddMethod<TKey extends AnyNotNil> = ((key: TKey) => void) &
 declare type LuaTableFirstMethod<TKey extends AnyNotNil> = (() => TKey | undefined) &
   LuaExtension<"__luaTableFirstMethodBrand">
 
-declare interface ReadonlyLuaSet<T extends AnyNotNil> extends LuaPairsIterable<T, true> {
+declare interface LuaSet<T extends AnyNotNil> extends LuaPairsIterable<T, true> {
   readonly size: LuaLengthMethod<number>
   readonly has: LuaTableHasMethod<T> & LuaTableHasMethod<AnyNotNil>
   readonly first: LuaTableFirstMethod<T>
 }
 
-declare interface LuaSet<T extends AnyNotNil> extends LuaPairsIterable<T, true> {
+declare interface MutableLuaSet<T extends AnyNotNil> extends LuaPairsIterable<T, true> {
   readonly size: LuaLengthMethod<number>
   readonly first: LuaTableFirstMethod<T>
   readonly has: LuaTableHasMethod<T> & LuaTableHasMethod<AnyNotNil>
@@ -18,7 +18,7 @@ declare interface LuaSet<T extends AnyNotNil> extends LuaPairsIterable<T, true> 
   readonly delete: LuaTableDeleteMethod<T>
 }
 
-declare const LuaSet: (new <TKey extends AnyNotNil>(...values: TKey[]) => LuaSet<TKey>) &
+declare const LuaSet: (new <TKey extends AnyNotNil>(...values: TKey[]) => MutableLuaSet<TKey>) &
   LuaExtension<"__luaSetNewBrand">
 
 declare function next<T>(table: LuaSet<any>, index?: T): LuaMultiReturn<[T, true] | []>

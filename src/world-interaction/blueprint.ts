@@ -1,6 +1,6 @@
 import { isEmpty } from "../lib/util"
 import { pos } from "../lib/geometry/position"
-import { Mutable } from "../lib/util-types"
+import { Mutable, RRecord } from "../lib/util-types"
 import { getPlayer } from "../lib/testUtil"
 import { bbox } from "../lib/geometry/bounding-box"
 import { Entity, getTileBox } from "../entity/entity"
@@ -74,13 +74,13 @@ export function pasteBlueprint(
 export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: MapPositionTable,
-  entities: readonly Entity[],
+  entities: readonly Entity[] | RRecord<number, Entity>,
   areaRestriction?: BoundingBox,
 ): void
 export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: MapPositionTable,
-  entities: readonly BlueprintEntityRead[],
+  entities: Record<number, BlueprintEntityRead>,
   areaRestriction?: BoundingBox,
 ): void {
   if (isEmpty(entities)) return
@@ -98,7 +98,7 @@ export function pasteBlueprint(
   stack.set_stack("blueprint")
   stack.blueprint_snap_to_grid = [1, 1]
   stack.blueprint_absolute_snapping = true
-  stack.set_blueprint_entities(entities)
+  stack.set_blueprint_entities(entities as BlueprintEntityRead[])
   if (__DebugAdapter) {
     getPlayer().insert(stack)
   }

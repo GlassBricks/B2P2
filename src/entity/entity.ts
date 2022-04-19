@@ -12,7 +12,7 @@ export interface PlainEntity extends Entity {
   readonly changedProps?: never
 }
 export interface ReferenceEntity extends Entity {
-  readonly changedProps: ReadonlyLuaSet<UpdateableProp>
+  readonly changedProps: LuaSet<UpdateableProp>
 }
 export type UpdateableReferenceEntity = Mutable<ReferenceEntity>
 

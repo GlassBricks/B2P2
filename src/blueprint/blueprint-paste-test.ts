@@ -1,5 +1,5 @@
-import { Blueprint, MutableBlueprint } from "./Blueprint"
-import { Entity, PasteEntity, ReferenceEntity, UpdateablePasteEntity } from "../entity/entity"
+import { Blueprint } from "./Blueprint"
+import { Entity, ReferenceEntity } from "../entity/entity"
 import { getEntitySample } from "../test/entity-sample"
 import { pos } from "../lib/geometry/position"
 import {
@@ -30,13 +30,11 @@ let singleAssemblerBlueprint: Blueprint
 let noDiff: BlueprintDiff
 
 before_all(() => {
-  emptyBlueprint = new MutableBlueprint()
+  emptyBlueprint = Blueprint.fromArray([])
 
-  const saBlueprint = new MutableBlueprint()
-  saBlueprint.addSingle(getAssemblingMachineEntity())
-  singleAssemblerBlueprint = saBlueprint
+  singleAssemblerBlueprint = Blueprint.fromArray([getAssemblingMachineEntity()])
   noDiff = {
-    content: emptyBlueprint,
+    content: Blueprint.fromArray([]),
     deletions: [],
   }
 })
@@ -46,11 +44,6 @@ const noConflicts: BlueprintPasteConflicts = {
   lostReferences: [],
 }
 
-let b: MutableBlueprint
-before_each(() => {
-  b = new MutableBlueprint()
-})
-
 describe("findCompatibleEntity", () => {
   it("Finds compatible entity", () => {
     const rawEntity = getEntitySample("assembling-machine-1")
@@ -58,7 +51,7 @@ describe("findCompatibleEntity", () => {
       ...getEntitySample("assembling-machine-2"),
       position: rawEntity.position,
     }
-    b.addSingle(rawEntity)
+    const b = Blueprint.fromArray([rawEntity])
     const result = findCompatibleEntity(b, rawEntity2)
     assert.equal(rawEntity, result)
   })
@@ -66,7 +59,7 @@ describe("findCompatibleEntity", () => {
   it("returns undefined if no compatible entity is found", () => {
     const rawEntity1 = getEntitySample("assembling-machine-1")
     const rawEntity2 = getEntitySample("chest")
-    b.addSingle(rawEntity1)
+    const b = Blueprint.fromArray([rawEntity1])
     const result = findCompatibleEntity(b, rawEntity2)
     assert.is_nil(result)
   })
@@ -80,7 +73,7 @@ describe("findOverlappingEntity", () => {
       position: pos.add(entity.position, pos(1, 0)),
     }
 
-    b.addSingle(entity)
+    const b = Blueprint.fromArray([entity])
 
     const result = findOverlappingEntity(b, entity2)
     assert.equal(entity, result)
@@ -92,7 +85,7 @@ describe("findOverlappingEntity", () => {
       position: pos.add(entity.position, pos(3, 3)),
     }
 
-    b.addSingle(entity)
+    const b = Blueprint.fromArray([entity])
 
     const result = findOverlappingEntity(b, entity2)
     assert.is_nil(result)
@@ -121,8 +114,7 @@ describe("findBlueprintPasteConflicts", () => {
       ...getAssemblingMachineEntity(),
       position: pos(1.5, 1.5),
     }
-    const blueprint2 = new MutableBlueprint()
-    blueprint2.addSingle(movedAssemblingMachine)
+    const blueprint2 = Blueprint.fromArray([movedAssemblingMachine])
     const conflicts = findBlueprintPasteConflicts(singleAssemblerBlueprint, blueprint2)
     assert.same(
       [
@@ -142,8 +134,7 @@ describe("findBlueprintPasteConflicts", () => {
       ...getAssemblingMachineEntity(),
       name: "assembling-machine-2",
     }
-    const blueprint2 = new MutableBlueprint()
-    blueprint2.addSingle(asm2)
+    const blueprint2 = Blueprint.fromArray([asm2])
     const conflicts = findBlueprintPasteConflicts(singleAssemblerBlueprint, blueprint2)
     assert.same(
       [
@@ -162,8 +153,7 @@ describe("findBlueprintPasteConflicts", () => {
 describe("findBlueprintPasteConflictsAndUpdate", () => {
   it("detects reference entities without reference", () => {
     const asm = createReferenceOnlyEntity(getAssemblingMachineEntity())
-    const bp2 = new MutableBlueprint<PasteEntity>()
-    bp2.addSingle(asm)
+    const bp2 = Blueprint.fromArray([asm])
     const conflicts = findBlueprintPasteConflictAndUpdate(emptyBlueprint, bp2)
     assert.same([], conflicts.overlaps)
     assert.same([], conflicts.propConflicts)
@@ -178,8 +168,7 @@ describe("findBlueprintPasteConflictsAndUpdate", () => {
       recipe: "furnace",
       changedProps: new LuaSet("recipe"), // name not considered
     }
-    const blueprint2 = new MutableBlueprint<UpdateablePasteEntity>()
-    const resultEntity = blueprint2.addSingle(updatedAssemblingMachine)
+    const blueprint2 = Blueprint.fromArray([updatedAssemblingMachine])
     const conflicts = findBlueprintPasteConflictAndUpdate(singleAssemblerBlueprint, blueprint2)
     assert.same([], conflicts.propConflicts) // "name" not considered
     assert.same([], conflicts.overlaps)
@@ -192,7 +181,7 @@ describe("findBlueprintPasteConflictsAndUpdate", () => {
         recipe: "furnace",
         changedProps: new LuaSet("recipe"),
       },
-      resultEntity,
+      updatedAssemblingMachine,
     )
   })
 })
@@ -205,15 +194,14 @@ describe("findBlueprintPasteConflictsInWorld", () => {
     area = bbox.normalize(area1)
     surface = surface1
     clearBuildableEntities(surface, area)
-    pasteBlueprint(surface, area.left_top, singleAssemblerBlueprint.getAsArray(), area)
+    pasteBlueprint(surface, area.left_top, singleAssemblerBlueprint.entities, area)
   })
   test("overlap", () => {
     const movedAssemblingMachine = {
       ...getAssemblingMachineEntity(),
       position: pos(1.5, 1.5),
     }
-    const blueprint2 = new MutableBlueprint()
-    blueprint2.addSingle(movedAssemblingMachine)
+    const blueprint2 = Blueprint.fromArray([movedAssemblingMachine])
     const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(surface, area, blueprint2, area.left_top)
     assert.same(
       [
@@ -246,13 +234,13 @@ function assertDiffsSame(expected: BlueprintDiff, actual: BlueprintDiff) {
 
 describe("computeBlueprintDiff", () => {
   it("should return empty diff if no changes", () => {
-    const blueprintSample = MutableBlueprint.fromArray(getBlueprintSample("original"))
+    const blueprintSample = Blueprint.fromArray(getBlueprintSample("original"))
     const diff = computeBlueprintDiff(blueprintSample, blueprintSample)
     assertDiffsSame(noDiff, diff)
   })
 
   it("should return exactly contents when compared to empty blueprint", () => {
-    const blueprintSample = MutableBlueprint.fromArray(getBlueprintSample("original"))
+    const blueprintSample = Blueprint.fromArray(getBlueprintSample("original"))
     const diff = computeBlueprintDiff(emptyBlueprint, blueprintSample)
     assertDiffsSame(
       {
@@ -264,10 +252,10 @@ describe("computeBlueprintDiff", () => {
   })
 
   it("should only include changed entities", () => {
-    const original = MutableBlueprint.fromArray(getBlueprintSample("original"))
-    const added = MutableBlueprint.fromArray(getBlueprintSample("add chest"))
+    const original = Blueprint.fromArray(getBlueprintSample("original"))
+    const added = Blueprint.fromArray(getBlueprintSample("add chest"))
     const diff = computeBlueprintDiff(original, added)
-    const expectedDiff = MutableBlueprint.fromArray([added.getAsArray().find((x) => x.name === "iron-chest")!])
+    const expectedDiff = Blueprint.fromArray([added.asArray().find((x) => x.name === "iron-chest")!])
     assertDiffsSame(
       {
         content: expectedDiff,
@@ -296,14 +284,13 @@ describe("computeBlueprintDiff", () => {
       ...getAssemblingMachineEntity(),
       name: "assembling-machine-2",
     }
-    const asm2Bp = MutableBlueprint.fromArray([asm2])
+    const asm2Bp = Blueprint.fromArray([asm2])
     const diff = computeBlueprintDiff(asm1Bp, asm2Bp)
     const asm2Diff: ReferenceEntity = {
       ...asm2,
       changedProps: new LuaSet("name"),
     }
-    const expectedContent = new MutableBlueprint<PasteEntity>()
-    expectedContent.addSingle(asm2Diff)
+    const expectedContent = Blueprint.fromArray([asm2Diff])
     assertDiffsSame(
       {
         content: expectedContent,

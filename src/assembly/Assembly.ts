@@ -1,6 +1,6 @@
 import { Classes, Events } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
-import { Blueprint, getBlueprintFromWorld, MutableBlueprint, UpdateablePasteBlueprint } from "../blueprint/Blueprint"
+import { Blueprint, UpdateablePasteBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { Import } from "./Import"
 import { pos } from "../lib/geometry/position"
@@ -73,9 +73,9 @@ export class Assembly {
   // lifecycle
 
   private constructor(public name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
-    this.resultContent = getBlueprintFromWorld(surface, area)
+    this.resultContent = Blueprint.fromWorld(surface, area, area.left_top)
     this.ownContents = this.resultContent
-    this.importsContent = new MutableBlueprint()
+    this.importsContent = Blueprint.fromArray([])
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
@@ -114,7 +114,7 @@ export class Assembly {
     this.resultContent = undefined!
   }
 
-  static getAllAssemblies(): ReadonlyLuaSet<Assembly> {
+  static getAllAssemblies(): LuaSet<Assembly> {
     return global.assemblies
   }
 
@@ -128,12 +128,12 @@ export class Assembly {
     for (const imp of this.imports) {
       pasteDiagnostics.push(this.pasteImportAndCheckConflicts(imp))
     }
-    this.importsContent = getBlueprintFromWorld(this.surface, this.area)
+    this.importsContent = Blueprint.fromWorld(this.surface, this.area)
 
     pasteDiagnostics.push(this.pasteOwnContentAndCheckConflicts())
     this.pasteDiagnostics = pasteDiagnostics
 
-    this.resultContent = getBlueprintFromWorld(this.surface, this.area)
+    this.resultContent = Blueprint.fromWorld(this.surface, this.area)
   }
 
   private pasteImportAndCheckConflicts(imp: InternalAssemblyImport) {
@@ -142,7 +142,7 @@ export class Assembly {
 
     const resultLocation = pos.add(this.area.left_top, imp.relativePosition)
     const diagnostics = this.checkForPasteConflicts(content, resultLocation)
-    pasteBlueprint(this.surface, resultLocation, content.getAsArray(), this.area)
+    pasteBlueprint(this.surface, resultLocation, content.entities, this.area)
     return diagnostics
   }
 
@@ -150,7 +150,7 @@ export class Assembly {
     const content = this.ownContents
 
     const diagnostics = this.checkForPasteConflicts(content, this.area.left_top)
-    pasteBlueprint(this.surface, this.area.left_top, this.ownContents!.getAsArray())
+    pasteBlueprint(this.surface, this.area.left_top, this.ownContents.entities)
     return diagnostics
   }
 
@@ -180,7 +180,7 @@ export class Assembly {
   }
 
   getChanges(): BlueprintDiff {
-    return computeBlueprintDiff(this.importsContent, getBlueprintFromWorld(this.surface, this.area))
+    return computeBlueprintDiff(this.importsContent, Blueprint.fromWorld(this.surface, this.area))
   }
 
   commitChanges(diff: BlueprintDiff): void {
@@ -213,7 +213,7 @@ export class Assembly {
 }
 
 declare const global: {
-  assemblies: LuaSet<Assembly>
+  assemblies: MutableLuaSet<Assembly>
 }
 Events.on_init(() => {
   global.assemblies = new LuaSet()

@@ -1,5 +1,5 @@
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { Blueprint, getBlueprintFromWorld, MutableBlueprint } from "../blueprint/Blueprint"
+import { Blueprint } from "../blueprint/Blueprint"
 import { get_area } from "__testorio__/testUtil/areas"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { Assembly } from "./Assembly"
@@ -20,7 +20,7 @@ before_all(() => {
   ;[surface, area] = get_area(1 as SurfaceIdentification, "working area 2")
   area2 = bbox.normalize(area)
 
-  originalBlueprintSample = MutableBlueprint.fromArray(getBlueprintSample("original"))
+  originalBlueprintSample = Blueprint.fromArray(getBlueprintSample("original"))
 })
 after_each(() => {
   for (const [assembly] of Assembly.getAllAssemblies()) {
@@ -29,13 +29,13 @@ after_each(() => {
 })
 
 test("BasicImport imports contents of another", () => {
-  pasteBlueprint(surface, area1.left_top, originalBlueprintSample.getAsArray())
+  pasteBlueprint(surface, area1.left_top, originalBlueprintSample.entities)
   const sourceAssembly = Assembly.create("test", surface, area1)
   const targetAssembly = Assembly.create("test2", surface, area2)
   const basicImport = new BasicImport(sourceAssembly)
   targetAssembly.addImport(basicImport, pos(0, 0))
   targetAssembly.refreshInWorld()
-  const results = getBlueprintFromWorld(surface, area2)
+  const results = Blueprint.fromWorld(surface, area2)
   assertBlueprintsEquivalent(originalBlueprintSample, results)
 })
 

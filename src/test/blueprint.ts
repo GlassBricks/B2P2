@@ -10,14 +10,14 @@ function compareByPosition(a: Entity, b: Entity): boolean {
   return aPos.x < bPos.x
 }
 
-function sortEntities(entities: readonly Entity[]): Entity[] {
+function sortEntities(entities: Record<number, Entity>): Entity[] {
   const result = Object.values(entities)
   table.sort(result, compareByPosition)
   return result
 }
 
 export function assertBlueprintsEquivalent(expected: Blueprint<Entity>, actual: Blueprint<Entity>): void {
-  const expectedEntities = remapEntityNumbersInArrayPosition(sortEntities(expected.getAsArray()))
-  const actualEntities = remapEntityNumbersInArrayPosition(sortEntities(actual.getAsArray()))
+  const expectedEntities = remapEntityNumbersInArrayPosition(sortEntities(expected.entities))
+  const actualEntities = remapEntityNumbersInArrayPosition(sortEntities(actual.entities))
   assert.same(expectedEntities, actualEntities)
 }
