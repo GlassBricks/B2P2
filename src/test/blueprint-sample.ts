@@ -6,6 +6,7 @@ const blueprintSampleNames = {
   original: true,
   "control behavior change": true,
   "add inserter": true,
+  "add chest": true,
   "delete splitter": true,
   "move splitter": true,
   "mixed change": true,
@@ -20,6 +21,7 @@ const blueprintSampleNames = {
   "circuit wire remove": true,
   "module purple sci": true,
   "splitter flip": true,
+  "pole circuit add": true,
 }
 export type BlueprintSampleName = keyof typeof blueprintSampleNames
 export const BlueprintSampleNames = Object.keys(blueprintSampleNames) as BlueprintSampleName[]

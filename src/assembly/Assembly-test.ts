@@ -229,6 +229,7 @@ describe("paste diagnostics", () => {
 
   const expectedConflicts: Record<BlueprintSampleName, ExpectedConflict | undefined> = {
     "add inserter": undefined,
+    "add chest": undefined,
     "assembler rotate": undefined,
     "circuit wire add": undefined,
     "circuit wire remove": undefined,
@@ -269,6 +270,7 @@ describe("paste diagnostics", () => {
     },
     "stack size change": undefined,
     original: undefined,
+    "pole circuit add": undefined,
   }
 
   test.each(BlueprintSampleNames, "diagnostics match expected for changing to sample: %s", (sampleName) => {

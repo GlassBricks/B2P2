@@ -263,6 +263,20 @@ describe("computeBlueprintDiff", () => {
     )
   })
 
+  it("should only include changed entities", () => {
+    const original = MutableBlueprint.fromPlainEntities(getBlueprintSample("original"))
+    const added = MutableBlueprint.fromPlainEntities(getBlueprintSample("add chest"))
+    const diff = computeBlueprintDiff(original, added)
+    const expectedDiff = MutableBlueprint.fromPlainEntities([added.getAsArray().find((x) => x.name === "iron-chest")!])
+    assertDiffsSame(
+      {
+        content: expectedDiff,
+        deletions: [],
+      },
+      diff,
+    )
+  })
+
   it("should detect a single deleted entity", () => {
     const original = singleAssemblerBlueprint
     const result = emptyBlueprint
