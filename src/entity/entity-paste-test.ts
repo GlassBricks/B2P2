@@ -223,4 +223,13 @@ describe("computeEntityDiff", () => {
     assert.not_nil(diff)
     assert.same(new LuaSet("recipe"), diff!.changedProps)
   })
+
+  test("adopts entity number of after", () => {
+    const entity1 = getEntitySample("assembling-machine-1")
+    const entity2 = mutableShallowCopy(entity1)
+    entity2.entity_number++
+    entity2.recipe = "iron-gear-wheel"
+    const diff = computeEntityDiff(entity1, entity2)
+    assert.equal(entity2.entity_number, diff!.entity_number)
+  })
 })
