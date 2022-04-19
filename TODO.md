@@ -1,11 +1,12 @@
 ## v0.1
+
 - references for connections
 - track connections in reference entities
 
 - create gui
     - protected actions (error boundary)
 - handle rails and locomotives
-- handle other things
+- handle other off-grid stuff
 - create reference entities for circuit connections
 
 ## v0.2

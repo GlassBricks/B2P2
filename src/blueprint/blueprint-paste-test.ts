@@ -4,11 +4,10 @@ import { getEntitySample } from "../test/entity-sample"
 import { pos } from "../lib/geometry/position"
 import {
   BlueprintDiff,
-  BlueprintPasteConflicts,
   computeBlueprintDiff,
-  findBlueprintPasteConflictAndUpdate,
   findBlueprintPasteConflicts,
-  findBlueprintPasteConflictsInWorldAndUpdate,
+  findBlueprintPasteConflictsAndUpdate,
+  findBlueprintPasteConflictsInWorld,
   findCompatibleEntity,
   findOverlappingEntity,
 } from "./blueprint-paste"
@@ -38,11 +37,6 @@ before_all(() => {
     deletions: [],
   }
 })
-const noConflicts: BlueprintPasteConflicts = {
-  overlaps: [],
-  propConflicts: [],
-  lostReferences: [],
-}
 
 describe("findCompatibleEntity", () => {
   it("Finds compatible entity", () => {
@@ -94,19 +88,19 @@ describe("findOverlappingEntity", () => {
 
 describe("findBlueprintPasteConflicts", () => {
   it("pasting empty on empty produces no conflicts", () => {
-    assert.same(noConflicts, findBlueprintPasteConflicts(emptyBlueprint, emptyBlueprint))
+    assert.same({}, findBlueprintPasteConflicts(emptyBlueprint, emptyBlueprint))
   })
 
   it("pasting empty on basic produces no conflicts", () => {
-    assert.same(noConflicts, findBlueprintPasteConflicts(singleAssemblerBlueprint, emptyBlueprint))
+    assert.same({}, findBlueprintPasteConflicts(singleAssemblerBlueprint, emptyBlueprint))
   })
 
   it("pasting basic on empty produces no conflicts", () => {
-    assert.same(noConflicts, findBlueprintPasteConflicts(emptyBlueprint, singleAssemblerBlueprint))
+    assert.same({}, findBlueprintPasteConflicts(emptyBlueprint, singleAssemblerBlueprint))
   })
 
   it("pasting basic on identical produces no conflicts", () => {
-    assert.same(noConflicts, findBlueprintPasteConflicts(singleAssemblerBlueprint, singleAssemblerBlueprint))
+    assert.same({}, findBlueprintPasteConflicts(singleAssemblerBlueprint, singleAssemblerBlueprint))
   })
 
   it("detects overlapping entities", () => {
@@ -125,8 +119,8 @@ describe("findBlueprintPasteConflicts", () => {
       ],
       conflicts.overlaps,
     )
-    assert.same([], conflicts.propConflicts)
-    assert.same([], conflicts.lostReferences)
+    assert.is_nil(conflicts.propConflicts)
+    assert.is_nil(conflicts.lostReferences)
   })
 
   it("detects entity incompatibilities", () => {
@@ -146,18 +140,18 @@ describe("findBlueprintPasteConflicts", () => {
       ],
       conflicts.propConflicts,
     )
-    assert.same([], conflicts.overlaps)
-    assert.same([], conflicts.lostReferences)
+    assert.is_nil(conflicts.overlaps)
+    assert.is_nil(conflicts.lostReferences)
   })
 })
 describe("findBlueprintPasteConflictsAndUpdate", () => {
   it("detects reference entities without reference", () => {
     const asm = createReferenceOnlyEntity(getAssemblingMachineEntity())
     const bp2 = Blueprint.of(asm)
-    const conflicts = findBlueprintPasteConflictAndUpdate(emptyBlueprint, bp2)
-    assert.same([], conflicts.overlaps)
-    assert.same([], conflicts.propConflicts)
+    const conflicts = findBlueprintPasteConflictsAndUpdate(emptyBlueprint, bp2)
     assert.same([asm], conflicts.lostReferences)
+    assert.is_nil(conflicts.overlaps)
+    assert.is_nil(conflicts.propConflicts)
   })
 
   it("updates other props to match", () => {
@@ -169,10 +163,8 @@ describe("findBlueprintPasteConflictsAndUpdate", () => {
       changedProps: new LuaSet("recipe"), // name not considered
     }
     const blueprint2 = Blueprint.of(updatedAssemblingMachine)
-    const conflicts = findBlueprintPasteConflictAndUpdate(singleAssemblerBlueprint, blueprint2)
-    assert.same([], conflicts.propConflicts) // "name" not considered
-    assert.same([], conflicts.overlaps)
-    assert.same([], conflicts.lostReferences)
+    const conflicts = findBlueprintPasteConflictsAndUpdate(singleAssemblerBlueprint, blueprint2)
+    assert.same({}, conflicts)
 
     assert.same(
       {
@@ -202,7 +194,7 @@ describe("findBlueprintPasteConflictsInWorld", () => {
       position: pos(1.5, 1.5),
     }
     const blueprint2 = Blueprint.of(movedAssemblingMachine)
-    const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(surface, area, blueprint2, area.left_top)
+    const conflicts = findBlueprintPasteConflictsInWorld(surface, area, blueprint2, area.left_top)
     assert.same(
       [
         {
@@ -212,18 +204,12 @@ describe("findBlueprintPasteConflictsInWorld", () => {
       ],
       conflicts.overlaps,
     )
-    assert.same([], conflicts.propConflicts)
-    assert.same([], conflicts.lostReferences)
+    assert.is_nil(conflicts.propConflicts)
+    assert.is_nil(conflicts.lostReferences)
   })
   test("no overlap", () => {
-    const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(
-      surface,
-      area,
-      singleAssemblerBlueprint,
-      area.left_top,
-    )
-    assert.same([], conflicts.overlaps)
-    assert.same([], conflicts.propConflicts)
+    const conflicts = findBlueprintPasteConflictsInWorld(surface, area, singleAssemblerBlueprint, area.left_top)
+    assert.same({}, conflicts)
   })
 })
 

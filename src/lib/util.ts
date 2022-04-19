@@ -31,6 +31,9 @@ export function deepCompare<T>(a: T, b: T): boolean {
 export function isEmpty(obj: object): boolean {
   return next(obj)[0] === undefined
 }
+export function nilIfEmpty<T extends object>(obj: T): T | undefined {
+  return next(obj)[0] && obj
+}
 
 export function assertNever(value: never): never {
   error("should not be reachable: " + serpent.block(value))

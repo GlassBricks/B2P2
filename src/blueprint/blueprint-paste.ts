@@ -10,6 +10,7 @@ import {
 import { Blueprint, PasteBlueprint, UpdateablePasteBlueprint } from "./Blueprint"
 import { computeEntityDiff, findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
 import { bbox } from "../lib/geometry/bounding-box"
+import { nilIfEmpty } from "../lib/util"
 
 export function findCompatibleEntity<T extends Entity>(
   blueprint: Blueprint<T>,
@@ -47,12 +48,12 @@ export interface PropConflict {
 }
 
 export interface BlueprintPasteConflicts {
-  readonly overlaps: Overlap[]
-  readonly propConflicts: PropConflict[]
-  readonly lostReferences: ReferenceEntity[]
+  readonly overlaps?: Overlap[]
+  readonly propConflicts?: PropConflict[]
+  readonly lostReferences?: ReferenceEntity[]
 }
 
-export function findBlueprintPasteConflictAndUpdate(
+export function findBlueprintPasteConflictsAndUpdate(
   below: Blueprint,
   above: UpdateablePasteBlueprint,
 ): BlueprintPasteConflicts {
@@ -89,21 +90,25 @@ export function findBlueprintPasteConflictAndUpdate(
   }
 
   // stub
-  return { overlaps, propConflicts, lostReferences }
+  return {
+    overlaps: nilIfEmpty(overlaps),
+    propConflicts: nilIfEmpty(propConflicts),
+    lostReferences: nilIfEmpty(lostReferences),
+  }
 }
 
 export const findBlueprintPasteConflicts = (below: Blueprint, above: Blueprint): BlueprintPasteConflicts =>
-  findBlueprintPasteConflictAndUpdate(below, above)
+  findBlueprintPasteConflictsAndUpdate(below, above)
 
-export function findBlueprintPasteConflictsInWorldAndUpdate(
+export function findBlueprintPasteConflictsInWorld(
   surface: SurfaceIdentification,
   area: BoundingBoxRead,
-  content: UpdateablePasteBlueprint,
+  content: Blueprint,
   pasteLocation: MapPositionTable,
 ): BlueprintPasteConflicts {
   const contentArea = content.computeBoundingBox().shift(pasteLocation).intersect(area)
   const below = Blueprint.take(surface, contentArea, pasteLocation)
-  return findBlueprintPasteConflictAndUpdate(below, content)
+  return findBlueprintPasteConflicts(below, content)
 }
 
 export interface BlueprintDiff {

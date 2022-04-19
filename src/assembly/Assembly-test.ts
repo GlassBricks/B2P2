@@ -1,4 +1,4 @@
-import { Assembly, CannotUpgrade, ItemsIgnored, Overlap, PasteDiagnostics } from "./Assembly"
+import { Assembly } from "./Assembly"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { get_area } from "__testorio__/testUtil/areas"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
@@ -7,7 +7,10 @@ import { Blueprint } from "../blueprint/Blueprint"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { pos } from "../lib/geometry/position"
 import { invalidMockImport, mockImport } from "./import-mock"
-import { Diagnostic } from "../diagnostics/Diagnostic"
+import { BlueprintPasteConflicts, Overlap } from "../blueprint/blueprint-paste"
+import { assertNever } from "../lib/util"
+import { Entity, withEntityNumber } from "../entity/entity"
+import { Mutable } from "../lib/util-types"
 
 let area: BoundingBoxClass
 let surface: LuaSurface
@@ -209,15 +212,15 @@ describe("getLastResultContent", () => {
   })
 })
 
-describe("paste diagnostics", () => {
+describe("paste conflicts", () => {
   before_each(() => {
     clearBuildableEntities(surface, area)
   })
 
-  it("has no diagnostics for simple paste", () => {
+  it("has no conflicts for simple paste", () => {
     pasteBlueprint(surface, area.left_top, originalBlueprintSample.entities)
     const assembly = Assembly.create("test", surface, area)
-    assert.same([], assembly.getPasteDiagnostics())
+    assert.same([], assembly.getPasteConflicts())
   })
 
   interface ExpectedConflict {
@@ -272,8 +275,35 @@ describe("paste diagnostics", () => {
     original: undefined,
     "pole circuit add": undefined,
   }
+  function assertConflictEquivalent(expected: BlueprintPasteConflicts, actual: BlueprintPasteConflicts): void {
+    function normalizeEntity(entity: Entity) {
+      const result = withEntityNumber(entity, 1) as Mutable<Entity>
+      delete result.connections
+      return result
+    }
 
-  test.each(BlueprintSampleNames, "diagnostics match expected for changing to sample: %s", (sampleName) => {
+    function normalizeConflict(this: unknown, overlap: Overlap) {
+      return {
+        ...overlap,
+        below: normalizeEntity(overlap.below),
+        above: normalizeEntity(overlap.above),
+      }
+    }
+    function normalize(conflict: BlueprintPasteConflicts) {
+      return {
+        overlaps: conflict.overlaps?.map(normalizeConflict),
+        propConflicts: conflict.propConflicts?.map(normalizeConflict),
+        lostReferences: conflict.lostReferences?.map((x) => withEntityNumber(x, 1)),
+      } as BlueprintPasteConflicts
+    }
+    expected = normalize(expected)
+    actual = normalize(actual)
+    assert.same(expected.overlaps, actual.overlaps, "overlaps")
+    assert.same(expected.propConflicts, actual.propConflicts, "propConflicts")
+    assert.same(expected.lostReferences, actual.lostReferences, "lostReferences")
+  }
+
+  test.each(BlueprintSampleNames, "conflicts match expected for sample: %s", (sampleName) => {
     // test("diagnostics match expected for changing to sample: module change", () => {
     //   const sampleName: BlueprintSampleName = "inserter fast replace"
 
@@ -289,27 +319,32 @@ describe("paste diagnostics", () => {
 
     const expected = expectedConflicts[sampleName]
     if (!expected) {
-      assert.same([], assembly.getPasteDiagnostics()[0])
-      assert.same([], assembly.getPasteDiagnostics()[1])
+      assert.same({}, assembly.getPasteConflicts()[0])
+      assert.same({}, assembly.getPasteConflicts()[1])
       return
     }
     const aboveEntity = above.find((x) => x.name === expected.aboveEntity)!
     const belowEntity = below.find((x) => x.name === expected.belowEntity)!
-    let expectedDiagnostic: Diagnostic<PasteDiagnostics>
+    let expectedConflict: BlueprintPasteConflicts
     if (expected.type === "overlap") {
-      expectedDiagnostic = Overlap(belowEntity, aboveEntity)
+      expectedConflict = {
+        overlaps: [{ below: belowEntity, above: aboveEntity }],
+      }
     } else if (expected.type === "upgrade") {
-      expectedDiagnostic = CannotUpgrade(belowEntity, aboveEntity)
+      expectedConflict = {
+        propConflicts: [{ below: belowEntity, above: aboveEntity, prop: "name" }],
+      }
     } else if (expected.type === "items") {
-      expectedDiagnostic = ItemsIgnored(aboveEntity)
+      expectedConflict = {
+        propConflicts: [{ below: belowEntity, above: aboveEntity, prop: "items" }],
+      }
     } else {
-      error("unexpected type")
+      assertNever(expected.type)
     }
-    assert.same([], assembly.getPasteDiagnostics()[0])
-    assert.same([expectedDiagnostic], assembly.getPasteDiagnostics()[1])
+    assert.same([], assembly.getPasteConflicts()[0])
+    assertConflictEquivalent(expectedConflict, assembly.getPasteConflicts()[1])
   })
 })
-
 describe("saveChanges", () => {
   before_each(() => {
     clearBuildableEntities(surface, area)

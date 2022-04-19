@@ -8,59 +8,14 @@ import {
   BlueprintDiff,
   BlueprintPasteConflicts,
   computeBlueprintDiff,
-  findBlueprintPasteConflictAndUpdate,
-  findBlueprintPasteConflictsInWorldAndUpdate,
+  findBlueprintPasteConflictsAndUpdate,
+  findBlueprintPasteConflictsInWorld,
 } from "../blueprint/blueprint-paste"
-import { Diagnostic, DiagnosticFactory } from "../diagnostics/Diagnostic"
-import { L_Diagnostic } from "../locale"
-import { describeEntity, Entity, isUnhandledProp, UnhandledProp } from "../entity/entity"
-import { assertNever } from "../lib/util"
 
 interface InternalAssemblyImport {
   readonly content: Import
   relativePosition: MapPositionTable
 }
-
-export type PasteDiagnostics =
-  | L_Diagnostic.Overlap
-  | L_Diagnostic.ItemsIgnoredOnPaste
-  | L_Diagnostic.CannotUpgrade
-  | L_Diagnostic.UnsupportedProp
-export const Overlap = DiagnosticFactory(
-  L_Diagnostic.Overlap,
-  "error",
-  (below: BlueprintEntityRead, above: BlueprintEntityRead) => ({
-    message: [L_Diagnostic.Overlap, describeEntity(above), describeEntity(below)],
-    location: above.position,
-  }),
-)
-
-export const CannotUpgrade = DiagnosticFactory(
-  L_Diagnostic.CannotUpgrade,
-  "error",
-  (below: BlueprintEntityRead, above: BlueprintEntityRead) => ({
-    message: [L_Diagnostic.CannotUpgrade, describeEntity(above), describeEntity(below)],
-    location: above.position,
-  }),
-)
-
-export const ItemsIgnored = DiagnosticFactory(
-  L_Diagnostic.ItemsIgnoredOnPaste,
-  "warning",
-  (entity: BlueprintEntityRead) => ({
-    message: [L_Diagnostic.ItemsIgnoredOnPaste, describeEntity(entity)],
-    location: entity.position,
-  }),
-)
-
-export const UnsupportedProp = DiagnosticFactory(
-  L_Diagnostic.UnsupportedProp,
-  "warning",
-  (entity: BlueprintEntityRead, property: UnhandledProp) => ({
-    message: [L_Diagnostic.UnsupportedProp, describeEntity(entity), property],
-    location: entity.position,
-  }),
-)
 
 @Classes.register()
 export class Assembly {
@@ -69,8 +24,7 @@ export class Assembly {
   private importsContent: Blueprint
   private resultContent: Blueprint | undefined
 
-  // one for every import; last is for own contents
-  private pasteDiagnostics: readonly Diagnostic<PasteDiagnostics>[][] = []
+  private pasteConflicts: readonly BlueprintPasteConflicts[] = []
 
   // lifecycle
 
@@ -113,6 +67,7 @@ export class Assembly {
   delete(): void {
     global.assemblies.delete(this)
     this.ownContents = undefined!
+    this.importsContent = undefined!
     this.resultContent = undefined!
   }
 
@@ -126,61 +81,31 @@ export class Assembly {
     assert(this.isValid())
     clearBuildableEntities(this.surface, this.area)
 
-    const pasteDiagnostics: Diagnostic<PasteDiagnostics>[][] = []
+    const pasteConflicts: BlueprintPasteConflicts[] = []
     for (const imp of this.imports) {
-      pasteDiagnostics.push(this.pasteImportAndCheckConflicts(imp))
+      pasteConflicts.push(this.pasteImport(imp))
     }
     this.importsContent = Blueprint.take(this.surface, this.area)
 
-    pasteDiagnostics.push(this.pasteOwnContentAndCheckConflicts(this.importsContent))
-    this.pasteDiagnostics = pasteDiagnostics
+    pasteConflicts.push(this.pasteOwnContents(this.importsContent))
+    this.pasteConflicts = pasteConflicts
 
     this.resultContent = Blueprint.take(this.surface, this.area)
   }
 
-  private pasteImportAndCheckConflicts(imp: InternalAssemblyImport) {
+  private pasteImport(imp: InternalAssemblyImport) {
     const content = imp.content.getContent()
-    if (!content) return []
+    if (!content) return {}
 
     const resultLocation = pos.add(this.area.left_top, imp.relativePosition)
-    const diagnostics = this.checkForPasteImportPasteConflicts(content, resultLocation)
+    const diagnostics = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, resultLocation)
     pasteBlueprint(this.surface, resultLocation, content.entities, this.area)
     return diagnostics
   }
-
-  private checkForPasteImportPasteConflicts(
-    content: Blueprint<Entity>,
-    resultLocation: MapPositionTable,
-  ): Diagnostic<PasteDiagnostics>[] {
-    const conflicts = findBlueprintPasteConflictsInWorldAndUpdate(this.surface, this.area, content, resultLocation)
-    return Assembly.mapPasteConflictsToDiagnostics(conflicts)
-  }
-
-  private pasteOwnContentAndCheckConflicts(importsContent: Blueprint): Diagnostic<PasteDiagnostics>[] {
-    const conflicts = findBlueprintPasteConflictAndUpdate(importsContent, this.ownContents)
+  private pasteOwnContents(importsContent: Blueprint): BlueprintPasteConflicts {
+    const conflicts = findBlueprintPasteConflictsAndUpdate(importsContent, this.ownContents)
     pasteBlueprint(this.surface, this.area.left_top, this.ownContents.entities)
-    return Assembly.mapPasteConflictsToDiagnostics(conflicts)
-  }
-
-  private static mapPasteConflictsToDiagnostics(conflicts: BlueprintPasteConflicts) {
-    const diagnostics: Diagnostic<PasteDiagnostics>[] = []
-    for (const { below, above } of conflicts.overlaps) {
-      diagnostics.push(Overlap(below, above))
-    }
-    for (const { prop, below, above } of conflicts.propConflicts) {
-      // this relies on "name" being the only unpasteable prop (while still being compatible)
-      // see entity-paste.ts
-      if (prop === "name") {
-        diagnostics.push(CannotUpgrade(below, above))
-      } else if (prop === "items") {
-        diagnostics.push(ItemsIgnored(above))
-      } else if (isUnhandledProp(prop)) {
-        diagnostics.push(UnsupportedProp(above, prop))
-      } else {
-        assertNever(prop)
-      }
-    }
-    return diagnostics
+    return conflicts
   }
 
   getChanges(): BlueprintDiff {
@@ -195,10 +120,8 @@ export class Assembly {
     this.commitChanges(this.getChanges())
   }
 
-  // diagnostics
-
-  getPasteDiagnostics(): readonly Diagnostic<PasteDiagnostics>[][] {
-    return this.pasteDiagnostics
+  getPasteConflicts(): readonly BlueprintPasteConflicts[] {
+    return this.pasteConflicts
   }
 
   // content

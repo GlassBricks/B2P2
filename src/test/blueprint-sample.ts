@@ -1,6 +1,8 @@
 import { get_area } from "__testorio__/testUtil/areas"
 import { takeBlueprint } from "../world-interaction/blueprint"
 import { bbox } from "../lib/geometry/bounding-box"
+import { table } from "util"
+import deepcopy = table.deepcopy
 
 const blueprintSampleNames = {
   original: true,
@@ -43,5 +45,5 @@ export function getBlueprintSample(sample: BlueprintSampleName): BlueprintEntity
   if (!samples) {
     loadSamplesFromWorld()
   }
-  return samples[sample] ?? error(`no blueprint sample found for ${sample}`)
+  return deepcopy(samples[sample]) ?? error(`no blueprint sample found for ${sample}`)
 }
