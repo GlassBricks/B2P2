@@ -1,20 +1,25 @@
 import { ComponentClass, Element, ElementSpec, FunctionComponent } from "./spec"
 import { BaseElementSpec } from "./spec-types"
 
+const _select = select
+
 function flattenChildren(
-  children: false | undefined | ElementSpec | (false | undefined | ElementSpec | ElementSpec[])[],
+  ...children: Array<false | undefined | ElementSpec | Array<false | undefined | ElementSpec>>
 ): ElementSpec[] | undefined {
-  if (!children) return undefined
-  if (!Array.isArray(children)) return [children]
+  const childrenLen = _select("#", ...children)
+  if (childrenLen === 0) return undefined
   const result: ElementSpec[] = []
-  for (const child of children) {
-    if (!child) continue
-    if (Array.isArray(child)) {
-      for (const childElement of child) {
-        if (childElement) result[result.length] = childElement
+  const array = [...children]
+  for (const i of $range(1, childrenLen)) {
+    const child = array[i - 1]
+    if (child) {
+      if (Array.isArray(child)) {
+        for (const childElement of child) {
+          if (childElement) result[result.length] = childElement
+        }
+      } else {
+        result[result.length] = child
       }
-    } else {
-      result[result.length] = child
     }
   }
   return result
@@ -25,19 +30,18 @@ export default function createElement(
   this: unknown,
   type: string | FunctionComponent<any> | ComponentClass<any>,
   props?: unknown,
-  children?: unknown,
+  ...children: any[]
 ): Element {
+  const flattenedChildren = flattenChildren(...children)
   const typeofType = _type(type)
   if (typeofType === "string") {
     const result = (props || {}) as BaseElementSpec
     result.type = type as GuiElementType
-    result.children = flattenChildren(children as any)
+    result.children = flattenedChildren
     return result as ElementSpec
   }
   props ||= {}
-  if (children) {
-    ;(props as any).children = children
-  }
+  ;(props as any).children = flattenedChildren
   return {
     type: type as FunctionComponent<any> | ComponentClass<any>,
     props,

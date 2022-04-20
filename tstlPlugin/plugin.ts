@@ -24,11 +24,9 @@ import {
 import { getFunctionTypeForCall } from "typescript-to-lua/dist/transformation/utils/typescript"
 import { unsupportedBuiltinOptionalCall } from "typescript-to-lua/dist/transformation/utils/diagnostics"
 import { transformExpressionList } from "typescript-to-lua/dist/transformation/visitors/expression-list"
-
-import * as globToRegExp from "glob-to-regexp"
 import * as path from "path"
 
-const testPattern = globToRegExp("**/*test.ts")
+const testPattern = /-test\.tsx?$/
 
 function getTestFiles(context: TransformationContext) {
   const rootDir = getSourceDir(context.program)

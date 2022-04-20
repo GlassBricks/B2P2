@@ -112,6 +112,11 @@ type GuiUnitNumber = number
 const Elements = PlayerData<Record<GuiUnitNumber, ElementInstanceInternal>>("gui:Elements", () => ({}))
 
 const type = _G.type
+export function render<T extends GuiElementType>(
+  parent: LuaGuiElement,
+  spec: ElementSpec & { type: T },
+): ElementInstance<T>
+export function render(parent: LuaGuiElement, element: Element): ElementInstance
 export function render(parent: LuaGuiElement, element: Element): ElementInstance {
   const elemType = element.type
   const elemTypeType = type(elemType)
@@ -124,10 +129,10 @@ export function render(parent: LuaGuiElement, element: Element): ElementInstance
   if (elemTypeType === "function") {
     return renderFunctionComponent(parent, element as FCSpec<any>)
   }
-  error("Unknown element spec" + serpent.block(element))
+  error("Unknown element spec: " + serpent.block(element))
 }
 
-export function renderElement<T extends GuiElementType>(
+function renderElement<T extends GuiElementType>(
   parent: LuaGuiElement,
   spec: ElementSpec & { type: T },
 ): ElementInstance<T> {
@@ -227,7 +232,7 @@ export function renderElement<T extends GuiElementType>(
 }
 
 function renderFunctionComponent<T>(parent: LuaGuiElement, spec: FCSpec<T>) {
-  return renderElement(parent, spec.type(spec.props))
+  return render(parent, spec.type(spec.props))
 }
 
 function renderClassComponent<T>(parent: LuaGuiElement, spec: ClassComponentSpec<T>) {
@@ -260,6 +265,10 @@ export function destroy(element: ElementInstance<any> | GuiElementMembers): void
   }
   if (nativeElement.valid) nativeElement.destroy()
   Elements[playerIndex][index] = undefined!
+}
+export function destroyIn(element: LuaGuiElement, name: string): void {
+  const el = element[name]
+  if (el) destroy(el)
 }
 
 export function getInstance<T extends GuiElementType>(

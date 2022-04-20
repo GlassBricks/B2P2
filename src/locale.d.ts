@@ -5,7 +5,7 @@ export declare const enum L_Bbpp {
   EntityFromPlace = "bbpp.entity-from-place",
 }
 export declare const enum L_Diagnostic {
-  /** __1__ overlaps with __2__. */
+  /** __2__ overlaps with __1__. */
   Overlap = "bbpp.diagnostic.overlap",
   /** __1__ was upgraded to __2__, which is not pasteable. */
   CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
