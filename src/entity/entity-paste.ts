@@ -1,7 +1,8 @@
-import { deepCompare, isEmpty, shallowCopy } from "../lib/util"
-import { Mutable } from "../lib/util-types"
+import { deepCompare, shallowCopy } from "../lib/util"
+import { Mutable, PRecord } from "../lib/util-types"
 import {
   ConflictingProp,
+  EntityNumber,
   IgnoredProps,
   KnownProps,
   PlainEntity,
@@ -95,7 +96,7 @@ export const findEntityPasteConflict = (
 export function computeEntityDiff(
   before: BlueprintEntityRead,
   after: BlueprintEntityRead,
-  alwaysInclude?: boolean,
+  entityNumberMap: Record<EntityNumber, EntityNumber>, // from before to after
 ): ReferenceEntity | undefined {
   const changedProps = new LuaSet<UpdateableProp>()
   for (const [prop, value] of pairs(after)) {
@@ -108,12 +109,72 @@ export function computeEntityDiff(
       changedProps.add(prop as UpdateableProp)
     }
   }
+  const circuitConnections = compareBlueprintCircuitConnection(before.connections, after.connections, entityNumberMap)
 
-  if (!alwaysInclude && isEmpty(changedProps)) return undefined
+  if (circuitConnections) {
+    changedProps.add("connections")
+  }
+
+  if (!changedProps.first()) return undefined
 
   const result = shallowCopy(after) as Mutable<ReferenceEntity>
+  result.connections = circuitConnections
   result.changedProps = changedProps
   return result
+}
+
+// only gives NEW connections
+function compareBlueprintCircuitConnection(
+  old: BlueprintCircuitConnection | undefined,
+  cur: BlueprintCircuitConnection | undefined,
+  entityNumberMap: Record<EntityNumber, EntityNumber>,
+): BlueprintCircuitConnection | undefined {
+  if (cur === undefined) return undefined
+  if (old === undefined) return cur
+  const c1 = compareConnectionPoint(old["1"], cur["1"], entityNumberMap),
+    c2 = compareConnectionPoint(old["2"], cur["2"], entityNumberMap)
+  if (c1 === undefined && c2 === undefined) return undefined
+  return { "1": c1, "2": c2 }
+}
+
+function compareConnectionPoint(
+  old: BlueprintConnectionPoint | undefined,
+  cur: BlueprintConnectionPoint | undefined,
+  entityNumberMap: Record<EntityNumber, EntityNumber>,
+): BlueprintConnectionPoint | undefined {
+  if (cur === undefined) return undefined
+  if (old === undefined) return cur
+  const red = compareConnectionData(old.red, cur.red, entityNumberMap),
+    green = compareConnectionData(old.green, cur.green, entityNumberMap)
+  if (red === undefined && green === undefined) return undefined
+  return { red, green }
+}
+
+function compareConnectionData(
+  old: BlueprintConnectionData[] | undefined,
+  cur: BlueprintConnectionData[] | undefined,
+  entityNumberMap: PRecord<EntityNumber, EntityNumber>, // from before to after
+): BlueprintConnectionData[] | undefined {
+  if (cur === undefined) return undefined
+  if (old === undefined) return cur
+
+  const result: BlueprintConnectionData[] = []
+
+  const oldSet: Record<number, Record<number, true>> = {}
+  for (const data of old) {
+    const entityId = entityNumberMap[data.entity_id]
+    if (entityId !== undefined) {
+      ;(oldSet[entityId] ?? (oldSet[entityId] = {}))[data.circuit_id || 0] = true
+    }
+    // else: not relevant
+  }
+  for (const data of cur) {
+    const below = oldSet[data.entity_id]
+    if (below === undefined || !((data.circuit_id || 0) in below)) {
+      result.push(data)
+    }
+  }
+  return result[0] && result
 }
 
 export function createReferenceOnlyEntity(entity: BlueprintEntityRead): ReferenceEntity {

@@ -26,22 +26,10 @@ test("getTileBox matches computeTileBox", () => {
 
 test("remapEntityNumbersInArrayPosition", () => {
   const connections2: BlueprintCircuitConnection = {
-    "1": {
-      red: [
-        {
-          entity_id: 2,
-        },
-      ],
-    },
+    "1": { red: [{ entity_id: 2 }] },
   }
   const connections1: BlueprintCircuitConnection = {
-    "1": {
-      red: [
-        {
-          entity_id: 1,
-        },
-      ],
-    },
+    "1": { red: [{ entity_id: 1 }] },
   }
 
   const entity1 = {

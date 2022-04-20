@@ -1,5 +1,5 @@
 import { Blueprint } from "./Blueprint"
-import { Entity, ReferenceEntity } from "../entity/entity"
+import { Entity, PasteEntity, ReferenceEntity } from "../entity/entity"
 import { getEntitySample } from "../test/entity-sample"
 import { pos } from "../lib/geometry/position"
 import {
@@ -32,10 +32,7 @@ before_all(() => {
   emptyBlueprint = Blueprint.of()
 
   singleAssemblerBlueprint = Blueprint.of(getAssemblingMachineEntity())
-  noDiff = {
-    content: Blueprint.of(),
-    deletions: [],
-  }
+  noDiff = { content: emptyBlueprint }
 })
 
 describe("findCompatibleEntity", () => {
@@ -214,7 +211,7 @@ describe("findBlueprintPasteConflictsInWorld", () => {
 })
 
 function assertDiffsSame(expected: BlueprintDiff, actual: BlueprintDiff) {
-  assert.same(expected.deletions, actual.deletions)
+  assert.same(expected.deletions, actual.deletions, "deletions")
   assertBlueprintsEquivalent(expected.content, actual.content)
 }
 
@@ -231,7 +228,6 @@ describe("computeBlueprintDiff", () => {
     assertDiffsSame(
       {
         content: blueprintSample,
-        deletions: [],
       },
       diff,
     )
@@ -245,7 +241,6 @@ describe("computeBlueprintDiff", () => {
     assertDiffsSame(
       {
         content: expectedDiff,
-        deletions: [],
       },
       diff,
     )
@@ -280,24 +275,42 @@ describe("computeBlueprintDiff", () => {
     assertDiffsSame(
       {
         content: expectedContent,
-        deletions: [],
       },
       diff,
     )
   })
 
   describe("circuit connections", () => {
-    it("should create an reference entity when connected to new by circuit wire", () => {
+    it("should create an reference entity when connected to new entity", () => {
       const original = Blueprint.fromArray(getBlueprintSample("original"))
       const added = Blueprint.fromArray(getBlueprintSample("pole circuit add"))
-      const diff = computeBlueprintDiff(original, added)
-      const contents = diff.content.asArray()
-      assert.equal(2, contents.length)
-      const inserter = contents.find((x) => x.name === "inserter")!
-      assert.same({}, inserter.changedProps)
-      const pole = contents.find((x) => x.name === "small-electric-pole")!
+      const diff = computeBlueprintDiff(original, added).content.asArray()
+      assert.equal(2, diff.length)
+      const inserter = diff.find((x) => x.name === "inserter")!
+      assert.same(new LuaSet("connections"), inserter.changedProps)
+      const pole = diff.find((x) => x.name === "small-electric-pole")!
       assert.not_nil(pole)
       assert.is_nil(pole.changedProps)
+    })
+
+    it("should create reference entities for new connection to existing entities", () => {
+      const original = Blueprint.fromArray(getBlueprintSample("original"))
+      const added = Blueprint.fromArray(getBlueprintSample("circuit wire add"))
+      const diff = computeBlueprintDiff(original, added).content.asArray()
+      assert.equal(2, diff.length)
+      function checkEntity(entity: PasteEntity | undefined, name: string) {
+        ;[entity] = assert(entity, name)
+        assert.same(new LuaSet("connections"), entity.changedProps)
+        assert.same(1, entity.connections?.["1"]?.green?.length)
+        // should not include the existing connection
+        assert.is_nil(entity.connections?.["1"]?.red)
+        assert.is_nil(entity.connections?.["2"])
+      }
+
+      const inserter = diff.find((x) => x.name === "inserter")!
+      checkEntity(inserter, "inserter")
+      const pole = diff.find((x) => x.name === "small-electric-pole")!
+      checkEntity(pole, "small-electric-pole")
     })
   })
 })

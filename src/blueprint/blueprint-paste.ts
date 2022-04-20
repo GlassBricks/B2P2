@@ -8,7 +8,12 @@ import {
   ReferenceEntity,
 } from "../entity/entity"
 import { Blueprint, PasteBlueprint, UpdateablePasteBlueprint } from "./Blueprint"
-import { computeEntityDiff, findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
+import {
+  computeEntityDiff,
+  createReferenceOnlyEntity,
+  findEntityPasteConflictAndUpdate,
+  isCompatibleEntity,
+} from "../entity/entity-paste"
 import { bbox } from "../lib/geometry/bounding-box"
 import { nilIfEmpty } from "../lib/util"
 
@@ -113,20 +118,23 @@ export function findBlueprintPasteConflictsInWorld(
 
 export interface BlueprintDiff {
   readonly content: PasteBlueprint
-  readonly deletions: PlainEntity[]
+  readonly deletions?: PlainEntity[]
 }
 
 export function computeBlueprintDiff(below: Blueprint, current: Blueprint): BlueprintDiff {
+  const corresponding = new LuaMap<Entity, Entity | undefined>() // new to old
+  const entityNumberMap: Record<EntityNumber, EntityNumber> = {} // old to new
   const shouldAlwaysInclude = new LuaSet<number>()
 
-  const corresponding = new LuaMap<Entity, Entity>()
+  // find corresponding entities
   for (const [, entity] of pairs(current.entities)) {
     const compatible = findCompatibleEntity(below, entity)
     if (compatible) {
-      corresponding.set(entity, compatible)
-    } else {
       // new entity
-      // search connection wires, add neighbors to shouldAlwaysInclude
+      corresponding.set(entity, compatible)
+      entityNumberMap[compatible.entity_number] = entity.entity_number
+    } else {
+      // existing entity, mark all circuit neighbours to shouldAlwaysInclude
       const connections = entity.connections
       if (connections) {
         markConnectionPoint(connections["1"])
@@ -134,6 +142,8 @@ export function computeBlueprintDiff(below: Blueprint, current: Blueprint): Blue
       }
     }
   }
+
+  // marking connection neighbors of new entity to shouldAlwaysInclude
   function markConnectionPoint(point: BlueprintConnectionPoint | undefined) {
     if (point) {
       markConnectionData(point.red)
@@ -148,35 +158,30 @@ export function computeBlueprintDiff(below: Blueprint, current: Blueprint): Blue
     }
   }
 
-  const deletions: PlainEntity[] = []
   const content: PasteEntity[] = []
-
-  const belowAccountedFor = new LuaSet<EntityNumber>()
   for (const [, currentEntity] of pairs(current.entities)) {
     const compatible = corresponding.get(currentEntity)
     if (compatible) {
-      const referenceEntity = computeEntityDiff(
-        compatible,
-        currentEntity,
-        shouldAlwaysInclude.has(currentEntity.entity_number),
-      )
-      if (referenceEntity !== undefined) {
+      const referenceEntity = computeEntityDiff(compatible, currentEntity, entityNumberMap)
+      if (referenceEntity) {
         content.push(referenceEntity)
+      } else if (shouldAlwaysInclude.has(currentEntity.entity_number)) {
+        content.push(createReferenceOnlyEntity(currentEntity))
       }
-
-      belowAccountedFor.add(compatible.entity_number)
     } else {
       content.push(currentEntity)
     }
   }
-  for (const [number, belowEntity] of pairs(below.entities)) {
-    if (!belowAccountedFor.has(number)) {
+
+  const deletions: PlainEntity[] = []
+  for (const [, belowEntity] of pairs(below.entities)) {
+    if (!(belowEntity.entity_number in entityNumberMap)) {
       deletions.push(belowEntity)
     }
   }
 
   return {
     content: Blueprint.fromArray(content),
-    deletions,
+    deletions: nilIfEmpty(deletions),
   }
 }

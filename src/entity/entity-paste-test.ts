@@ -6,9 +6,9 @@ import {
   findEntityPasteConflictAndUpdate,
   isCompatibleEntity,
 } from "./entity-paste"
-import { mutableShallowCopy } from "../lib/util"
+import { mutableShallowCopy, shallowCopy } from "../lib/util"
 import { Mutable } from "../lib/util-types"
-import { ReferenceEntity } from "./entity"
+import { EntityNumber, ReferenceEntity } from "./entity"
 
 describe("isCompatibleEntity", () => {
   test("identical entities are compatible", () => {
@@ -140,7 +140,7 @@ describe("findEntityPasteConflict", () => {
       position: entity1.position,
       items: { "productivity-module": 1 },
     }
-    const diffEntity = computeEntityDiff(entity1, entity2, false) as Mutable<ReferenceEntity>
+    const diffEntity = shallowCopy(entity2) as Mutable<ReferenceEntity>
     diffEntity.changedProps = new LuaSet("items") // ignore "name"
     assert.same("items", findEntityPasteConflict(entity1, diffEntity))
   })
@@ -212,26 +212,14 @@ describe("findEntityPasteConflictsAndUpdate", () => {
 describe("computeEntityDiff", () => {
   test("returns undefined for identical entities", () => {
     const entity = getEntitySample("assembling-machine-1")
-    assert.is_nil(computeEntityDiff(entity, entity, false))
-  })
-
-  test("still returns empty reference entity if alwaysInclude is set", () => {
-    const entity = getEntitySample("assembling-machine-1")
-    const diff = computeEntityDiff(entity, entity, true)
-    assert.same(
-      {
-        ...entity,
-        changedProps: {},
-      },
-      diff,
-    )
+    assert.is_nil(computeEntityDiff(entity, entity, {}))
   })
 
   test.each(["iron-gear-wheel", false as any], "returns appropriate diff for different entities: %s", (value) => {
     const entity1 = getEntitySample("assembling-machine-1")
     const entity2 = mutableShallowCopy(entity1)
     entity2.recipe = value || undefined
-    const diff = computeEntityDiff(entity1, entity2, false)
+    const diff = computeEntityDiff(entity1, entity2, {})
     assert.not_nil(diff)
     assert.same(new LuaSet("recipe"), diff!.changedProps)
   })
@@ -241,7 +229,58 @@ describe("computeEntityDiff", () => {
     const entity2 = mutableShallowCopy(entity1)
     entity2.entity_number++
     entity2.recipe = "iron-gear-wheel"
-    const diff = computeEntityDiff(entity1, entity2, false)
+    const diff = computeEntityDiff(entity1, entity2, {})
     assert.equal(entity2.entity_number, diff!.entity_number)
+  })
+
+  describe("connections", () => {
+    function testConnections(
+      old: BlueprintCircuitConnection | undefined,
+      cur: BlueprintCircuitConnection | undefined,
+      expected: BlueprintCircuitConnection | undefined,
+      entityNumberMap: Record<EntityNumber, EntityNumber> = { 1: 1 },
+    ) {
+      const base = getEntitySample("assembling-machine-1")
+      const entity1 = { ...base, connections: old }
+      const entity2 = { ...base, connections: cur }
+      const diff = computeEntityDiff(entity1, entity2, entityNumberMap)
+      if (expected === undefined) {
+        assert.is_nil(diff)
+      } else {
+        assert.same(new LuaSet("connections"), diff!.changedProps)
+        assert.same(expected, diff!.connections)
+      }
+    }
+
+    test("identical", () => {
+      const connection = { "1": { red: [{ entity_id: 1 }] } }
+      testConnections(connection, connection, undefined)
+    })
+
+    test("single add", () => {
+      const connection = { "1": { red: [{ entity_id: 1 }] } }
+      testConnections(undefined, connection, connection)
+    })
+
+    test("different entity id", () => {
+      const connection1 = { "1": { red: [{ entity_id: 1 }] } }
+      const connection2 = { "1": { red: [{ entity_id: 1 }, { entity_id: 2 }] } }
+      const expected = { "1": { red: [{ entity_id: 2 }] } }
+      testConnections(connection1, connection2, expected)
+    })
+
+    test("different color", () => {
+      const connection1 = { "1": { red: [{ entity_id: 1 }] } }
+      const connection2 = { "1": { red: [{ entity_id: 1 }], green: [{ entity_id: 1 }] } }
+      const expected = { "1": { green: [{ entity_id: 1 }] } }
+      testConnections(connection1, connection2, expected)
+    })
+
+    test("different point", () => {
+      const connection1 = { "1": { red: [{ entity_id: 1 }] } }
+      const connection2 = { "1": { red: [{ entity_id: 1 }] }, "2": { red: [{ entity_id: 1 }] } }
+      const expected = { "2": { red: [{ entity_id: 1 }] } }
+      testConnections(connection1, connection2, expected)
+    })
   })
 })

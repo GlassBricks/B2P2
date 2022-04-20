@@ -1,5 +1,5 @@
 import { mutableShallowCopy } from "../lib/util"
-import { Mutable, RRecord } from "../lib/util-types"
+import { Mutable } from "../lib/util-types"
 import { computeTileBox } from "./entity-info"
 
 export type EntityNumber = number
@@ -92,16 +92,15 @@ export function describeEntity(entity: BlueprintEntityRead): LocalisedString {
 }
 
 export type EntityProp = keyof PasteEntity
-const ignoredProps = {
+export const IgnoredProps = {
   entity_number: true,
   position: true,
   neighbours: true,
   tileBox: true,
   changedProps: true,
-  connections: true, // handled separately
+  connections: true,
 } as const
-export type IgnoredProp = keyof typeof ignoredProps
-export const IgnoredProps = ignoredProps as RRecord<IgnoredProp, true>
+export type IgnoredProp = keyof typeof IgnoredProps
 
 export const UnpasteableProps = {
   name: true,
@@ -118,10 +117,15 @@ export const PasteableProps = {
 } as const
 export type PasteableProp = keyof typeof PasteableProps
 
-export type UpdateableProp = UnpasteableProp | PasteableProp
+export const HandledProps = {
+  connections: true,
+} as const
+export type HandledProp = keyof typeof HandledProps
+
+export type UpdateableProp = UnpasteableProp | PasteableProp | HandledProp
 
 const knownProps = {
-  ...ignoredProps,
+  ...IgnoredProps,
   ...UnpasteableProps,
   ...PasteableProps,
 } as const
