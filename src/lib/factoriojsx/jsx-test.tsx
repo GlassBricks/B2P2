@@ -1,6 +1,6 @@
 import { Classes } from "../references"
 import { FactorioJsx } from "./index"
-import { Component, Element } from "./spec"
+import { Component, Spec } from "./spec"
 
 describe("Create simple", () => {
   test("Basic element", () => {
@@ -54,7 +54,7 @@ describe("Create simple", () => {
     assert.same({ type: "flow", children: [] }, el)
   })
 
-  function Foo(props: { me?: string; children?: Element }) {
+  function Foo(props: { me?: string; children?: Spec }) {
     return <flow caption={props.me}>{props.children}</flow>
   }
 
@@ -86,8 +86,8 @@ describe("Create simple", () => {
   })
 
   @Classes.register()
-  class FooClass extends Component<{ me?: string; children?: Element }> {
-    render(): Element {
+  class FooClass extends Component<{ me?: string; children?: Spec }> {
+    render(): Spec {
       return <flow caption={this.props.me}>{this.props.children}</flow>
     }
   }

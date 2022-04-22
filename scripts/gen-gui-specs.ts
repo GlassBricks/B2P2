@@ -268,7 +268,7 @@ const stateProps = {} as Record<GuiElementType, Record<string, string>>
   }
   elementSpecs.base.children = {
     name: "children",
-    type: "Element[]",
+    type: "Spec[]",
     optional: true,
   }
 }
@@ -483,10 +483,10 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   createMembers("StyleMod", styleMods, () => [])
 
   const header = `import { MaybeSinkSource, MaybeSource } from "../callbags"
-import { Element } from "./spec"
+import { Spec } from "./spec"
 
 `
-  printFile("spec-types.d.ts", header, statements)
+  printFile("element-specs.d.ts", header, statements)
 }
 
 // todo:

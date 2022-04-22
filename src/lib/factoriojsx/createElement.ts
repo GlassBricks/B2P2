@@ -1,5 +1,4 @@
-import { ComponentClass, Element, ElementSpec, FunctionComponent } from "./spec"
-import { BaseElementSpec } from "./spec-types"
+import { BaseElementSpec, ComponentClass, ElementSpec, FunctionComponent, Spec } from "./spec"
 
 const _select = select
 
@@ -31,7 +30,7 @@ export default function createElement(
   type: string | FunctionComponent<any> | ComponentClass<any>,
   props?: unknown,
   ...children: any[]
-): Element {
+): Spec {
   const flattenedChildren = flattenChildren(...children)
   const typeofType = _type(type)
   if (typeofType === "string") {

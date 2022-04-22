@@ -2,14 +2,16 @@ import { state, testSource } from "../callbags"
 import { Classes } from "../references"
 import { asFunc, getPlayer } from "../test-util/misc"
 import { destroy, getInstance, render } from "./render"
-import { ClassComponentSpec, Component, FCSpec } from "./spec"
 import {
   ButtonElementSpec,
   ChooseElemButtonElementSpec,
+  ClassComponentSpec,
+  Component,
+  FCSpec,
   FlowElementSpec,
   SliderElementSpec,
   TextBoxElementSpec,
-} from "./spec-types"
+} from "./spec"
 
 let parent: LuaGuiElement
 let element: GuiElementMembers | undefined

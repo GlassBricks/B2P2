@@ -1,12 +1,12 @@
-import { ElementSpec } from "./spec-types"
+import { ElementSpec } from "./element-specs"
 
-export { ElementSpec }
+export * from "./element-specs"
 
-export type FunctionComponent<T> = (props: T) => ElementSpec
+export type FunctionComponent<T> = (props: T) => Spec
 
 export abstract class Component<T> {
   declare props: T
-  abstract render(): Element
+  abstract render(): Spec
 }
 
 export interface ComponentClass<T> {
@@ -25,7 +25,7 @@ export interface ClassComponentSpec<T> {
   props: T
 }
 
-export type Element = ElementSpec | FCSpec<any> | ClassComponentSpec<any>
+export type Spec = ElementSpec | FCSpec<any> | ClassComponentSpec<any>
 
 export type GuiEvent =
   | OnGuiCheckedStateChangedEvent
@@ -41,4 +41,16 @@ export type GuiEvent =
   | OnGuiTextChangedEvent
   | OnGuiValueChangedEvent
 
-export type EventHandler<T extends GuiEvent = GuiEvent> = (event: T) => void
+export type GuiEventHandler<T extends GuiEvent = GuiEvent> = (this: unknown, event: T) => void
+export type CheckedStateChangedEventHandler = GuiEventHandler<OnGuiCheckedStateChangedEvent>
+export type ClosedEventHandler = GuiEventHandler<OnGuiClosedEvent>
+export type ClickEventHandler = GuiEventHandler<OnGuiClickEvent>
+export type ConfirmedEventHandler = GuiEventHandler<OnGuiConfirmedEvent>
+export type ElemChangedEventHandler = GuiEventHandler<OnGuiElemChangedEvent>
+export type LocationChangedEventHandler = GuiEventHandler<OnGuiLocationChangedEvent>
+export type OpenedEventHandler = GuiEventHandler<OnGuiOpenedEvent>
+export type SelectedTabChangedEventHandler = GuiEventHandler<OnGuiSelectedTabChangedEvent>
+export type SelectionStateChangedEventHandler = GuiEventHandler<OnGuiSelectionStateChangedEvent>
+export type SwitchStateChangedEventHandler = GuiEventHandler<OnGuiSwitchStateChangedEvent>
+export type TextChangedEventHandler = GuiEventHandler<OnGuiTextChangedEvent>
+export type ValueChangedEventHandler = GuiEventHandler<OnGuiValueChangedEvent>

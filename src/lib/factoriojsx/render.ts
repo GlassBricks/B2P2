@@ -5,8 +5,7 @@ import { PlayerData } from "../player-data"
 import { bind, Func, funcRef, Functions, isCallable } from "../references"
 import { PRecord } from "../util-types"
 import * as propTypes from "./propTypes.json"
-import { ClassComponentSpec, Element, FCSpec } from "./spec"
-import { ElementSpec } from "./spec-types"
+import { ClassComponentSpec, ElementSpec, FCSpec, GuiEvent, GuiEventHandler, Spec } from "./spec"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 
@@ -21,7 +20,7 @@ interface ElementInstanceInternal extends ElementInstance<any> {
   readonly talkbacks: Record<string, Talkback>
   children?: ElementInstanceInternal[]
   valid: boolean
-  events: PRecord<GuiEventName, Func<any>>
+  events: PRecord<GuiEventName, Func<GuiEventHandler>>
 }
 
 // sinks
@@ -101,9 +100,9 @@ function setSliderMinMaxSink(
   }
 }
 
-function notifySink(this: { key: string; state: SinkSource<unknown> }, event: { element: LuaGuiElement }) {
+function notifySink(this: { key: string; state: SinkSource<unknown> }, event: GuiEvent) {
   const key = this.key
-  this.state(1, (event as any)[key] || event.element[key])
+  this.state(1, (event as any)[key] || event.element![key])
 }
 
 Functions.registerAll({ setValueSink, callMethodSink, setSliderMinMaxSink, notifySink })
@@ -116,8 +115,8 @@ export function render<T extends GuiElementType>(
   parent: LuaGuiElement,
   spec: ElementSpec & { type: T },
 ): ElementInstance<T>
-export function render(parent: LuaGuiElement, element: Element): ElementInstance
-export function render(parent: LuaGuiElement, element: Element): ElementInstance {
+export function render(parent: LuaGuiElement, element: Spec): ElementInstance
+export function render(parent: LuaGuiElement, element: Spec): ElementInstance {
   const elemType = element.type
   const elemTypeType = type(elemType)
   if (elemTypeType === "string") {
@@ -147,7 +146,7 @@ function renderElement<T extends GuiElementType>(
     if (typeof value === "function") value = funcRef(value) as any
     if (propProperties === "event") {
       if (!isCallable(value)) error("Gui event handlers must be a function")
-      events[key as GuiEventName] = value
+      events[key as GuiEventName] = value as GuiEventHandler
       continue
     }
     const isSpecProp = propProperties[0]

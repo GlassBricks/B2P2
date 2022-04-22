@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import _createElement from "./createElement"
 import "./render"
-import { Element, Element as _Element } from "./spec"
 import {
   ButtonElementSpec,
   CameraElementSpec,
@@ -21,16 +20,21 @@ import {
   RadioButtonElementSpec,
   ScrollPaneElementSpec,
   SliderElementSpec,
+  Spec,
+  Spec as _Element,
   SpriteButtonElementSpec,
   SwitchElementSpec,
   TabElementSpec,
   TextBoxElementSpec,
   TextFieldElementSpec,
-} from "./spec-types"
+} from "./spec"
+
+export * from "./spec"
+export * from "./render"
 
 export namespace FactorioJsx {
   type IntrinsicElement<T extends ElementSpec> = Omit<T, "type" | "children"> & {
-    children?: false | Element | (false | Element | ElementSpec[])[]
+    children?: false | Spec | (false | Spec | ElementSpec[])[]
   }
   export const createElement = _createElement
   export namespace JSX {
