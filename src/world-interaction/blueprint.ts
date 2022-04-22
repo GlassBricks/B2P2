@@ -1,7 +1,6 @@
 import { isEmpty } from "../lib/util"
 import { pos } from "../lib/geometry/position"
 import { Mutable, RRecord } from "../lib/util-types"
-import { getPlayer } from "../lib/testUtil"
 import { bbox } from "../lib/geometry/bounding-box"
 import { Entity, getTileBox } from "../entity/entity"
 
@@ -99,9 +98,6 @@ export function pasteBlueprint(
   stack.blueprint_snap_to_grid = [1, 1]
   stack.blueprint_absolute_snapping = true
   stack.set_blueprint_entities(entities as BlueprintEntityRead[])
-  if (__DebugAdapter) {
-    getPlayer().insert(stack)
-  }
   const ghosts = stack.build_blueprint({
     surface,
     position: location,

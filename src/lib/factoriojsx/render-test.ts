@@ -1,6 +1,6 @@
 import { state, testSource } from "../callbags"
 import { Classes } from "../references"
-import { asFunc, getPlayer } from "../testUtil"
+import { asFunc, getPlayer } from "../test-util/misc"
 import { destroy, getInstance, render } from "./render"
 import { ClassComponentSpec, Component, FCSpec } from "./spec"
 import {

@@ -241,13 +241,21 @@ function renderClassComponent<T>(parent: LuaGuiElement, spec: ClassComponentSpec
   return render(parent, instance.render())
 }
 
-export function destroy(element: ElementInstance<any> | GuiElementMembers): void {
-  if (!element.valid) return
+function destroyPlainElement(element: BaseGuiElement, deep: boolean | undefined) {
+  if (deep) {
+    for (const child of (element as LuaGuiElement).children) {
+      destroy(child, deep)
+    }
+  }
+  ;(element as LuaGuiElement).destroy()
+}
+export function destroy(element: ElementInstance<any> | GuiElementMembers | undefined, deep?: boolean): void {
+  if (!element || !element.valid) return
   if (rawget(element as any, "__self")) {
     // is lua gui element
     const instance = getInstance(element as LuaGuiElement)
     if (!instance) {
-      ;(element as LuaGuiElement).destroy()
+      destroyPlainElement(element as BaseGuiElement, deep)
       return
     }
     element = instance
@@ -257,7 +265,11 @@ export function destroy(element: ElementInstance<any> | GuiElementMembers): void
   const { nativeElement, talkbacks, children, playerIndex, index } = internalInstance
   if (children) {
     for (const child of children) {
-      destroy(child)
+      destroy(child, deep)
+    }
+  } else if (deep) {
+    for (const child of nativeElement.children) {
+      destroy(child, deep)
     }
   }
   for (const [, talkback] of pairs(shallowCopy(talkbacks))) {

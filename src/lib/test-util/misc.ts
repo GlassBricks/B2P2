@@ -1,4 +1,4 @@
-import { AnyFunction, Classes, Func, SelflessFun } from "./references"
+import { AnyFunction, Classes, Func, SelflessFun } from "../references"
 
 export function getPlayer(): LuaPlayer {
   // noinspection LoopStatementThatDoesntLoopJS

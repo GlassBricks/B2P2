@@ -26,3 +26,19 @@ export interface ClassComponentSpec<T> {
 }
 
 export type Element = ElementSpec | FCSpec<any> | ClassComponentSpec<any>
+
+export type GuiEvent =
+  | OnGuiCheckedStateChangedEvent
+  | OnGuiClosedEvent
+  | OnGuiClickEvent
+  | OnGuiConfirmedEvent
+  | OnGuiElemChangedEvent
+  | OnGuiLocationChangedEvent
+  | OnGuiOpenedEvent
+  | OnGuiSelectedTabChangedEvent
+  | OnGuiSelectionStateChangedEvent
+  | OnGuiSwitchStateChangedEvent
+  | OnGuiTextChangedEvent
+  | OnGuiValueChangedEvent
+
+export type EventHandler<T extends GuiEvent = GuiEvent> = (event: T) => void

@@ -1,4 +1,4 @@
-import { asFunc } from "../testUtil"
+import { asFunc } from "../test-util/misc"
 import { Talkback } from "./callbag"
 import filter from "./filter"
 import forEach from "./forEach"

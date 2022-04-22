@@ -1,5 +1,5 @@
 import { PlayerData } from "./player-data"
-import { getPlayer } from "./testUtil"
+import { getPlayer } from "./test-util/misc"
 
 const TestPlayerDataName = "-- Test player data --"
 const TestData = PlayerData(TestPlayerDataName, () => 1)
