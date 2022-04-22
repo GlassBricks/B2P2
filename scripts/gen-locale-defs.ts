@@ -34,7 +34,7 @@ function toPascalCase(str: string): string {
 //   return result
 // }
 
-const source = path.join(__dirname, "../src/locale/en/en.cfg")
+const source = path.join(__dirname, "../mod/locale/en/en.cfg")
 const config: ConfigParser.default = new (ConfigParser as any)()
 config.read(source)
 

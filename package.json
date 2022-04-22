@@ -38,6 +38,8 @@
     "build:scripts": "concurrently \"yarn build:plugin\" \"yarn build:locale\" \"yarn build:gui-specs\"",
     "build": "yarn build:scripts && tstl",
     "watch": "tstl --watch",
-    "clean": "del-cli \"**/*.lua\" \"!**/*.def.lua\" \"!**/node_modules/**\""
+    "clean": "del-cli \"**/*.lua\" \"!**/*.def.lua\" \"!**/node_modules/**\"",
+    "remove-empty-dirs": "find ./mod -type d -empty -delete",
+    "deep-clean": "yarn clean && yarn remove-empty-dirs"
   }
 }

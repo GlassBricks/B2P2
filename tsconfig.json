@@ -15,7 +15,7 @@
     "strict": true,
     "experimentalDecorators": true,
     "rootDir": "src",
-    "outDir": "src",
+    "outDir": "mod",
     "resolveJsonModule": true,
     "jsx": "react",
     "jsxFactory": "FactorioJsx.createElement"
