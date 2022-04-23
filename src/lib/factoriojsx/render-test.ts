@@ -325,9 +325,9 @@ describe("Class component", () => {
   const results: unknown[] = []
 
   @Classes.register()
-  class Foo extends Component<{ cb: (element: GuiElementMembers) => void }> {
+  class Foo implements Component<{ cb: (element: GuiElementMembers) => void }> {
+    declare props: { cb: (element: GuiElementMembers) => void }
     constructor() {
-      super()
       results.push("constructed")
     }
 

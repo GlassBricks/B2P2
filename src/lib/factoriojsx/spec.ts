@@ -4,9 +4,9 @@ export * from "./element-specs"
 
 export type FunctionComponent<T> = (props: T) => Spec
 
-export abstract class Component<T> {
-  declare props: T
-  abstract render(): Spec
+export interface Component<T> {
+  props: T
+  render(): Spec
 }
 
 export interface ComponentClass<T> {
