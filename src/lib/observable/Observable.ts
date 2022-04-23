@@ -1,5 +1,12 @@
+export const ObservableBrand: unique symbol = Symbol("Observable")
+
 export interface Observable<T> {
+  [ObservableBrand]: true
   subscribe(observer: Observer<T>): Subscription
+}
+
+export function isObservable<T>(obj: unknown): obj is Observable<T> {
+  return typeof obj === "object" && (obj as any)[ObservableBrand] === true
 }
 
 export interface Observer<T> {
@@ -11,6 +18,7 @@ export interface Subscription {
   unsubscribe(): void
 }
 
+export type MaybeObservable<T> = T | Observable<T>
 export type Operator<T, R> = (source: Observable<T>) => Observable<R>
 
 export function pipe<T, R>(source: Observable<T>, operator: Operator<T, R>): Observable<R>

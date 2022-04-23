@@ -1,5 +1,5 @@
 import { Classes } from "../references"
-import { Observable, Observer, Subscription } from "./Observable"
+import { Observable, ObservableBrand, Observer, Subscription } from "./Observable"
 
 interface ObserverKey {
   _observerKeyBrand?: any
@@ -27,23 +27,15 @@ export class BroadcastingObservable<T> implements Observable<T> {
       observers.delete(key)
     }
   }
+  declare [ObservableBrand]: true
 }
+
+BroadcastingObservable.prototype[ObservableBrand] = true
 
 @Classes.register()
 class BroadcastingObservableSubscription implements Subscription {
   constructor(private observers: MutableLuaMap<ObserverKey, Observer<any>>, private key: ObserverKey) {}
   unsubscribe(): void {
     this.observers.delete(this.key)
-  }
-}
-
-@Classes.register()
-export class Event<T> extends BroadcastingObservable<T> {
-  public raise(value: T): void {
-    super.next(value)
-  }
-
-  public end(): void {
-    super.end()
   }
 }

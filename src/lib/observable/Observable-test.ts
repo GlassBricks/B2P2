@@ -1,8 +1,8 @@
-import { Event } from "./BroadcastingObservable"
-import { State } from "./State"
-import { ObservableSet, ObservableSetChange } from "./ObservableSet"
-import { ObservableMap, ObservableMapChange } from "./ObservableMap"
-import { ObservableArray, ObservableArrayChange } from "./ObservableArray"
+import { state, State } from "./State"
+import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
+import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
+import { MutableObservableArray, observableArray, ObservableArrayChange } from "./ObservableArray"
+import { Event } from "./Event"
 
 describe("Event", () => {
   let event: Event<string>
@@ -93,39 +93,39 @@ describe("Event", () => {
 })
 
 describe("State", () => {
-  let state: State<string>
+  let s: State<string>
   before_each(() => {
-    state = new State<string>("begin")
+    s = state("begin")
   })
 
   it("can be constructed with initial value", () => {
-    assert.equal(state.get(), "begin")
+    assert.equal(s.get(), "begin")
   })
 
   it("can be set", () => {
-    state.set("end")
-    assert.equal(state.get(), "end")
+    s.set("end")
+    assert.equal(s.get(), "end")
   })
 
   it("notifies subscribers of value upon subscription", () => {
     const fn = spy()
-    state.subscribe({ next: fn })
+    s.subscribe({ next: fn })
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, "begin")
   })
 
   it("notifies subscribers of value when value changed", () => {
     const fn = spy()
-    state.subscribe({ next: fn })
-    state.set("end")
+    s.subscribe({ next: fn })
+    s.set("end")
     assert.spy(fn).called_with(match._, "end")
   })
 })
 
 describe("ObservableSet", () => {
-  let set: ObservableSet<string>
+  let set: MutableObservableSet<string>
   before_each(() => {
-    set = new ObservableSet<string>()
+    set = observableSet<string>()
   })
 
   it("can be constructed", () => {
@@ -154,6 +154,16 @@ describe("ObservableSet", () => {
     set.add("a")
     set.add("b")
     assert.same(new LuaSet("a", "b"), set.value())
+  })
+
+  it("can be iterated", () => {
+    set.add("a")
+    set.add("b")
+    const values: string[] = []
+    for (const [value] of set) {
+      values.push(value)
+    }
+    assert.same(["a", "b"], values)
   })
 
   it("notifies subscribers of added items", () => {
@@ -199,9 +209,9 @@ describe("ObservableSet", () => {
 })
 
 describe("ObservableMap", () => {
-  let map: ObservableMap<string, number>
+  let map: MutableObservableMap<string, number>
   before_each(() => {
-    map = new ObservableMap<string, number>()
+    map = observableMap<string, number>()
   })
 
   it("can be constructed", () => {
@@ -236,6 +246,16 @@ describe("ObservableMap", () => {
       },
       map.value(),
     )
+  })
+
+  it("can be iterated", () => {
+    map.set("a", 1)
+    map.set("b", 2)
+    const values: Record<string, number> = {}
+    for (const [key, value] of map) {
+      values[key] = value
+    }
+    assert.same({ a: 1, b: 2 }, values)
   })
 
   it("notifies subscribers of added items", () => {
@@ -299,9 +319,9 @@ describe("ObservableMap", () => {
 })
 
 describe("ObservableArray", () => {
-  let array: ObservableArray<string>
+  let array: MutableObservableArray<string>
   before_each(() => {
-    array = new ObservableArray<string>()
+    array = observableArray<string>()
   })
 
   it("can be constructed", () => {

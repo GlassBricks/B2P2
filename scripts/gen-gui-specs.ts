@@ -482,7 +482,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   )
   createMembers("StyleMod", styleMods, () => [])
 
-  const header = `import { MaybeSinkSource, MaybeSource } from "../callbags"
+  const header = `import { MaybeState, MaybeObservable } from "../observable"
 import { Spec } from "./spec"
 
 `

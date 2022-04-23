@@ -1,7 +1,7 @@
-import { state, testSource } from "../callbags"
+// noinspection UnnecessaryLocalVariableJS
+
 import { Classes } from "../references"
-import { getPlayer } from "../test-util/misc"
-import { destroy, getInstance, render } from "./render"
+import { destroy } from "./render"
 import {
   ButtonElementSpec,
   ChooseElemButtonElementSpec,
@@ -12,35 +12,16 @@ import {
   SliderElementSpec,
   TextBoxElementSpec,
 } from "./spec"
-
-let parent: LuaGuiElement
-let element: GuiElementMembers | undefined
-before_each(() => {
-  parent = getPlayer().gui.screen
-  element = undefined
-})
-after_each(() => {
-  if (element) destroy(element)
-  element = undefined
-})
+import { state, TestObservable } from "../observable"
+import { testRender } from "../test-util/gui"
 
 describe("create", () => {
-  test("Creates gettable instance", () => {
-    const spec: FlowElementSpec = {
-      type: "flow",
-      direction: "vertical",
-    }
-    const el = render(parent, spec)
-    element = el.nativeElement
-    assert.equal(el, getInstance(element))
-  })
-
   test("Sets spec property", () => {
     const spec: FlowElementSpec = {
       type: "flow",
       direction: "vertical",
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.same("vertical", element.direction)
   })
 
@@ -50,7 +31,7 @@ describe("create", () => {
       elem_type: "item",
       locked: true,
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.is_true(element.locked)
   })
 
@@ -60,7 +41,7 @@ describe("create", () => {
       type: "flow",
       caption: v,
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.equal("one", element.caption)
     v.set("two")
     assert.equal("two", element.caption)
@@ -72,7 +53,7 @@ describe("create", () => {
       type: "slider",
       value_step: value,
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.equal(1, element.get_slider_value_step())
     value.set(2)
     assert.equal(2, element.get_slider_value_step())
@@ -85,7 +66,7 @@ describe("create", () => {
       minimum_value: value,
       maximum_value: 5,
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.equal(1, element.get_slider_minimum())
     assert.equal(5, element.get_slider_maximum())
     value.set(2)
@@ -100,7 +81,7 @@ describe("create", () => {
       minimum_value: 1,
       maximum_value: value,
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.equal(1, element.get_slider_minimum())
     assert.equal(5, element.get_slider_maximum())
     value.set(6)
@@ -115,7 +96,7 @@ describe("create", () => {
       direction: v as any,
     }
     assert.error(() => {
-      element = render(parent, spec).nativeElement
+      testRender(spec)
     })
   })
 
@@ -129,7 +110,7 @@ describe("create", () => {
         },
       ],
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.equal("button", element.children[0].type)
     assert.equal("hi", element.children[0].caption)
   })
@@ -148,7 +129,7 @@ describe("create", () => {
         },
       ],
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.equal("button", element.children[0].type)
     assert.equal("hi", element.children[0].caption)
     assert.equal("button", element.children[1].type)
@@ -164,7 +145,7 @@ describe("styleMod", () => {
         left_padding: 3,
       },
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.equals(3, element.style.left_padding)
   })
 
@@ -175,7 +156,7 @@ describe("styleMod", () => {
         padding: [3, 3],
       },
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.equals(3, element.style.left_padding)
   })
 
@@ -187,7 +168,7 @@ describe("styleMod", () => {
         padding: value,
       },
     }
-    element = render(parent, spec).nativeElement
+    const element = testRender(spec).native
     assert.equals(1, element.style.left_padding)
     value.set(2)
     assert.equals(2, element.style.left_padding)
@@ -200,50 +181,25 @@ describe("destroy", () => {
       type: "flow",
       direction: "vertical",
     }
-    const el = render(parent, spec)
-    element = el.nativeElement
-    destroy(el)
-    assert.is_false(el.valid)
-  })
-
-  test("calling destroy destroys native element", () => {
-    const spec: FlowElementSpec = {
-      type: "flow",
-      direction: "vertical",
-    }
-    const el = render(parent, spec)
-    element = el.nativeElement
-    destroy(el)
-    assert.is_false(element.valid)
-  })
-
-  test("can call destroy on native element", () => {
-    const spec: FlowElementSpec = {
-      type: "flow",
-      direction: "vertical",
-    }
-    const el = render(parent, spec)
-    element = el.nativeElement
+    const element = testRender(spec).native
     destroy(element)
     assert.is_false(element.valid)
-    assert.is_false(el.valid)
   })
 
   test("calling destroy ends subscriptions", () => {
-    const source = testSource<string>()
+    const source = new TestObservable("hi")
     const spec: FlowElementSpec = {
       type: "flow",
       caption: source,
     }
-    const el = render(parent, spec)
-    element = el.nativeElement
-    assert.is_false(source.ended)
-    destroy(el)
-    assert.is_true(source.ended)
+    const element = testRender(spec).native
+    assert.spy(source.unsubscribe).not_called()
+    destroy(element)
+    assert.spy(source.unsubscribe).called()
   })
 
   test("calling destroy ends child subscriptions", () => {
-    const source = testSource<string>()
+    const source = new TestObservable("hi")
     const spec: FlowElementSpec = {
       type: "flow",
       children: [
@@ -258,11 +214,11 @@ describe("destroy", () => {
         },
       ],
     }
-    const el = render(parent, spec)
-    element = el.nativeElement
-    assert.is_false(source.ended)
-    destroy(el)
-    assert.is_true(source.ended)
+    const element = testRender(spec).native
+
+    assert.spy(source.unsubscribe).not_called()
+    destroy(element)
+    assert.spy(source.unsubscribe).called()
   })
 })
 
@@ -273,8 +229,7 @@ test("events", () => {
     on_gui_click: func,
     on_gui_opened: func,
   }
-  const el = render(parent, spec)
-  element = el.nativeElement
+  const element = testRender(spec).native
 
   assert.spy(func).not_called()
 
@@ -308,8 +263,7 @@ test("state", () => {
     type: "text-box",
     text: val,
   }
-  const el = render(parent, spec)
-  element = el.nativeElement
+  const element = testRender(spec).native
 
   assert.same("one", val.get())
   assert.same("one", element.text)
@@ -338,8 +292,8 @@ test("onCreate", () => {
       element1 = e
     },
   }
-  const el = render(parent, spec)
-  element = el.nativeElement
+
+  const element = testRender(spec).native
   assert.equal(element1, element)
 })
 
@@ -361,8 +315,7 @@ test("function component", () => {
     type: Component,
     props: { cb },
   }
-  const el = render(parent, spec)
-  element = el.nativeElement
+  const element = testRender(spec).native
 
   assert.equal("flow", element.type)
   assert.same(["called", "flow"], results)
@@ -396,8 +349,7 @@ describe("Class component", () => {
       type: Foo,
       props: { cb },
     }
-    const el = render(parent, spec)
-    element = el.nativeElement
+    const element = testRender(spec).native
 
     assert.equal("flow", element.type)
     assert.same(["constructed", "called", "flow"], results)

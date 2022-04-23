@@ -1,8 +1,5 @@
-import { GuiEvent } from "../factoriojsx/spec"
-import { render } from "../factoriojsx/render"
-import { FactorioJsx } from "../factoriojsx"
+import { ElementSpec, GuiEvent, render, Spec } from "../factoriojsx"
 import { getPlayer } from "./misc"
-import JSX = FactorioJsx.JSX
 
 const ROOT_TAG = "test-root-element"
 
@@ -124,8 +121,10 @@ export class ElementWrapper<T extends GuiElementType> {
 
 // jsx
 
-export function testRender(spec: JSX.Element): ElementWrapper<GuiElementType> {
-  const nativeElement = render(getPlayer().gui.screen, spec).nativeElement
-  makeTestRoot(nativeElement)
-  return new ElementWrapper(nativeElement)
+export function testRender<T extends GuiElementType>(spec: ElementSpec & { type: T }): ElementWrapper<T>
+export function testRender(spec: Spec): ElementWrapper<GuiElementType>
+export function testRender(spec: Spec): ElementWrapper<GuiElementType> {
+  const element = render(getPlayer().gui.screen, spec)
+  makeTestRoot(element)
+  return new ElementWrapper(element)
 }
