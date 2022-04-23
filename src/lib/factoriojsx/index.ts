@@ -1,79 +1,15 @@
-/* eslint-disable @typescript-eslint/ban-types */
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+///<reference path="./jsx.d.ts" />
+
 import _createElement from "./createElement"
 import "./render"
-import {
-  ButtonElementSpec,
-  CameraElementSpec,
-  CheckboxElementSpec,
-  ChooseElemButtonElementSpec,
-  DropDownElementSpec,
-  ElementSpec,
-  EmptyWidgetElementSpec,
-  EntityPreviewElementSpec,
-  FlowElementSpec,
-  FrameElementSpec,
-  LabelElementSpec,
-  LineElementSpec,
-  ListBoxElementSpec,
-  MinimapElementSpec,
-  ProgressBarElementSpec,
-  RadioButtonElementSpec,
-  ScrollPaneElementSpec,
-  SliderElementSpec,
-  Spec,
-  SpecChildren,
-  SpriteButtonElementSpec,
-  SwitchElementSpec,
-  TabElementSpec,
-  TextBoxElementSpec,
-  TextFieldElementSpec,
-} from "./spec"
 
 export * from "./spec"
 export * from "./render"
 
 export namespace FactorioJsx {
-  type IntrinsicElement<T extends ElementSpec> = Omit<T, "type" | "children"> & {
-    children?: SpecChildren
-  }
   export const createElement = _createElement
   export const Fragment = "fragment"
-  export namespace JSX {
-    export type Element = Spec
-
-    export interface ElementAttributesProperty {
-      props: {}
-    }
-    export interface ElementChildrenAttribute {
-      children: {}
-    }
-
-    export interface IntrinsicElements {
-      "choose-elem-button": IntrinsicElement<ChooseElemButtonElementSpec>
-      "drop-down": IntrinsicElement<DropDownElementSpec>
-      "empty-widget": IntrinsicElement<EmptyWidgetElementSpec>
-      "entity-preview": IntrinsicElement<EntityPreviewElementSpec>
-      "list-box": IntrinsicElement<ListBoxElementSpec>
-      "scroll-pane": IntrinsicElement<ScrollPaneElementSpec>
-      "sprite-button": IntrinsicElement<SpriteButtonElementSpec>
-      "tabbed-pane": IntrinsicElement<TextBoxElementSpec>
-      "text-box": IntrinsicElement<TextBoxElementSpec>
-      button: IntrinsicElement<ButtonElementSpec>
-      camera: IntrinsicElement<CameraElementSpec>
-      checkbox: IntrinsicElement<CheckboxElementSpec>
-      flow: IntrinsicElement<FlowElementSpec>
-      frame: IntrinsicElement<FrameElementSpec>
-      label: IntrinsicElement<LabelElementSpec>
-      line: IntrinsicElement<LineElementSpec>
-      minimap: IntrinsicElement<MinimapElementSpec>
-      progressbar: IntrinsicElement<ProgressBarElementSpec>
-      radiobutton: IntrinsicElement<RadioButtonElementSpec>
-      slider: IntrinsicElement<SliderElementSpec>
-      sprite: IntrinsicElement<SpriteButtonElementSpec>
-      switch: IntrinsicElement<SwitchElementSpec>
-      tab: IntrinsicElement<TabElementSpec>
-      table: IntrinsicElement<TabElementSpec>
-      textfield: IntrinsicElement<TextFieldElementSpec>
-    }
-  }
 }
+
+export type Props<T extends GuiElementType> = JSX.IntrinsicElements[T]

@@ -1,5 +1,6 @@
 import { ClickEventHandler, destroy, FactorioJsx, Spec } from "../factoriojsx"
 import { Functions } from "../references"
+import { MaybeObservable } from "../observable"
 
 const autoOnClose: ClickEventHandler = (e) => {
   const parent = e.element.parent!.parent
@@ -7,7 +8,11 @@ const autoOnClose: ClickEventHandler = (e) => {
 }
 Functions.registerAll({ autoOnClose })
 
-export function TitleBar(props: { title: LocalisedString; onClose?: ClickEventHandler; closesParent?: boolean }): Spec {
+export function TitleBar(props: {
+  title: MaybeObservable<LocalisedString>
+  onClose?: ClickEventHandler
+  closesParent?: boolean
+}): Spec {
   if (props.closesParent && !props.onClose) {
     props.onClose = autoOnClose
   }

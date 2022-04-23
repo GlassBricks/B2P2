@@ -14,6 +14,7 @@ import {
 } from "./spec"
 import { state, TestObservable } from "../observable"
 import { testRender } from "../test-util/gui"
+import { asFunc } from "../test-util/misc"
 
 describe("create", () => {
   test("Sets spec property", () => {
@@ -223,11 +224,11 @@ describe("destroy", () => {
 })
 
 test("events", () => {
-  const func = spy<(this: any) => void>()
+  const func = spy()
   const spec: ButtonElementSpec = {
     type: "button",
-    on_gui_click: func,
-    on_gui_opened: func,
+    on_gui_click: asFunc(func),
+    on_gui_opened: asFunc(func),
   }
   const element = testRender(spec).native
 
@@ -325,7 +326,7 @@ describe("Class component", () => {
   const results: unknown[] = []
 
   @Classes.register()
-  class Foo implements Component<{ cb: (element: GuiElementMembers) => void }> {
+  class Foo implements Component {
     declare props: { cb: (element: GuiElementMembers) => void }
     constructor() {
       results.push("constructed")

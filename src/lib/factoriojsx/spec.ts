@@ -4,15 +4,15 @@ export * from "./element-specs"
 
 export type FunctionComponent<T> = (props: T) => Spec
 
-export interface Component<T> {
-  props: T
+export interface Component {
+  props: unknown
   render(): Spec
 }
 
 export interface ComponentClass<T> {
   name: string
-  prototype: Component<T>
-  new (): Component<T>
+  prototype: Component
+  new (): Component & { props: T }
 }
 
 export interface FCSpec<T> {

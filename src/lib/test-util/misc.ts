@@ -8,7 +8,9 @@ export function getPlayer(): LuaPlayer {
   error("Could not find any player")
 }
 
-export function asFunc<F extends AnyFunction>(func: F): Func<F> {
+export function asFunc<F extends (this: void, ...args: any) => any>(
+  func: F,
+): Func<(this: unknown, ...args: any) => any> {
   return new AsFunc(func) as any
 }
 
@@ -19,7 +21,7 @@ class AsFunc<F extends AnyFunction> {
     this.func = func as any
   }
 
-  protected __call(...args: any[]) {
+  protected __call(thisArg: unknown, ...args: any[]) {
     return this.func(...args)
   }
 }

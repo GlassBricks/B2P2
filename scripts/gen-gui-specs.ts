@@ -243,7 +243,7 @@ const stateProps = {} as Record<GuiElementType, Record<string, string>>
     for (const [name, attr] of Object.entries(element)) {
       const specAttr = spec[name]
       const typeName =
-        type !== "base" && stateProps[type][name] ? `MaybeSinkSource<${attr.type}>` : `MaybeSource<${attr.type}>`
+        type !== "base" && stateProps[type][name] ? `MaybeState<${attr.type}>` : `MaybeObservable<${attr.type}>`
       merge(name, {
         name,
         type: typeName,
@@ -260,7 +260,7 @@ const stateProps = {} as Record<GuiElementType, Record<string, string>>
     for (const [name, attr] of Object.entries(style)) {
       styleResult[name] = {
         name,
-        type: `MaybeSource<${attr.type}>`,
+        type: `MaybeObservable<${attr.type}>`,
         optional: true,
       }
     }

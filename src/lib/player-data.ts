@@ -3,7 +3,7 @@ import { checkCanModifyGameState, checkIsBeforeLoad } from "./setup"
 
 export interface PlayerData<T> {
   readonly name: string
-  readonly table: Record<number, T>
+  readonly table: Record<PlayerIndex, T>
   [playerIndex: PlayerIndex]: T
 }
 
@@ -43,7 +43,7 @@ const notLoadedMetatable: LuaMetatable<PlayerData<any>, (this: PlayerData<any>, 
       __index: table,
       __newindex: table,
     })
-    this.table[key] = value
+    this.table[key as PlayerIndex] = value
   },
 }
 

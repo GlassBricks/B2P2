@@ -1,11 +1,12 @@
-import { FactorioJsx, Spec, SpecChildren } from "../factoriojsx"
+import { FactorioJsx, Props, Spec } from "../factoriojsx"
 import { TitleBar } from "./TitleBar"
+import { MaybeObservable } from "../observable"
 
-export function SimpleWindowFrame(props: {
-  title: LocalisedString
-  children: SpecChildren
-  auto_center?: boolean
-}): Spec {
+export function SimpleWindowFrame(
+  props: Props<"frame"> & {
+    title: MaybeObservable<LocalisedString>
+  },
+): Spec {
   return (
     <frame auto_center={props.auto_center} direction="vertical">
       <TitleBar title={props.title} closesParent />

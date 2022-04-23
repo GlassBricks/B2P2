@@ -49,7 +49,7 @@ describe("classes", () => {
 })
 
 describe("functions", () => {
-  function func(this: unknown, arg: any) {
+  function func(arg: any) {
     return arg
   }
   Functions.register("test func 1")(func)

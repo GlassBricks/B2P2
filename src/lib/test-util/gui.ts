@@ -1,4 +1,4 @@
-import { ElementSpec, GuiEvent, render, Spec } from "../factoriojsx"
+import { cleanGuiInstances, destroy, ElementSpec, GuiEvent, render, Spec } from "../factoriojsx"
 import { getPlayer } from "./misc"
 
 const ROOT_TAG = "test-root-element"
@@ -13,7 +13,11 @@ export function makeTestRoot(element: BaseGuiElement): void {
     [ROOT_TAG]: true,
   }
   after_test(() => {
-    if (element.valid) element.destroy()
+    destroy(element)
+    const count = cleanGuiInstances()
+    if (count > 0) {
+      error(`${count} GUI instances were not cleaned up`)
+    }
   })
 }
 
@@ -48,11 +52,35 @@ export function findElement(
   }
 }
 
-export function findWithType(parent: LuaGuiElement, type: GuiElementType): LuaGuiElement {
+export function findAllElements(
+  element: LuaGuiElement,
+  predicate: (element: LuaGuiElement) => boolean,
+  result: LuaGuiElement[] = [],
+): LuaGuiElement[] {
+  if (predicate(element)) {
+    result.push(element)
+  }
+  for (const child of element.children) {
+    findAllElements(child, predicate, result)
+  }
+  return result
+}
+
+export function findWithType<T extends GuiElementType>(
+  parent: LuaGuiElement,
+  type: T,
+): Extract<LuaGuiElement, { type: T }> {
   return (
-    findElement(parent, (element) => element.type === type) ??
+    (findElement(parent, (element) => element.type === type) as any) ??
     error(`Could not find element of type "${type}" in ${getDescription(parent)}`)
   )
+}
+
+export function findAllWithType<T extends GuiElementType>(
+  parent: LuaGuiElement,
+  type: T,
+): Extract<LuaGuiElement, { type: T }>[] {
+  return findAllElements(parent, (element) => element.type === type) as any
 }
 
 export function simulateEvent<T extends GuiEvent>(
@@ -68,7 +96,7 @@ export function simulateEvent<T extends GuiEvent>(
 }
 
 // fluent API of above
-export class ElementWrapper<T extends GuiElementType> {
+export class ElementWrapper<T extends GuiElementType = GuiElementType> {
   constructor(public readonly native: Extract<LuaGuiElement, { type: T }>) {}
 
   simulateEvent<T extends GuiEvent>(event: Omit<T, "element" | "tick" | "player_index">): void {
@@ -92,14 +120,22 @@ export class ElementWrapper<T extends GuiElementType> {
     })
   }
 
-  find(type: GuiElementType): ElementWrapper<GuiElementType> {
+  find<T extends GuiElementType>(type: T): ElementWrapper<T> {
     return new ElementWrapper(findWithType(this.native, type))
   }
 
-  findSatisfying(predicate: (element: LuaGuiElement) => boolean): ElementWrapper<GuiElementType> {
+  findAll<T extends GuiElementType>(type: T): ElementWrapper<T>[] {
+    return findAllWithType(this.native, type).map((element) => new ElementWrapper(element))
+  }
+
+  findSatisfying(predicate: (element: LuaGuiElement) => boolean): ElementWrapper {
     return new ElementWrapper(
       findElement(this.native, predicate) ?? error(`Could not find element satisfying predicate`),
     )
+  }
+
+  findAllSatisfying(predicate: (element: LuaGuiElement) => boolean): ElementWrapper[] {
+    return findAllElements(this.native, predicate).map((element) => new ElementWrapper(element))
   }
 
   isRoot(): boolean {
