@@ -18,7 +18,8 @@
     "outDir": "mod",
     "resolveJsonModule": true,
     "jsx": "react",
-    "jsxFactory": "FactorioJsx.createElement"
+    "jsxFactory": "FactorioJsx.createElement",
+    "jsxFragmentFactory": "FactorioJsx.Fragment"
   },
   "tstl": {
     "luaTarget": "5.2",

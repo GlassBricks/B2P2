@@ -25,7 +25,13 @@ export interface ClassComponentSpec<T> {
   props: T
 }
 
+export interface FragmentSpec {
+  type: "fragment"
+  children?: Spec[]
+}
+
 export type Spec = ElementSpec | FCSpec<any> | ClassComponentSpec<any>
+export type FullSpec = Spec | FragmentSpec
 export type SpecChildren = Spec | false | undefined | Array<Spec | false | undefined>
 
 export type GuiEvent =

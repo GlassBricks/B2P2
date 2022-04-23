@@ -37,6 +37,7 @@ export namespace FactorioJsx {
     children?: SpecChildren
   }
   export const createElement = _createElement
+  export const Fragment = "fragment"
   export namespace JSX {
     export type Element = Spec
 

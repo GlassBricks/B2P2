@@ -4,7 +4,7 @@ import { PlayerData } from "../player-data"
 import { bind, callWithoutSelf, Func, funcRef, Functions, isCallable } from "../references"
 import { PRecord } from "../util-types"
 import * as propTypes from "./propTypes.json"
-import { ClassComponentSpec, ElementSpec, FCSpec, GuiEvent, GuiEventHandler, Spec } from "./spec"
+import { ClassComponentSpec, ElementSpec, FCSpec, FragmentSpec, GuiEvent, GuiEventHandler, Spec } from "./spec"
 import { isObservable, Observer, State, Subscription } from "../observable"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
@@ -114,7 +114,7 @@ function renderInternal(parent: LuaGuiElement, element: Spec): ElementInstance {
   const elemType = element.type
   const elemTypeType = type(elemType)
   if (elemTypeType === "string") {
-    return renderElement(parent, element as ElementSpec)
+    return renderElement(parent, element as ElementSpec | FragmentSpec)
   }
   if (elemTypeType === "table") {
     return renderClassComponent(parent, element as ClassComponentSpec<any>)
@@ -125,7 +125,11 @@ function renderInternal(parent: LuaGuiElement, element: Spec): ElementInstance {
   error("Unknown element spec: " + serpent.block(element))
 }
 
-function renderElement(parent: LuaGuiElement, spec: ElementSpec): ElementInstance {
+function renderElement(parent: LuaGuiElement, spec: ElementSpec | FragmentSpec): ElementInstance {
+  if (spec.type === "fragment") {
+    error("Cannot render fragments directly. Try wrapping them in another element.")
+  }
+
   const guiSpec: Record<string, any> = {}
   const elemProps = new LuaTable<string | [string], unknown>()
   const events: ElementInstance["events"] = {}
@@ -267,22 +271,18 @@ export function render(parent: LuaGuiElement, element: Spec): LuaGuiElement {
   return renderInternal(parent, element).nativeElement as LuaGuiElement
 }
 
-function destroyPlainElement(element: BaseGuiElement, deep: boolean | undefined) {
-  if (deep) {
-    for (const child of (element as LuaGuiElement).children) {
-      destroy(child, deep)
-    }
-  }
-  ;(element as LuaGuiElement).destroy()
-}
-
-export function destroy(element: ElementInstance | BaseGuiElement | undefined, deep?: boolean): void {
+export function destroy(element: ElementInstance | BaseGuiElement | undefined, destroyElements = true): void {
   if (!element || !element.valid) return
   if (rawget(element as any, "__self")) {
     // is lua gui element
     const instance = getInstance(element as LuaGuiElement)
     if (!instance) {
-      destroyPlainElement(element as BaseGuiElement, deep)
+      for (const child of (element as LuaGuiElement).children) {
+        destroy(child, false)
+      }
+      if (destroyElements) {
+        ;(element as LuaGuiElement).destroy()
+      }
       return
     }
     element = instance
@@ -292,17 +292,19 @@ export function destroy(element: ElementInstance | BaseGuiElement | undefined, d
   const { nativeElement, subscriptions, children, playerIndex, index } = internalInstance
   if (children) {
     for (const child of children) {
-      destroy(child, deep)
+      destroy(child, false)
     }
-  } else if (deep) {
+  } else {
     for (const child of nativeElement.children) {
-      destroy(child, deep)
+      destroy(child, false)
     }
   }
   for (const [, subscription] of pairs(shallowCopy(subscriptions))) {
     subscription.unsubscribe()
   }
-  if (nativeElement.valid) nativeElement.destroy()
+  if (destroyElements && nativeElement.valid) {
+    nativeElement.destroy()
+  }
   Elements[playerIndex][index] = undefined!
 }
 

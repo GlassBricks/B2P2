@@ -1,52 +1,63 @@
-import { BaseElementSpec, ComponentClass, ElementSpec, FunctionComponent, Spec } from "./spec"
+import { BaseElementSpec, ComponentClass, ElementSpec, FullSpec, FunctionComponent, Spec } from "./spec"
 
 const _select = select
 
 function flattenChildren(
-  ...children:
-    | Array<false | undefined | ElementSpec>
-    | [ElementSpec | false | undefined | Array<ElementSpec | undefined>]
-): ElementSpec[] | undefined {
+  ...children: Array<false | undefined | FullSpec> | [Array<false | undefined | FullSpec>]
+): Spec[] | undefined {
   let childrenLen = _select("#", ...children)
   if (childrenLen === 0) return undefined
-  let childArray: any[]
+  let childArray: (false | FullSpec | undefined)[]
   if (childrenLen === 1) {
-    // either single element, or single array
+    // optimize for the common case
     const [child] = children
     if (!child) return undefined
-    if (Array.isArray(child)) {
-      childArray = child
-      const n = (childArray as any).n
-      childrenLen = typeof n === "number" ? n : childArray.length
-    } else {
+    if (!Array.isArray(child)) {
+      if (child.type === "fragment") return child.children
       return [child]
     }
+    childArray = child
+    const n = (childArray as any).n
+    childrenLen = typeof n === "number" ? n : childArray.length
   } else {
-    childArray = [...children]
+    childArray = [...children] as any
   }
 
-  const result: ElementSpec[] = []
-  let len = 1
+  const result: Spec[] = []
   for (const i of $range(1, childrenLen)) {
     const child = childArray[i - 1]
     if (child) {
-      result[len - 1] = child
-      len++
+      if (child.type === "fragment") {
+        if (child.children) {
+          result.push(...child.children)
+        }
+      } else {
+        result.push(child)
+      }
     }
   }
   return result
 }
 
-function flattenChildrenToProp(
-  ...children: Array<false | undefined | ElementSpec | Array<false | undefined | ElementSpec>>
-): unknown {
+function flattenChildrenToProp(...children: Array<false | undefined | FullSpec>): unknown {
   const childrenLen = _select("#", ...children)
-  if (childrenLen <= 1) {
+  if (childrenLen === 0) return undefined
+  if (childrenLen === 1) {
     const [child] = children
+    if (child && child.type === "fragment") return child.children ?? []
     return child
   }
-  const result = [...children] as any
-  result.n = childrenLen
+  const result: unknown[] = []
+  for (const i of $range(1, childrenLen)) {
+    const child = children[i - 1]
+    if (child && child.type === "fragment") {
+      if (child.children) {
+        result.push(...child.children)
+      }
+    } else {
+      result.push(child)
+    }
+  }
   return result
 }
 
