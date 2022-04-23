@@ -21,7 +21,7 @@ import {
   ScrollPaneElementSpec,
   SliderElementSpec,
   Spec,
-  Spec as _Element,
+  SpecChildren,
   SpriteButtonElementSpec,
   SwitchElementSpec,
   TabElementSpec,
@@ -34,11 +34,11 @@ export * from "./render"
 
 export namespace FactorioJsx {
   type IntrinsicElement<T extends ElementSpec> = Omit<T, "type" | "children"> & {
-    children?: false | Spec | (false | Spec | ElementSpec[])[]
+    children?: SpecChildren
   }
   export const createElement = _createElement
   export namespace JSX {
-    export type Element = _Element
+    export type Element = Spec
 
     export interface ElementAttributesProperty {
       props: {}

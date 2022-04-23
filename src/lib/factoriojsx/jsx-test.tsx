@@ -1,5 +1,5 @@
 import { Classes } from "../references"
-import { FactorioJsx } from "./index"
+import { FactorioJsx, SpecChildren } from "./index"
 import { Component, Spec } from "./spec"
 
 describe("Create simple", () => {
@@ -51,10 +51,25 @@ describe("Create simple", () => {
 
   test("basic element with undefined children", () => {
     const el = <flow>{undefined}</flow>
-    assert.same({ type: "flow", children: [] }, el)
+    assert.same({ type: "flow" }, el)
   })
 
-  function Foo(props: { me?: string; children?: Spec }) {
+  test("basic element with array children", () => {
+    const array = [<flow name="bob" />, <flow name="joe" />]
+    const el = <flow>{array}</flow>
+    assert.same(
+      {
+        type: "flow",
+        children: [
+          { type: "flow", name: "bob" },
+          { type: "flow", name: "joe" },
+        ],
+      },
+      el,
+    )
+  })
+
+  function Foo(props: { me?: string; children?: SpecChildren }) {
     return <flow caption={props.me}>{props.children}</flow>
   }
 
@@ -78,15 +93,44 @@ describe("Create simple", () => {
       {
         type: Foo,
         props: {
-          children: [{ type: "flow", name: "bob" }],
+          children: { type: "flow", name: "bob" },
         },
       },
       el,
     )
   })
 
+  test("Function component with multiple children", () => {
+    const el = (
+      <Foo>
+        <flow name="bob" />
+        <flow name="joe" />
+      </Foo>
+    )
+    assert.same(
+      {
+        type: Foo,
+        props: {
+          children: Object.assign(
+            [
+              { type: "flow", name: "bob" },
+              { type: "flow", name: "joe" },
+            ],
+            { n: 2 },
+          ),
+        },
+      },
+      el,
+    )
+  })
+
+  test("Function component with undefined children", () => {
+    const el = <Foo>{undefined}</Foo>
+    assert.same({ type: Foo, props: { children: undefined } }, el)
+  })
+
   @Classes.register()
-  class FooClass extends Component<{ me?: string; children?: Spec }> {
+  class FooClass extends Component<{ me?: string; children?: SpecChildren }> {
     render(): Spec {
       return <flow caption={this.props.me}>{this.props.children}</flow>
     }
@@ -112,10 +156,39 @@ describe("Create simple", () => {
       {
         type: FooClass,
         props: {
-          children: [{ type: "flow", name: "bob" }],
+          children: { type: "flow", name: "bob" },
         },
       },
       el,
     )
+  })
+
+  test("Class component with multiple children", () => {
+    const el = (
+      <FooClass>
+        <flow name="bob" />
+        <flow name="joe" />
+      </FooClass>
+    )
+    assert.same(
+      {
+        type: FooClass,
+        props: {
+          children: Object.assign(
+            [
+              { type: "flow", name: "bob" },
+              { type: "flow", name: "joe" },
+            ],
+            { n: 2 },
+          ),
+        },
+      },
+      el,
+    )
+  })
+
+  test("Class component with undefined children", () => {
+    const el = <FooClass>{undefined}</FooClass>
+    assert.same({ type: FooClass, props: { children: undefined } }, el)
   })
 })

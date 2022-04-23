@@ -26,6 +26,7 @@ export interface ClassComponentSpec<T> {
 }
 
 export type Spec = ElementSpec | FCSpec<any> | ClassComponentSpec<any>
+export type SpecChildren = Spec | false | undefined | Array<Spec | false | undefined>
 
 export type GuiEvent =
   | OnGuiCheckedStateChangedEvent
