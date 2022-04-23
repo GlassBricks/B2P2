@@ -1,5 +1,6 @@
-// import "./lib"
 import { Events } from "./lib"
+import "./assembly"
+import "./gui"
 
 declare function __getTestFiles(): string[]
 
