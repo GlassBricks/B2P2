@@ -2,7 +2,7 @@ import { shallowCopy } from "../util"
 import { CallbagMsg, SinkSource, Source, Talkback } from "../callbags"
 import Events from "../Events"
 import { PlayerData } from "../player-data"
-import { bind, Func, funcRef, Functions, isCallable } from "../references"
+import { bind, callWithoutSelf, Func, funcRef, Functions, isCallable } from "../references"
 import { PRecord } from "../util-types"
 import * as propTypes from "./propTypes.json"
 import { ClassComponentSpec, ElementSpec, FCSpec, GuiEvent, GuiEventHandler, Spec } from "./spec"
@@ -20,7 +20,7 @@ interface ElementInstanceInternal extends ElementInstance<any> {
   readonly talkbacks: Record<string, Talkback>
   children?: ElementInstanceInternal[]
   valid: boolean
-  events: PRecord<GuiEventName, Func<GuiEventHandler>>
+  events: PRecord<GuiEventName, Func<any>>
 }
 
 // sinks
@@ -146,7 +146,7 @@ function renderElement<T extends GuiElementType>(
     if (typeof value === "function") value = funcRef(value) as any
     if (propProperties === "event") {
       if (!isCallable(value)) error("Gui event handlers must be a function")
-      events[key as GuiEventName] = value as GuiEventHandler
+      events[key as GuiEventName] = value as unknown as GuiEventHandler
       continue
     }
     const isSpecProp = propProperties[0]
@@ -277,10 +277,6 @@ export function destroy(element: ElementInstance<any> | GuiElementMembers | unde
   if (nativeElement.valid) nativeElement.destroy()
   Elements[playerIndex][index] = undefined!
 }
-export function destroyIn(element: LuaGuiElement, name: string): void {
-  const el = element[name]
-  if (el) destroy(el)
-}
 
 export function getInstance<T extends GuiElementType>(
   element: GuiElementMembers & { type: T },
@@ -311,6 +307,9 @@ for (const [name] of pairs(guiEventNames)) {
   Events.on(id, (e) => {
     const element = e.element
     if (!element) return
-    ;(_getInstance(element) as ElementInstanceInternal)?.events[name]?.(e)
+    const instance = _getInstance(element) as ElementInstanceInternal | undefined
+    if (!instance) return
+    const event = instance.events[name]
+    if (event) callWithoutSelf(event, e)
   })
 }

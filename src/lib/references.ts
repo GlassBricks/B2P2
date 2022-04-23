@@ -138,7 +138,23 @@ export type AnyFunction = Function
 export type ContextualFun = (this: any, ...args: any) => any
 export type SelflessFun = (this: void, ...args: any) => any
 
-export type Func<F extends AnyFunction> = F & { constructor: unknown }
+export type Func<F extends AnyFunction> = F & {
+  constructor: unknown
+}
+
+export interface FuncClass {
+  callWithoutSelf(...args: unknown[]): any
+}
+
+export function callWithoutSelf<A extends any[], R>(func: (...args: A) => R, ...args: A): R {
+  if (typeof func === "object") {
+    const callWithoutSelf = (func as FuncClass).callWithoutSelf
+    if (callWithoutSelf) {
+      return callWithoutSelf.call(func, ...args)
+    }
+  }
+  return func(...args)
+}
 
 export type FuncName = string & { _funcNameBrand: any }
 
@@ -171,7 +187,7 @@ export function isCallable(obj: unknown): boolean {
 }
 
 @Classes.register()
-class RegisteredFunc {
+class RegisteredFunc implements FuncClass {
   private readonly funcName: FuncName
   private func?: SelflessFun
 
@@ -184,7 +200,14 @@ class RegisteredFunc {
     Functions.get(this.funcName)
   }
 
-  protected __call(...args: any[]) {
+  __call(...args: any[]) {
+    if (!this.func) {
+      this.func = Functions.get(this.funcName)
+    }
+    return this.func(...args)
+  }
+
+  callWithoutSelf(...args: unknown[]): unknown {
     if (!this.func) {
       this.func = Functions.get(this.funcName)
     }
@@ -198,7 +221,7 @@ export function funcRef<F extends AnyFunction>(func: F): Func<F> {
 }
 
 @Classes.register()
-class BoundFunc {
+class BoundFunc implements FuncClass {
   private readonly funcName: FuncName
   private func?: ContextualFun
 
@@ -217,6 +240,13 @@ class BoundFunc {
     }
     return this.func.call(this.thisValue, ...args)
   }
+
+  callWithoutSelf(...args: unknown[]): unknown {
+    if (!this.func) {
+      this.func = Functions.get(this.funcName)
+    }
+    return this.func.call(this.thisValue, ...args)
+  }
 }
 
 /** Requires function to be registered first. */
@@ -225,10 +255,14 @@ export function bind<T, F extends (this: T, ...args: any) => any>(func: F, thisV
 }
 
 @Classes.register()
-class InstanceFunc {
+class InstanceFunc implements FuncClass {
   constructor(private readonly instance: Record<keyof any, ContextualFun>, private readonly key: keyof any) {}
 
   __call(thisArg: unknown, ...args: unknown[]) {
+    return this.instance[this.key](...args)
+  }
+
+  callWithoutSelf(...args: unknown[]): unknown {
     return this.instance[this.key](...args)
   }
 }
@@ -238,10 +272,16 @@ export function funcOn<T extends Record<K, ContextualFun>, K extends keyof T>(ob
 }
 
 @Classes.register()
-class BoundPrototypeFunc {
+class BoundPrototypeFunc implements FuncClass {
   constructor(private readonly instance: Record<keyof any, ContextualFun>, private readonly key: keyof any) {}
 
   __call(thisArg: unknown, ...args: unknown[]) {
+    const instance = this.instance
+    const prototype = getmetatable(instance)!.__index as Record<keyof any, ContextualFun>
+    return prototype[this.key].call(instance, ...args)
+  }
+
+  callWithoutSelf(...args: unknown[]): unknown {
     const instance = this.instance
     const prototype = getmetatable(instance)!.__index as Record<keyof any, ContextualFun>
     return prototype[this.key].call(instance, ...args)

@@ -1,6 +1,6 @@
 import { state, testSource } from "../callbags"
 import { Classes } from "../references"
-import { asFunc, getPlayer } from "../test-util/misc"
+import { getPlayer } from "../test-util/misc"
 import { destroy, getInstance, render } from "./render"
 import {
   ButtonElementSpec,
@@ -267,19 +267,16 @@ describe("destroy", () => {
 })
 
 test("events", () => {
-  const actions: unknown[] = []
-  const func = function (this: unknown, e: unknown) {
-    actions.push(e)
-  }
+  const func = spy<(this: any) => void>()
   const spec: ButtonElementSpec = {
     type: "button",
-    on_gui_click: asFunc(func),
-    on_gui_opened: asFunc(func),
+    on_gui_click: func,
+    on_gui_opened: func,
   }
   const el = render(parent, spec)
   element = el.nativeElement
 
-  assert.same([], actions)
+  assert.spy(func).not_called()
 
   const fakeClickEvent: OnGuiClickEvent = {
     element: element as LuaGuiElement,
@@ -292,7 +289,7 @@ test("events", () => {
     shift: false,
   }
   script.get_event_handler(defines.events.on_gui_click)(fakeClickEvent)
-  assert.same([fakeClickEvent], actions)
+  assert.spy(func).called_with(fakeClickEvent)
 
   const fakeOpenEvent: OnGuiOpenedEvent = {
     element: element as LuaGuiElement,
@@ -302,7 +299,7 @@ test("events", () => {
     gui_type: defines.gui_type.custom,
   }
   script.get_event_handler(defines.events.on_gui_opened)(fakeOpenEvent)
-  assert.same([fakeClickEvent, fakeOpenEvent], actions)
+  assert.spy(func).called_with(fakeOpenEvent)
 })
 
 test("state", () => {
