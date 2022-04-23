@@ -26,6 +26,9 @@ if (script.active_mods.testorio) {
       const force = game.forces.player
       force.enable_all_recipes()
     },
+    after_test_run() {
+      game.players[1]?.gui.screen["testorio:test-config"]?.bring_to_front()
+    },
     log_passed_tests: false,
   } as Testorio.Config)
 }
