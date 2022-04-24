@@ -16,3 +16,15 @@ export declare const enum L_Diagnostic {
   /** The import "__1__" is no longer valid. */
   InvalidImport = "bbpp.diagnostic.invalid-import",
 }
+export declare const enum L_Interaction {
+  /** An unexpected error occurred: __1__. Additional details outputted to log. Please report this to the mod author! */
+  UnexpectedError = "bbpp.interaction.unexpected-error",
+  /** Could not clear cursor */
+  CannotClearCursor = "bbpp.interaction.cannot-clear-cursor",
+  /** Select an area for the new assembly */
+  SelectAreaForAssembly = "bbpp.interaction.select-area-for-assembly",
+  /** New assembly created */
+  AssemblyCreated = "bbpp.interaction.assembly-created",
+  /** This area intersects with an existing assembly: __1__ */
+  IntersectsExistingAssembly = "bbpp.interaction.intersects-existing-assembly",
+}

@@ -11,6 +11,7 @@ import { BlueprintPasteConflicts, Overlap } from "../blueprint/blueprint-paste"
 import { assertNever } from "../lib/util"
 import { Entity, withEntityNumber } from "../entity/entity"
 import { Mutable } from "../lib/util-types"
+import { isUserError } from "../player-interaction/protected-action"
 
 let area: BoundingBoxClass
 let surface: LuaSurface
@@ -51,13 +52,19 @@ describe("lifecycle", () => {
       const assembly = Assembly.create("test", surface, area)
       assert.equal("test", assembly.name)
       assert.equal(surface, assembly.surface)
-      assert.equal(area, assembly.area)
+      assert.same(area, assembly.area)
       assert.is_true(assembly.isValid())
+    })
+
+    it("rounds tiles", () => {
+      const assembly = Assembly.create("test", surface, bbox.fromCorners(0.5, 0.5, 1.5, 1.5))
+      assert.same(bbox.fromCorners(0, 0, 2, 2), assembly.area)
     })
 
     it("errors if intersects with existing assembly", () => {
       Assembly.create("test1", surface, area)
-      assert.error(() => Assembly.create("test2", surface, area))
+      const error = assert.error(() => Assembly.create("test2", surface, area))
+      assert.truthy(isUserError(error))
     })
 
     it("shows up in getAllAssemblies", () => {

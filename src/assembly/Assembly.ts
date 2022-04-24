@@ -11,6 +11,9 @@ import {
   findBlueprintPasteConflictsAndUpdate,
   findBlueprintPasteConflictsInWorld,
 } from "../blueprint/blueprint-paste"
+import { MutableObservableSet, observableSet, ObservableSet } from "../lib/observable/ObservableSet"
+import { userError } from "../player-interaction/protected-action"
+import { L_Interaction } from "../locale"
 
 interface InternalAssemblyImport {
   readonly content: Import
@@ -35,6 +38,7 @@ export class Assembly {
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
+    area = bbox.roundTile(area)
     assert(surface.valid)
     Assembly.checkDoesNotIntersectExistingArea(surface, area)
 
@@ -45,7 +49,7 @@ export class Assembly {
   private static checkDoesNotIntersectExistingArea(surface: LuaSurface, area: BoundingBoxRead) {
     const assembly = Assembly.findAssemblyInArea(surface, area)
     if (assembly) {
-      error(`This intersects with an existing assembly: ${assembly.name}`)
+      userError([L_Interaction.IntersectsExistingAssembly, assembly.name])
     }
   }
   private static findAssemblyInArea(surface: LuaSurface, area: BoundingBoxRead): Assembly | undefined {
