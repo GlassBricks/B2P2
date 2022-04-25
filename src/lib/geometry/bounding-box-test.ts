@@ -129,6 +129,14 @@ test("intersect", () => {
   assert.same({ x: 3, y: 4 }, box3.right_bottom)
 })
 
+test("equals", () => {
+  const box = bbox({ x: 1, y: 2 }, { x: 3, y: 4 })
+  const box2 = bbox({ x: 1, y: 2 }, { x: 3, y: 4 })
+  const box3 = bbox({ x: 1, y: 2 }, { x: 3, y: 5 })
+  assert.true(box.equals(box2))
+  assert.false(box.equals(box3))
+})
+
 test("isCenteredSquare", () => {
   const box = bbox({ x: 2, y: 3 }, { x: -2, y: -3 })
   assert.is_false(box.isCenteredSquare())

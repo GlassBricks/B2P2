@@ -12,6 +12,8 @@ before_all(deleteAssemblies)
 after_all(deleteAssemblies)
 
 test("create", () => {
+  assert.true(Assembly.getAllAssemblies().size() === 0)
+
   const player = getPlayer()
   assert.true(startAssemblyCreation(player))
 
@@ -28,7 +30,7 @@ test("create", () => {
 
   const assembly = Assembly.getAllAssemblies().value().first()!
   assert.not_nil(assembly, "assembly created")
-  assert.equal("Unnamed", assembly.name)
+  assert.equal("Unnamed", assembly.getName())
   assert.equal(player.surface, assembly.surface)
   assert.same(bbox.fromCorners(0, 0, 1, 1), assembly.area)
 })

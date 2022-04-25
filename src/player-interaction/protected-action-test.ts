@@ -1,5 +1,5 @@
 import { getPlayer } from "../lib/test-util/misc"
-import { protectedAction, userError } from "./protected-action"
+import { protectedAction, UserError } from "./protected-action"
 import { L_Interaction } from "../locale"
 
 test("Protected action with no error", () => {
@@ -12,9 +12,22 @@ test("Protected action with user error", () => {
   const player = getPlayer()
   rawset(player, "print", player.print)
   const print = stub(player, "print")
-  const result = protectedAction(player, () => userError("test"))
+  const result = protectedAction(player, () => {
+    throw new UserError("test", "print")
+  })
   assert.is_nil(result)
   assert.spy(print).called_with("test")
+})
+
+test("Protected action with user error using flying text", () => {
+  const player = getPlayer()
+  rawset(player, "create_local_flying_text", player.create_local_flying_text)
+  const fn = stub(player, "create_local_flying_text")
+  const result = protectedAction(player, () => {
+    throw new UserError("test", "flying-text")
+  })
+  assert.is_nil(result)
+  assert.spy(fn).called()
 })
 
 test("Protected action with unexpected error", () => {

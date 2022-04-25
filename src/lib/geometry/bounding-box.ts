@@ -118,6 +118,11 @@ namespace bbox {
       return $multi(retX, retY)
     } as any
   }
+  export function equals(box1: BoundingBoxRead, box2: BoundingBoxRead): boolean {
+    const { left_top, right_bottom } = box1
+    const { left_top: lt2, right_bottom: rb2 } = box2
+    return left_top.x === lt2.x && left_top.y === lt2.y && right_bottom.x === rb2.x && right_bottom.y === rb2.y
+  }
   export function isCenteredSquare(box: BoundingBoxRead): boolean {
     const { left_top, right_bottom } = box
     return left_top.x === left_top.y && right_bottom.x === right_bottom.y && left_top.x === -right_bottom.x

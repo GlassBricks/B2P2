@@ -12,8 +12,9 @@ import {
   findBlueprintPasteConflictsInWorld,
 } from "../blueprint/blueprint-paste"
 import { MutableObservableSet, observableSet, ObservableSet } from "../lib/observable/ObservableSet"
-import { userError } from "../player-interaction/protected-action"
+import { UserError } from "../player-interaction/protected-action"
 import { L_Interaction } from "../locale"
+import { Colors } from "../constants"
 
 interface InternalAssemblyImport {
   readonly content: Import
@@ -29,12 +30,34 @@ export class Assembly {
 
   private pasteConflicts: readonly BlueprintPasteConflicts[] = []
 
+  private readonly boxRenderId: number
+  private readonly textRenderId: number
+
   // lifecycle
 
-  private constructor(public name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
+  private name: string
+  private constructor(name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
+    this.name = name
     this.resultContent = Blueprint.take(surface, area, area.left_top)
     this.ownContents = this.resultContent
     this.importsContent = Blueprint.of()
+    this.boxRenderId = rendering.draw_rectangle({
+      left_top: area.left_top,
+      right_bottom: area.right_bottom,
+      surface,
+      color: Colors.AssemblyOutline,
+      width: 4,
+      filled: false,
+    })
+    this.textRenderId = rendering.draw_text({
+      text: name,
+      surface: this.surface,
+      target: this.area.left_top,
+      color: Colors.AssemblyName,
+      scale: 1.5,
+      scale_with_zoom: true,
+      only_in_alt_mode: true,
+    })
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
@@ -54,7 +77,8 @@ export class Assembly {
   private static checkDoesNotIntersectExistingArea(surface: LuaSurface, area: BoundingBoxRead) {
     const assembly = Assembly.findAssemblyInArea(surface, area)
     if (assembly) {
-      userError([L_Interaction.IntersectsExistingAssembly, assembly.name])
+      assembly.highlightForError()
+      throw new UserError([L_Interaction.IntersectsExistingAssembly, assembly.name], "flying-text")
     }
   }
   private static findAssemblyInArea(surface: LuaSurface, area: BoundingBoxRead): Assembly | undefined {
@@ -70,11 +94,26 @@ export class Assembly {
     return undefined
   }
 
+  private highlightForError() {
+    rendering.draw_rectangle({
+      left_top: this.area.left_top,
+      right_bottom: this.area.right_bottom,
+      surface: this.surface,
+      color: Colors.AssemblyError,
+      width: 4,
+      filled: false,
+      time_to_live: 60,
+    })
+  }
+
   isValid(): boolean {
     return this.surface.valid && global.assemblies.has(this)
   }
   delete(): void {
+    if (!global.assemblies.has(this)) return
     global.assemblies.delete(this)
+    rendering.destroy(this.boxRenderId)
+    rendering.destroy(this.textRenderId)
     this.ownContents = undefined!
     this.importsContent = undefined!
     this.resultContent = undefined!
@@ -84,6 +123,16 @@ export class Assembly {
     return global.assemblies
   }
 
+  // getters and setters
+
+  getName(): string {
+    return this.name
+  }
+
+  setName(name: string): void {
+    this.name = name
+    rendering.set_text(this.textRenderId, name)
+  }
   // place and save
 
   refreshInWorld(): void {

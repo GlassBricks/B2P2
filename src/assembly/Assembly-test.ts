@@ -11,7 +11,7 @@ import { BlueprintPasteConflicts, Overlap } from "../blueprint/blueprint-paste"
 import { assertNever } from "../lib/util"
 import { Entity, withEntityNumber } from "../entity/entity"
 import { Mutable } from "../lib/util-types"
-import { isUserError } from "../player-interaction/protected-action"
+import { UserError } from "../player-interaction/protected-action"
 
 let area: BoundingBoxClass
 let surface: LuaSurface
@@ -50,7 +50,7 @@ describe("lifecycle", () => {
   describe("create", () => {
     it("matches given parameters", () => {
       const assembly = Assembly.create("test", surface, area)
-      assert.equal("test", assembly.name)
+      assert.equal("test", assembly.getName())
       assert.equal(surface, assembly.surface)
       assert.same(area, assembly.area)
       assert.is_true(assembly.isValid())
@@ -63,8 +63,12 @@ describe("lifecycle", () => {
 
     it("errors if intersects with existing assembly", () => {
       Assembly.create("test1", surface, area)
+      const sp = spy<any>()
+      rawset(rendering, "draw_rectangle", sp)
+      after_test(() => rawset(rendering, "draw_rectangle", undefined!))
       const error = assert.error(() => Assembly.create("test2", surface, area))
-      assert.truthy(isUserError(error))
+      assert.truthy(error instanceof UserError)
+      assert.message("highlighted").spy(sp).called()
     })
 
     it("shows up in getAllAssemblies", () => {
@@ -381,6 +385,38 @@ describe("saveChanges", () => {
   })
 })
 
+describe("rendered objects", () => {
+  test("bounding box", () => {
+    const assembly = Assembly.create("test", surface, area)
+    const ids = rendering.get_all_ids(script.mod_name)
+    const id = ids.find((x) => {
+      if (rendering.get_type(x) !== "rectangle") return false
+      const lt = rendering.get_left_top(x)?.position
+      const rb = rendering.get_right_bottom(x)?.position
+      return lt && rb && pos.equals(lt, area.left_top) && pos.equals(rb, area.right_bottom)
+    })!
+    assert.not_nil(id, "no rectangle found")
+
+    assembly.delete()
+    assert.false(rendering.is_valid(id), "rectangle not deleted")
+  })
+
+  test("text", () => {
+    const assembly = Assembly.create("test assembly", surface, area)
+    const ids = rendering.get_all_ids(script.mod_name)
+    const id = ids.find((x) => {
+      if (rendering.get_type(x) !== "text") return false
+      const text = rendering.get_text(x)
+      const lt = rendering.get_target(x)?.position
+      return lt && pos.equals(lt, area.left_top) && text === "test assembly"
+    })!
+    assert.not_nil(id, "no text found")
+
+    assembly.delete()
+    assert.false(rendering.is_valid(id), "text not deleted")
+  })
+})
+
 declare const global: {
   foo?: Assembly
 }
@@ -389,7 +425,7 @@ test("Assembly persists across game reload", () => {
 }).after_mod_reload(() => {
   assert.is_true(global.foo instanceof Assembly)
   assert.is_true(global.foo?.isValid())
-  assert.is_true(global.foo?.name === "reload test")
+  assert.is_true(global.foo?.getName() === "reload test")
 })
 after_all(() => {
   delete global.foo

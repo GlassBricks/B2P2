@@ -1,23 +1,12 @@
 import { L_Interaction } from "../locale"
 
-export interface UserError {
-  _isUserError: true
-  message: LocalisedString
-}
-export interface UnexpectedError {
-  _isUserError?: never
-  message: string
-  traceback: string
+export class UserError {
+  constructor(public message: LocalisedString, public reportMethod: "print" | "flying-text") {}
 }
 
-export function userError(message: LocalisedString): never {
-  throw {
-    _isUserError: true,
-    message,
-  }
-}
-export function isUserError(e: unknown): e is UserError {
-  return typeof e === "object" && (e as UserError)._isUserError
+export interface UnexpectedError {
+  message: string
+  traceback: string
 }
 
 export function protectedAction<T>(player: LuaPlayer, action: () => T): T | undefined {
@@ -25,15 +14,22 @@ export function protectedAction<T>(player: LuaPlayer, action: () => T): T | unde
   if (success) return result as T
 
   const error: UserError | UnexpectedError = result
-  if (error._isUserError) {
-    player.print(error.message)
+  if (error instanceof UserError) {
+    if (error.reportMethod === "print") {
+      player.print(error.message)
+    } else {
+      player.create_local_flying_text({
+        text: error.message,
+        create_at_cursor: true,
+      })
+    }
   } else {
     reportUnexpectedError(error, player)
   }
 }
 
 function getErrorWithStacktrace(error: unknown): UserError | UnexpectedError {
-  if (typeof error === "object" && (error as any)._isUserError) return error as UserError
+  if (error instanceof UserError) return error as UserError
   const errorToString = tostring(error)
   return {
     message: errorToString,
