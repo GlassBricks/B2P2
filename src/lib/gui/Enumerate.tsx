@@ -1,39 +1,55 @@
 import { bound, Classes } from "../references"
-import { Component, destroy, FactorioJsx, render, Spec } from "../factoriojsx"
+import { Component, destroy, ElementInteractor, FactorioJsx, Props, render, Spec } from "../factoriojsx"
 import { ObservableSet, ObservableSetChange } from "../observable/ObservableSet"
 
 @Classes.register()
 export class Enumerate<T> implements Component {
   declare props: {
-    direction?: "horizontal" | "vertical"
-    set: ObservableSet<T>
-    map: (this: void, value: T) => Spec
+    uses: "flow" | "scroll-pane"
+    of: ObservableSet<T>
+    map: (value: T) => Spec
+    ifEmpty?: Spec
+  } & Props<"flow" | "scroll-pane">
+
+  render(): Spec {
+    return <this.props.uses {...this.props} onCreate={(e) => this.setup(e)} />
   }
 
-  element!: FlowGuiElementMembers
-  associated = new Map<T, BaseGuiElement>()
+  element!: BaseGuiElement
+  associated = new LuaMap<T, BaseGuiElement>()
 
-  private setup(e: FlowGuiElementMembers) {
-    this.element = e
-    const { set, map } = this.props
-    for (const [element] of set) {
-      this.associated.set(element, render(e, map(element)))
+  private setup(e: ElementInteractor<BaseGuiElement>) {
+    const element = e.element
+    this.element = element
+    const { of, map, ifEmpty } = this.props
+    if (of.size() === 0) {
+      if (ifEmpty) {
+        render(element, ifEmpty)
+      }
+    } else {
+      for (const [item] of of) {
+        this.associated.set(item, render(element, map(item)))
+      }
     }
-    set.subscribe({ next: this.onChange })
+    e.addSubscription(of.subscribe({ next: this.onChange }))
   }
 
   @bound
   private onChange(change: ObservableSetChange<T>) {
-    const { value } = change
-    if (change.added) {
-      this.associated.set(value, render(this.element, this.props.map(value)))
+    const { props, associated, element } = this
+    if (!element.valid) return false
+    const { value, added } = change
+    if (added) {
+      if (props.ifEmpty && change.set.size() === 1) {
+        destroy(element.children[0])
+      }
+      associated.set(value, render(element, props.map(value)))
     } else {
-      const element = this.associated.get(value)
-      destroy(element)
+      const item = associated.get(value)
+      destroy(item)
+      if (props.ifEmpty && change.set.size() === 0) {
+        render(element, props.ifEmpty)
+      }
     }
-  }
-
-  render(): Spec {
-    return <flow direction={this.props.direction} onCreate={(e) => this.setup(e)} />
   }
 }

@@ -1,7 +1,18 @@
 import { Data } from "typed-factorio/data/types"
-import { Prototypes } from "./constants"
+import { Prototypes, Styles } from "./constants"
 
 declare const data: Data
+
+const styles = data.raw["gui-style"].default
+
+styles[Styles.ListBoxButton] = {
+  type: "button_style",
+  parent: "list_box_item",
+  left_padding: 4,
+  right_padding: 4,
+  horizontally_squashable: "on",
+  horizontally_stretchable: "on",
+}
 
 const selectionTool = {
   type: "selection-tool",

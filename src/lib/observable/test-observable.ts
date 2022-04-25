@@ -3,7 +3,7 @@ import Spy = spy.Spy
 
 export class TestObservable<T> implements Observable<T> {
   public subscriber: Observer<T> | undefined
-  public unsubscribe: Spy<(this: unknown) => void> = spy()
+  public unsubscribeFn: Spy<(this: unknown) => void> = spy()
 
   constructor(public immediateValue?: T) {}
 
@@ -12,7 +12,7 @@ export class TestObservable<T> implements Observable<T> {
     if (this.immediateValue !== undefined) {
       observer.next?.(this.immediateValue)
     }
-    return { unsubscribe: this.unsubscribe }
+    return { unsubscribe: this.unsubscribeFn }
   }
 
   fire(value: T): void {

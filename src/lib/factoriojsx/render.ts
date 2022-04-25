@@ -9,19 +9,24 @@ import { isObservable, Observer, State, Subscription } from "../observable"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 
-interface ElementInstance {
-  readonly nativeElement: GuiElementMembers
+interface ElementInstanceInternal {
+  readonly element: GuiElementMembers
   readonly playerIndex: PlayerIndex
   readonly index: GuiElementIndex
-  readonly subscriptions: Record<string, Subscription>
+  readonly subscriptions: MutableLuaMap<string | number, Subscription>
 
   readonly events: PRecord<GuiEventName, Func<any>>
+}
+
+export interface ElementInteractor<T extends BaseGuiElement> {
+  readonly element: T
+  addSubscription(subscription: Subscription): void
 }
 
 // sinks
 function setValueSink(
   this: {
-    readonly instance: ElementInstance
+    readonly instance: ElementInstanceInternal
     readonly element: { readonly valid: boolean } & Record<string, any>
     readonly key: string
   },
@@ -37,7 +42,7 @@ function setValueSink(
 
 function callMethodSink(
   this: {
-    readonly instance: ElementInstance
+    readonly instance: ElementInstanceInternal
     readonly element: { readonly valid: boolean } & Record<string, (this: void, arg: any) => any>
     readonly key: string
   },
@@ -53,7 +58,7 @@ function callMethodSink(
 
 function setSliderMinSink(
   this: {
-    readonly instance: ElementInstance
+    readonly instance: ElementInstanceInternal
     readonly element: SliderGuiElement
   },
   value: number,
@@ -68,7 +73,7 @@ function setSliderMinSink(
 
 function setSliderMaxSink(
   this: {
-    readonly instance: ElementInstance
+    readonly instance: ElementInstanceInternal
     readonly element: SliderGuiElement
   },
   value: number,
@@ -86,12 +91,12 @@ function notifySink(this: { key: string; state: State<unknown> }, event: GuiEven
   this.state.set((event as any)[key] || event.element![key])
 }
 
-function removeSubscription(this: { instance: ElementInstance; key: string }) {
+function removeSubscription(this: { instance: ElementInstanceInternal; key: string }) {
   const { instance, key } = this
-  const subscription = instance.subscriptions[key]
+  const subscription = instance.subscriptions.get(key)
   if (subscription) {
     subscription.unsubscribe()
-    delete instance.subscriptions[key]
+    instance.subscriptions.delete(key)
   }
 }
 
@@ -104,11 +109,11 @@ Functions.registerAll({
   removeSubscription,
 })
 
-const Elements = PlayerData<Record<GuiElementIndex, ElementInstance>>("gui:Elements", () => ({}))
+const Elements = PlayerData<Record<GuiElementIndex, ElementInstanceInternal>>("gui:Elements", () => ({}))
 
 const type = _G.type
 
-function renderInternal(parent: BaseGuiElement, element: Spec): ElementInstance {
+function renderInternal(parent: BaseGuiElement, element: Spec): ElementInstanceInternal {
   const elemType = element.type
   const elemTypeType = type(elemType)
   if (elemTypeType === "string") {
@@ -123,14 +128,14 @@ function renderInternal(parent: BaseGuiElement, element: Spec): ElementInstance 
   error("Unknown element spec: " + serpent.block(element))
 }
 
-function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec): ElementInstance {
+function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec): ElementInstanceInternal {
   if (spec.type === "fragment") {
     error("Cannot render fragments directly. Try wrapping them in another element.")
   }
 
   const guiSpec: Record<string, any> = {}
   const elemProps = new LuaTable<string | [string], unknown>()
-  const events: ElementInstance["events"] = {}
+  const events: ElementInstanceInternal["events"] = {}
 
   // eslint-disable-next-line prefer-const
   for (let [key, value] of pairs(spec)) {
@@ -160,12 +165,12 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
     }
   }
 
-  const nativeElement = parent.add(guiSpec as GuiSpec)
-  const instance: ElementInstance = {
-    nativeElement,
-    subscriptions: {},
-    playerIndex: nativeElement.player_index,
-    index: nativeElement.index,
+  const element = parent.add(guiSpec as GuiSpec)
+  const instance: ElementInstanceInternal = {
+    element,
+    subscriptions: new LuaMap(),
+    playerIndex: element.player_index,
+    index: element.index,
     events,
   }
 
@@ -176,7 +181,7 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
       if (typeof key !== "object") {
         observer = bind(setValueSink, {
           instance,
-          element: nativeElement,
+          element,
           key,
         })
         name = key
@@ -185,53 +190,59 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
         if (name === "slider_minimum") {
           observer = bind(setSliderMinSink, {
             instance,
-            element: nativeElement as SliderGuiElement,
+            element: element as SliderGuiElement,
           })
         } else if (name === "slider_maximum") {
           observer = bind(setSliderMaxSink, {
             instance,
-            element: nativeElement as SliderGuiElement,
+            element: element as SliderGuiElement,
           })
         } else {
           observer = bind(callMethodSink, {
             instance,
-            element: nativeElement as any,
+            element: element as any,
             key: name,
           })
         }
       }
-      instance.subscriptions[name] = value.subscribe({
-        next: observer,
-        end: bind(removeSubscription, {
-          instance,
-          key: name,
+      instance.subscriptions.set(
+        name,
+        value.subscribe({
+          next: observer,
+          end: bind(removeSubscription, {
+            instance,
+            key: name,
+          }),
         }),
-      })
+      )
     } else if (typeof key !== "object") {
       // simple value
-      ;(nativeElement as any)[key] = value
+      ;(element as any)[key] = value
     } else {
       // setter value
-      ;((nativeElement as any)[key[0]] as (this: void, value: unknown) => void)(value)
+      ;((element as any)[key[0]] as (this: void, value: unknown) => void)(value)
     }
   }
 
   const styleMod = spec.styleMod
   if (styleMod) {
-    const style = nativeElement.style
+    const style = element.style
     for (const [key, value] of pairs(styleMod)) {
       if (isObservable(value)) {
-        instance.subscriptions[key] = value.subscribe({
-          next: bind(setValueSink, {
-            instance,
-            element: style,
-            key,
+        instance.subscriptions.set(
+          key,
+          value.subscribe({
+            next: bind(setValueSink, {
+              instance,
+              element: style,
+              key,
+            }),
+            end: bind(removeSubscription, {
+              instance,
+              key,
+            }),
           }),
-          end: bind(removeSubscription, {
-            instance,
-            key,
-          }),
-        })
+        )
       } else {
         ;(style as any)[key] = value
       }
@@ -240,13 +251,23 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
 
   const children = spec.children
   if (children) {
-    for (const child of children) renderInternal(nativeElement, child)
+    for (const child of children) renderInternal(element, child)
   }
 
-  spec.onCreate?.(nativeElement as any)
+  const onCreate = spec.onCreate
+  if (onCreate) {
+    const subscriptions = instance.subscriptions
+    const interactor: ElementInteractor<any> = {
+      element,
+      addSubscription(subscription: Subscription) {
+        subscriptions.set(luaLength(subscriptions) + 1, subscription)
+      },
+    }
+    onCreate(interactor)
+  }
 
   if (!isEmpty(instance.subscriptions) || !isEmpty(instance.events)) {
-    Elements[nativeElement.player_index][nativeElement.index] = instance
+    Elements[element.player_index][element.index] = instance
   }
 
   return instance
@@ -268,10 +289,10 @@ export function render<T extends GuiElementType>(
 ): Extract<LuaGuiElement, { type: T }>
 export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement
 export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement {
-  return renderInternal(parent, element).nativeElement as LuaGuiElement
+  return renderInternal(parent, element).element as LuaGuiElement
 }
 
-export function destroy(element: ElementInstance | BaseGuiElement | undefined, destroyElement = true): void {
+export function destroy(element: ElementInstanceInternal | BaseGuiElement | undefined, destroyElement = true): void {
   if (!element) return
   if (rawget(element as any, "__self")) {
     // is lua gui element
@@ -289,14 +310,14 @@ export function destroy(element: ElementInstance | BaseGuiElement | undefined, d
     }
     element = instance
   }
-  const internalInstance = element as ElementInstance
-  const { nativeElement, subscriptions, playerIndex, index } = internalInstance
+  const internalInstance = element as ElementInstanceInternal
+  const { element: nativeElement, subscriptions, playerIndex, index } = internalInstance
   if (nativeElement.valid) {
     for (const child of nativeElement.children) {
       destroy(child, false)
     }
   }
-  for (const [, subscription] of pairs(shallowCopy(subscriptions))) {
+  for (const [, subscription] of shallowCopy(subscriptions)) {
     subscription.unsubscribe()
   }
   if (destroyElement && nativeElement.valid) {
@@ -305,7 +326,7 @@ export function destroy(element: ElementInstance | BaseGuiElement | undefined, d
   Elements[playerIndex][index] = undefined!
 }
 
-function getInstance(element: BaseGuiElement): ElementInstance | undefined {
+function getInstance(element: BaseGuiElement): ElementInstanceInternal | undefined {
   if (!element.valid) return undefined
   return Elements[element.player_index][element.index]
 }
@@ -342,7 +363,7 @@ export function cleanGuiInstances(): number {
   let count = 0
   for (const [, byPlayer] of pairs(Elements.table)) {
     for (const [, element] of pairs(byPlayer)) {
-      if (element.nativeElement.valid) {
+      if (element.element.valid) {
         destroy(element)
         count++
       }

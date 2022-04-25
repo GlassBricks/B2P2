@@ -7,7 +7,7 @@ let set: MutableObservableSet<string>
 let spec: Spec
 before_each(() => {
   set = observableSet()
-  spec = <Enumerate set={set} map={(v) => <label caption={v} />} />
+  spec = <Enumerate uses="flow" of={set} map={(v) => <label caption={v} />} />
 })
 
 function presentElements(wrapper: ElementWrapper) {
@@ -42,4 +42,38 @@ it("removes elements", () => {
   set.add("b")
   set.delete("a")
   assert.same(["b"], presentElements(wrapper))
+})
+
+describe("ifEmpty", () => {
+  test("is present if empty", () => {
+    const wrapper = testRender(
+      <Enumerate uses="flow" of={set} map={(v) => <label caption={v} />} ifEmpty={<label caption="empty" />} />,
+    )
+    assert.same(["empty"], presentElements(wrapper))
+  })
+
+  test("is not present if not empty", () => {
+    set.add("a")
+    const wrapper = testRender(
+      <Enumerate uses="flow" of={set} map={(v) => <label caption={v} />} ifEmpty={<label caption="empty" />} />,
+    )
+    assert.same(["a"], presentElements(wrapper))
+  })
+
+  test("is present if made empty", () => {
+    set.add("a")
+    const wrapper = testRender(
+      <Enumerate uses="flow" of={set} map={(v) => <label caption={v} />} ifEmpty={<label caption="empty" />} />,
+    )
+    set.delete("a")
+    assert.same(["empty"], presentElements(wrapper))
+  })
+
+  test("is not present if made non-empty", () => {
+    const wrapper = testRender(
+      <Enumerate uses="flow" of={set} map={(v) => <label caption={v} />} ifEmpty={<label caption="empty" />} />,
+    )
+    set.add("a")
+    assert.same(["a"], presentElements(wrapper))
+  })
 })

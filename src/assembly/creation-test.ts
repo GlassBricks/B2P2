@@ -3,11 +3,13 @@ import { startAssemblyCreation } from "./creation"
 import { bbox } from "../lib/geometry/bounding-box"
 import { Assembly } from "./Assembly"
 
-before_all(() => {
+const deleteAssemblies = () => {
   for (const [assembly] of Assembly.getAllAssemblies()) {
     assembly.delete()
   }
-})
+}
+before_all(deleteAssemblies)
+after_all(deleteAssemblies)
 
 test("create", () => {
   const player = getPlayer()

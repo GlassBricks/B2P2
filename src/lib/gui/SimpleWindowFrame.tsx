@@ -8,9 +8,9 @@ export function SimpleWindowFrame(
   },
 ): Spec {
   return (
-    <frame auto_center={props.auto_center} direction="vertical">
+    <frame direction="vertical" {...props}>
       <TitleBar title={props.title} closesParent />
-      <frame style="inside_shallow_frame_with_padding">{props.children}</frame>
+      <>{props.children}</>
     </frame>
   )
 }

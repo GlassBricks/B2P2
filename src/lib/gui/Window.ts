@@ -1,4 +1,5 @@
 import { destroy, render, Spec } from "../factoriojsx"
+import { PostLoadAction } from "../test-util/load-action"
 
 export interface Window {
   readonly name: string
@@ -44,7 +45,7 @@ export function addWindow(rawName: string, spec: Spec): Window {
       const screen = getPlayer(id).gui.screen
       const gui = screen[name]
       if (gui) {
-        destroy(screen[name])
+        destroy(gui)
       } else {
         create(screen)
       }
@@ -53,7 +54,7 @@ export function addWindow(rawName: string, spec: Spec): Window {
       const screen = getPlayer(id).gui.screen
       const gui = screen[name]
       if (gui) {
-        destroy(screen[name])
+        destroy(gui)
       }
       create(screen)
     },
@@ -71,6 +72,28 @@ export function addWindow(rawName: string, spec: Spec): Window {
 }
 
 if (script.active_mods.debugadapter) {
+  const loadGui = PostLoadAction("load-test-gui", ([name, action]: [string, string], player: LuaPlayer) => {
+    if (!(name in windows)) {
+      player.print("No such window: " + name)
+      return
+    }
+    const actualAction = action ?? "openOrRefresh"
+    if (!(actualAction in windows[name]) || action === "name") {
+      player.print("No such action: " + actualAction)
+      return
+    }
+
+    windows[name][actualAction as Exclude<keyof Window, "name">](player)
+    const [success, result] = xpcall(
+      () => windows[name][actualAction as Exclude<keyof Window, "name">](player),
+      debug.traceback,
+    )
+    if (success) {
+      player.print(`${name} ${actualAction}`)
+    } else {
+      player.print(`${name} ${actualAction} failed: ${result}`)
+    }
+  })
   commands.add_command("testGui", "", (e) => {
     const playerIndex = e.player_index
     if (!playerIndex) return
@@ -82,16 +105,7 @@ if (script.active_mods.debugadapter) {
       player.print("Available names: " + Object.keys(windows).join(", "))
       return
     }
-    if (!(name in windows)) {
-      player.print("No such window: " + name)
-      return
-    }
-    const actualAction = action ?? "openOrRefresh"
-    if (!(actualAction in windows[name]) || action === "name") {
-      player.print("No such action: " + actualAction)
-      return
-    }
-    windows[name][actualAction as Exclude<keyof Window, "name">](player)
-    player.print(`${name} ${actualAction}`)
+
+    loadGui([name, action])
   })
 }

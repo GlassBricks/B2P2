@@ -15,8 +15,11 @@ export class BroadcastingObservable<T> implements Observable<T> {
   }
 
   protected next(value: T): void {
-    for (const [, observer] of this.observers) {
-      observer.next?.(value)
+    for (const [key, observer] of this.observers) {
+      const shouldUnsub = observer.next?.(value)
+      if (shouldUnsub === false) {
+        this.observers.delete(key)
+      }
     }
   }
 

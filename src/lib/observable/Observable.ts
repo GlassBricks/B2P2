@@ -10,7 +10,8 @@ export function isObservable<T>(obj: unknown): obj is Observable<T> {
 }
 
 export interface Observer<T> {
-  next?(value: T): void
+  // returns false means should unsubscribe
+  next?(value: T): void | false
   end?(): void
 }
 

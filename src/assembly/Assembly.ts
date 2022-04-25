@@ -42,10 +42,15 @@ export class Assembly {
     assert(surface.valid)
     Assembly.checkDoesNotIntersectExistingArea(surface, area)
 
+    return Assembly._createUnchecked(name, surface, area)
+  }
+
+  static _createUnchecked(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
     const assembly = new Assembly(name, surface, area)
     global.assemblies.add(assembly)
     return assembly
   }
+
   private static checkDoesNotIntersectExistingArea(surface: LuaSurface, area: BoundingBoxRead) {
     const assembly = Assembly.findAssemblyInArea(surface, area)
     if (assembly) {
@@ -75,7 +80,7 @@ export class Assembly {
     this.resultContent = undefined!
   }
 
-  static getAllAssemblies(): LuaSet<Assembly> {
+  static getAllAssemblies(): ObservableSet<Assembly> {
     return global.assemblies
   }
 
@@ -144,10 +149,10 @@ export class Assembly {
 }
 
 declare const global: {
-  assemblies: MutableLuaSet<Assembly>
+  assemblies: MutableObservableSet<Assembly>
 }
 Events.on_init(() => {
-  global.assemblies = new LuaSet()
+  global.assemblies = observableSet()
 })
 Events.on_surface_deleted(() => {
   for (const [assembly] of global.assemblies) {

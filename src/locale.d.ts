@@ -28,3 +28,11 @@ export declare const enum L_Interaction {
   /** This area intersects with an existing assembly: __1__ */
   IntersectsExistingAssembly = "bbpp.interaction.intersects-existing-assembly",
 }
+export declare const enum L_Gui {
+  /** Assemblies */
+  AssemblyListTitle = "bbpp.gui.assembly-list-title",
+  /** No assemblies */
+  NoAssemblies = "bbpp.gui.no-assemblies",
+  /** New assembly */
+  NewAssembly = "bbpp.gui.new-assembly",
+}

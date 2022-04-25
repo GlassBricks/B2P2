@@ -1,7 +1,7 @@
 // noinspection UnnecessaryLocalVariableJS
 
 import { Classes } from "../references"
-import { destroy } from "./render"
+import { destroy, ElementInteractor } from "./render"
 import {
   ButtonElementSpec,
   ChooseElemButtonElementSpec,
@@ -194,9 +194,9 @@ describe("destroy", () => {
       caption: source,
     }
     const element = testRender(spec).native
-    assert.spy(source.unsubscribe).not_called()
+    assert.spy(source.unsubscribeFn).not_called()
     destroy(element)
-    assert.spy(source.unsubscribe).called()
+    assert.spy(source.unsubscribeFn).called()
   })
 
   test("calling destroy ends child subscriptions", () => {
@@ -217,9 +217,9 @@ describe("destroy", () => {
     }
     const element = testRender(spec).native
 
-    assert.spy(source.unsubscribe).not_called()
+    assert.spy(source.unsubscribeFn).not_called()
     destroy(element)
-    assert.spy(source.unsubscribe).called()
+    assert.spy(source.unsubscribeFn).called()
   })
 })
 
@@ -290,7 +290,7 @@ test("onCreate", () => {
   const spec: FlowElementSpec = {
     type: "flow",
     onCreate(e) {
-      element1 = e
+      element1 = e.element
     },
   }
 
@@ -298,9 +298,24 @@ test("onCreate", () => {
   assert.equal(element1, element)
 })
 
+test("onCreate addSubscription", () => {
+  const fn = spy()
+  const spec: FlowElementSpec = {
+    type: "flow",
+    onCreate(e) {
+      e.addSubscription({ unsubscribe: fn as any })
+    },
+  }
+
+  const element = testRender(spec).native
+  assert.spy(fn).not_called()
+  destroy(element)
+  assert.spy(fn).called()
+})
+
 test("function component", () => {
   const results: unknown[] = []
-  function Component(props: { cb: (element: GuiElementMembers) => void }): FlowElementSpec {
+  function Component(props: { cb: (element: ElementInteractor<FlowGuiElement>) => void }): FlowElementSpec {
     results.push("called")
     return {
       type: "flow",
@@ -308,8 +323,8 @@ test("function component", () => {
     }
   }
 
-  const cb = (element: GuiElementMembers) => {
-    results.push(element.type)
+  const cb = function (this: unknown, element: ElementInteractor<BaseGuiElement>) {
+    results.push(element.element.type)
   }
 
   const spec: FCSpec<any> = {
@@ -327,7 +342,7 @@ describe("Class component", () => {
 
   @Classes.register()
   class Foo implements Component {
-    declare props: { cb: (element: GuiElementMembers) => void }
+    declare props: { cb: (element: ElementInteractor<any>) => void }
     constructor() {
       results.push("constructed")
     }
@@ -342,8 +357,8 @@ describe("Class component", () => {
   }
 
   test("Create", () => {
-    const cb = (element: GuiElementMembers) => {
-      results.push(element.type)
+    const cb = function (this: unknown, element: ElementInteractor<BaseGuiElement>) {
+      results.push(element.element.type)
     }
 
     const spec: ClassComponentSpec<any> = {

@@ -454,7 +454,9 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
               undefined,
               "element",
               undefined,
-              ts.factory.createTypeReferenceNode(toPascalCase(type) + "GuiElementMembers"),
+              ts.factory.createTypeReferenceNode("ElementInteractor", [
+                ts.factory.createTypeReferenceNode(toPascalCase(type) + "GuiElement"),
+              ]),
             ),
           ],
           ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
@@ -482,7 +484,8 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   )
   createMembers("StyleMod", styleMods, () => [])
 
-  const header = `import { MaybeState, MaybeObservable } from "../observable"
+  const header = `import { MaybeObservable, MaybeState } from "../observable"
+import { ElementInteractor } from "./render"
 import { Spec } from "./spec"
 
 `
