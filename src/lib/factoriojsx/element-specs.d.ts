@@ -28,7 +28,7 @@ export interface ChooseElemButtonElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<ChooseElemButtonGuiElement>) => void
+  onCreate?: (element: ChooseElemButtonGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -39,7 +39,7 @@ export interface DropDownElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<DropDownGuiElement>) => void
+  onCreate?: (element: DropDownGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -49,7 +49,7 @@ export interface EmptyWidgetElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<EmptyWidgetGuiElement>) => void
+  onCreate?: (element: EmptyWidgetGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -59,7 +59,7 @@ export interface EntityPreviewElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<EntityPreviewGuiElement>) => void
+  onCreate?: (element: EntityPreviewGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -70,7 +70,7 @@ export interface ListBoxElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<ListBoxGuiElement>) => void
+  onCreate?: (element: ListBoxGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -85,7 +85,7 @@ export interface ScrollPaneElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<ScrollPaneGuiElement>) => void
+  onCreate?: (element: ScrollPaneGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: ScrollPaneStyleMod
 }
 
@@ -100,7 +100,7 @@ export interface SpriteButtonElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<SpriteButtonGuiElement>) => void
+  onCreate?: (element: SpriteButtonGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -110,7 +110,7 @@ export interface TabbedPaneElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<TabbedPaneGuiElement>) => void
+  onCreate?: (element: TabbedPaneGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TabbedPaneStyleMod
 }
 
@@ -125,7 +125,7 @@ export interface TextBoxElementSpec extends BaseElementSpec {
   on_gui_confirmed?: (event: OnGuiConfirmedEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<TextBoxGuiElement>) => void
+  onCreate?: (element: TextBoxGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TextBoxStyleMod
 }
 
@@ -135,7 +135,7 @@ export interface ButtonElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<ButtonGuiElement>) => void
+  onCreate?: (element: ButtonGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: ButtonStyleMod
 }
 
@@ -148,7 +148,7 @@ export interface CameraElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<CameraGuiElement>) => void
+  onCreate?: (element: CameraGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -158,7 +158,7 @@ export interface CheckboxElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<CheckboxGuiElement>) => void
+  onCreate?: (element: CheckboxGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -169,7 +169,7 @@ export interface FlowElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<FlowGuiElement>) => void
+  onCreate?: (element: FlowGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: FlowStyleMod
 }
 
@@ -182,7 +182,7 @@ export interface FrameElementSpec extends BaseElementSpec {
   on_gui_location_changed?: (event: OnGuiLocationChangedEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<FrameGuiElement>) => void
+  onCreate?: (element: FrameGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: FrameStyleMod
 }
 
@@ -192,7 +192,7 @@ export interface LabelElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<LabelGuiElement>) => void
+  onCreate?: (element: LabelGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: LabelStyleMod
 }
 
@@ -202,7 +202,7 @@ export interface LineElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<LineGuiElement>) => void
+  onCreate?: (element: LineGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -218,7 +218,7 @@ export interface MinimapElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<MinimapGuiElement>) => void
+  onCreate?: (element: MinimapGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -228,7 +228,7 @@ export interface ProgressBarElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<ProgressBarGuiElement>) => void
+  onCreate?: (element: ProgressBarGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: ProgressBarStyleMod
 }
 
@@ -238,7 +238,7 @@ export interface RadioButtonElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<RadioButtonGuiElement>) => void
+  onCreate?: (element: RadioButtonGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -254,7 +254,7 @@ export interface SliderElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<SliderGuiElement>) => void
+  onCreate?: (element: SliderGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -265,7 +265,7 @@ export interface SpriteElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<SpriteGuiElement>) => void
+  onCreate?: (element: SpriteGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: SpriteStyleMod
 }
 
@@ -280,7 +280,7 @@ export interface SwitchElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<SwitchGuiElement>) => void
+  onCreate?: (element: SwitchGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
 
@@ -290,7 +290,7 @@ export interface TabElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<TabGuiElement>) => void
+  onCreate?: (element: TabGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TabStyleMod
 }
 
@@ -305,7 +305,7 @@ export interface TableElementSpec extends BaseElementSpec {
   on_gui_click?: (event: OnGuiClickEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<TableGuiElement>) => void
+  onCreate?: (element: TableGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TableStyleMod
 }
 
@@ -322,7 +322,7 @@ export interface TextFieldElementSpec extends BaseElementSpec {
   on_gui_confirmed?: (event: OnGuiConfirmedEvent) => void
   on_gui_opened?: (event: OnGuiOpenedEvent) => void
   on_gui_closed?: (event: OnGuiClosedEvent) => void
-  onCreate?: (element: ElementInteractor<TextFieldGuiElement>) => void
+  onCreate?: (element: TextFieldGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TextFieldStyleMod
 }
 

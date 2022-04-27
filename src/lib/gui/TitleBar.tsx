@@ -23,7 +23,7 @@ export function TitleBar(props: {
         horizontal_spacing: 8,
         height: 28,
       }}
-      onCreate={({ element }) => {
+      onCreate={(element) => {
         if (element.parent!.type === "frame") element.drag_target = element.parent
       }}
       name="title_bar"

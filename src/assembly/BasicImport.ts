@@ -13,6 +13,6 @@ export class BasicImport implements Import {
     return this.assembly.isValid()
   }
   getName(): string {
-    return this.assembly.name
+    return this.assembly.getName()
   }
 }

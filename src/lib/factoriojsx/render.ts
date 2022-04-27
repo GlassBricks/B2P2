@@ -9,7 +9,7 @@ import { isObservable, Observer, State, Subscription } from "../observable"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 
-interface ElementInstanceInternal {
+interface ElementInstance {
   readonly element: GuiElementMembers
   readonly playerIndex: PlayerIndex
   readonly index: GuiElementIndex
@@ -18,15 +18,13 @@ interface ElementInstanceInternal {
   readonly events: PRecord<GuiEventName, Func<any>>
 }
 
-export interface ElementInteractor<T extends BaseGuiElement> {
-  readonly element: T
+export interface ElementInteractor {
   addSubscription(subscription: Subscription): void
 }
 
 // sinks
 function setValueSink(
   this: {
-    readonly instance: ElementInstanceInternal
     readonly element: { readonly valid: boolean } & Record<string, any>
     readonly key: string
   },
@@ -34,7 +32,7 @@ function setValueSink(
 ) {
   const { element } = this
   if (!element.valid) {
-    destroy(this.instance)
+    destroy(element as any)
     return
   }
   element[this.key] = value
@@ -42,7 +40,6 @@ function setValueSink(
 
 function callMethodSink(
   this: {
-    readonly instance: ElementInstanceInternal
     readonly element: { readonly valid: boolean } & Record<string, (this: void, arg: any) => any>
     readonly key: string
   },
@@ -56,34 +53,20 @@ function callMethodSink(
   element[this.key](value)
 }
 
-function setSliderMinSink(
-  this: {
-    readonly instance: ElementInstanceInternal
-    readonly element: SliderGuiElement
-  },
-  value: number,
-) {
-  const { element } = this
-  if (!element.valid) {
-    destroy(element as any)
+function setSliderMinSink(this: SliderGuiElement, value: number) {
+  if (!this.valid) {
+    destroy(this as any)
     return
   }
-  element.set_slider_minimum_maximum(value, element.get_slider_maximum())
+  this.set_slider_minimum_maximum(value, this.get_slider_maximum())
 }
 
-function setSliderMaxSink(
-  this: {
-    readonly instance: ElementInstanceInternal
-    readonly element: SliderGuiElement
-  },
-  value: number,
-) {
-  const { element } = this
-  if (!element.valid) {
-    destroy(element as any)
+function setSliderMaxSink(this: SliderGuiElement, value: number) {
+  if (!this.valid) {
+    destroy(this as any)
     return
   }
-  element.set_slider_minimum_maximum(element.get_slider_minimum(), value)
+  this.set_slider_minimum_maximum(this.get_slider_minimum(), value)
 }
 
 function notifySink(this: { key: string; state: State<unknown> }, event: GuiEvent) {
@@ -91,12 +74,12 @@ function notifySink(this: { key: string; state: State<unknown> }, event: GuiEven
   this.state.set((event as any)[key] || event.element![key])
 }
 
-function removeSubscription(this: { instance: ElementInstanceInternal; key: string }) {
-  const { instance, key } = this
-  const subscription = instance.subscriptions.get(key)
+function removeSubscription(this: { subscriptions: ElementInstance["subscriptions"]; key: string }) {
+  const { subscriptions, key } = this
+  const subscription = subscriptions.get(key)
   if (subscription) {
     subscription.unsubscribe()
-    instance.subscriptions.delete(key)
+    subscriptions.delete(key)
   }
 }
 
@@ -109,11 +92,16 @@ Functions.registerAll({
   removeSubscription,
 })
 
-const Elements = PlayerData<Record<GuiElementIndex, ElementInstanceInternal>>("gui:Elements", () => ({}))
+const Elements = PlayerData<Record<GuiElementIndex, ElementInstance>>("gui:Elements", () => ({}))
 
 const type = _G.type
 
-function renderInternal(parent: BaseGuiElement, element: Spec): ElementInstanceInternal {
+export function render<T extends GuiElementType>(
+  parent: BaseGuiElement,
+  spec: ElementSpec & { type: T },
+): Extract<LuaGuiElement, { type: T }>
+export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement
+export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement {
   const elemType = element.type
   const elemTypeType = type(elemType)
   if (elemTypeType === "string") {
@@ -128,14 +116,14 @@ function renderInternal(parent: BaseGuiElement, element: Spec): ElementInstanceI
   error("Unknown element spec: " + serpent.block(element))
 }
 
-function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec): ElementInstanceInternal {
+function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec): LuaGuiElement {
   if (spec.type === "fragment") {
     error("Cannot render fragments directly. Try wrapping them in another element.")
   }
 
   const guiSpec: Record<string, any> = {}
   const elemProps = new LuaTable<string | [string], unknown>()
-  const events: ElementInstanceInternal["events"] = {}
+  const events: ElementInstance["events"] = {}
 
   // eslint-disable-next-line prefer-const
   for (let [key, value] of pairs(spec)) {
@@ -166,53 +154,30 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
   }
 
   const element = parent.add(guiSpec as GuiSpec)
-  const instance: ElementInstanceInternal = {
-    element,
-    subscriptions: new LuaMap(),
-    playerIndex: element.player_index,
-    index: element.index,
-    events,
-  }
+  const subscriptions: ElementInstance["subscriptions"] = new LuaMap()
 
   for (const [key, value] of pairs(elemProps)) {
     if (isObservable(value)) {
       let observer: Observer<unknown>["next"]
       let name: string
       if (typeof key !== "object") {
-        observer = bind(setValueSink, {
-          instance,
-          element,
-          key,
-        })
+        observer = bind(setValueSink, { element, key })
         name = key
       } else {
         name = key[0]
         if (name === "slider_minimum") {
-          observer = bind(setSliderMinSink, {
-            instance,
-            element: element as SliderGuiElement,
-          })
+          observer = bind(setSliderMinSink, element as SliderGuiElement)
         } else if (name === "slider_maximum") {
-          observer = bind(setSliderMaxSink, {
-            instance,
-            element: element as SliderGuiElement,
-          })
+          observer = bind(setSliderMaxSink, element as SliderGuiElement)
         } else {
-          observer = bind(callMethodSink, {
-            instance,
-            element: element as any,
-            key: name,
-          })
+          observer = bind(callMethodSink, { element: element as any, key: name })
         }
       }
-      instance.subscriptions.set(
+      subscriptions.set(
         name,
         value.subscribe({
           next: observer,
-          end: bind(removeSubscription, {
-            instance,
-            key: name,
-          }),
+          end: bind(removeSubscription, { subscriptions, key: name }),
         }),
       )
     } else if (typeof key !== "object") {
@@ -229,18 +194,11 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
     const style = element.style
     for (const [key, value] of pairs(styleMod)) {
       if (isObservable(value)) {
-        instance.subscriptions.set(
+        subscriptions.set(
           key,
           value.subscribe({
-            next: bind(setValueSink, {
-              instance,
-              element: style,
-              key,
-            }),
-            end: bind(removeSubscription, {
-              instance,
-              key,
-            }),
+            next: bind(setValueSink, { element: style, key }),
+            end: bind(removeSubscription, { subscriptions, key }),
           }),
         )
       } else {
@@ -251,84 +209,76 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
 
   const children = spec.children
   if (children) {
-    for (const child of children) renderInternal(element, child)
+    for (const child of children) render(element, child)
   }
 
   const onCreate = spec.onCreate
   if (onCreate) {
-    const subscriptions = instance.subscriptions
-    const interactor: ElementInteractor<any> = {
-      element,
+    const subscriptionsAsArray = subscriptions as unknown as Subscription[]
+    const interactor: ElementInteractor = {
       addSubscription(subscription: Subscription) {
-        subscriptions.set(luaLength(subscriptions) + 1, subscription)
+        subscriptionsAsArray.push(subscription)
       },
     }
-    onCreate(interactor)
+    onCreate(element as any, interactor)
   }
 
-  if (!isEmpty(instance.subscriptions) || !isEmpty(instance.events)) {
-    Elements[element.player_index][element.index] = instance
+  if (!isEmpty(subscriptions) || !isEmpty(events)) {
+    Elements[element.player_index][element.index] = {
+      element,
+      events,
+      subscriptions,
+      playerIndex: element.player_index,
+      index: element.index,
+    }
   }
 
-  return instance
+  return element
 }
 
 function renderFunctionComponent<T>(parent: BaseGuiElement, spec: FCSpec<T>) {
-  return renderInternal(parent, spec.type(spec.props))
+  return render(parent, spec.type(spec.props))
 }
 
 function renderClassComponent<T>(parent: BaseGuiElement, spec: ClassComponentSpec<T>) {
   const instance = new spec.type()
   instance.props = spec.props
-  return renderInternal(parent, instance.render())
+  return render(parent, instance.render())
 }
 
-export function render<T extends GuiElementType>(
-  parent: BaseGuiElement,
-  spec: ElementSpec & { type: T },
-): Extract<LuaGuiElement, { type: T }>
-export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement
-export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement {
-  return renderInternal(parent, element).element as LuaGuiElement
+function getInstance(element: BaseGuiElement): ElementInstance | undefined {
+  if (!element.valid) return undefined
+  return Elements[element.player_index][element.index]
 }
 
-export function destroy(element: ElementInstanceInternal | BaseGuiElement | undefined, destroyElement = true): void {
+export function destroy(element: BaseGuiElement | undefined, destroyElement = true): void {
   if (!element) return
-  if (rawget(element as any, "__self")) {
-    // is lua gui element
-    const guiElement = element as LuaGuiElement
-    const instance = getInstance(guiElement)
-    if (!instance) {
-      if (!guiElement.valid) return
-      for (const child of guiElement.children) {
-        destroy(child, false)
-      }
-      if (destroyElement) {
-        guiElement.destroy()
-      }
-      return
+  // is lua gui element
+  const instance = getInstance(element)
+  if (!instance) {
+    if (!element.valid) return
+    for (const child of element.children) {
+      destroy(child, false)
     }
-    element = instance
+    if (destroyElement) {
+      element.destroy()
+    }
+    return
   }
-  const internalInstance = element as ElementInstanceInternal
-  const { element: nativeElement, subscriptions, playerIndex, index } = internalInstance
-  if (nativeElement.valid) {
-    for (const child of nativeElement.children) {
+
+  const { subscriptions, playerIndex, index } = instance
+  if (element.valid) {
+    for (const child of element.children) {
       destroy(child, false)
     }
   }
   for (const [, subscription] of shallowCopy(subscriptions)) {
     subscription.unsubscribe()
   }
-  if (destroyElement && nativeElement.valid) {
-    nativeElement.destroy()
+  if (destroyElement && element.valid) {
+    element.destroy()
   }
   Elements[playerIndex][index] = undefined!
-}
-
-function getInstance(element: BaseGuiElement): ElementInstanceInternal | undefined {
-  if (!element.valid) return undefined
-  return Elements[element.player_index][element.index]
 }
 
 // -- gui events --
@@ -362,8 +312,9 @@ for (const [name] of pairs(guiEventNames)) {
 export function cleanGuiInstances(): number {
   let count = 0
   for (const [, byPlayer] of pairs(Elements.table)) {
-    for (const [, element] of pairs(byPlayer)) {
-      if (element.element.valid) {
+    for (const [, instance] of pairs(byPlayer)) {
+      const element = instance.element
+      if (element.valid) {
         destroy(element)
         count++
       }

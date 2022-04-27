@@ -1,7 +1,7 @@
 // noinspection UnnecessaryLocalVariableJS
 
 import { Classes } from "../references"
-import { destroy, ElementInteractor } from "./render"
+import { destroy } from "./render"
 import {
   ButtonElementSpec,
   ChooseElemButtonElementSpec,
@@ -290,7 +290,7 @@ test("onCreate", () => {
   const spec: FlowElementSpec = {
     type: "flow",
     onCreate(e) {
-      element1 = e.element
+      element1 = e
     },
   }
 
@@ -302,8 +302,8 @@ test("onCreate addSubscription", () => {
   const fn = spy()
   const spec: FlowElementSpec = {
     type: "flow",
-    onCreate(e) {
-      e.addSubscription({ unsubscribe: fn as any })
+    onCreate(_, interactor) {
+      interactor.addSubscription({ unsubscribe: fn as any })
     },
   }
 
@@ -315,7 +315,7 @@ test("onCreate addSubscription", () => {
 
 test("function component", () => {
   const results: unknown[] = []
-  function Component(props: { cb: (element: ElementInteractor<FlowGuiElement>) => void }): FlowElementSpec {
+  function Component(props: { cb: (element: BaseGuiElement) => void }): FlowElementSpec {
     results.push("called")
     return {
       type: "flow",
@@ -323,8 +323,8 @@ test("function component", () => {
     }
   }
 
-  const cb = function (this: unknown, element: ElementInteractor<BaseGuiElement>) {
-    results.push(element.element.type)
+  const cb = function (this: unknown, element: BaseGuiElement) {
+    results.push(element.type)
   }
 
   const spec: FCSpec<any> = {
@@ -342,7 +342,7 @@ describe("Class component", () => {
 
   @Classes.register()
   class Foo implements Component {
-    declare props: { cb: (element: ElementInteractor<any>) => void }
+    declare props: { cb: (element: BaseGuiElement) => void }
     constructor() {
       results.push("constructed")
     }
@@ -357,8 +357,8 @@ describe("Class component", () => {
   }
 
   test("Create", () => {
-    const cb = function (this: unknown, element: ElementInteractor<BaseGuiElement>) {
-      results.push(element.element.type)
+    const cb = function (this: unknown, element: BaseGuiElement) {
+      results.push(element.type)
     }
 
     const spec: ClassComponentSpec<any> = {

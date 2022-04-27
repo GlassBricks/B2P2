@@ -454,9 +454,15 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
               undefined,
               "element",
               undefined,
-              ts.factory.createTypeReferenceNode("ElementInteractor", [
-                ts.factory.createTypeReferenceNode(toPascalCase(type) + "GuiElement"),
-              ]),
+              ts.factory.createTypeReferenceNode(toPascalCase(type) + "GuiElementMembers"),
+            ),
+            ts.factory.createParameterDeclaration(
+              undefined,
+              undefined,
+              undefined,
+              "interactor",
+              undefined,
+              ts.factory.createTypeReferenceNode("ElementInteractor"),
             ),
           ],
           ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),

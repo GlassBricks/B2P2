@@ -3,7 +3,7 @@ import { Component, destroy, ElementInteractor, FactorioJsx, Props, render, Spec
 import { ObservableSet, ObservableSetChange } from "../observable/ObservableSet"
 
 @Classes.register()
-export class Enumerate<T> implements Component {
+export class EnumerateSet<T> implements Component {
   declare props: {
     uses: "flow" | "scroll-pane"
     of: ObservableSet<T>
@@ -12,14 +12,13 @@ export class Enumerate<T> implements Component {
   } & Props<"flow" | "scroll-pane">
 
   render(): Spec {
-    return <this.props.uses {...this.props} onCreate={(e) => this.setup(e)} />
+    return <this.props.uses {...this.props} onCreate={this.setup.bind(this)} />
   }
 
   element!: BaseGuiElement
   associated = new LuaMap<T, BaseGuiElement>()
 
-  private setup(e: ElementInteractor<BaseGuiElement>) {
-    const element = e.element
+  private setup(element: BaseGuiElement, interactor: ElementInteractor) {
     this.element = element
     const { of, map, ifEmpty } = this.props
     if (of.size() === 0) {
@@ -27,11 +26,12 @@ export class Enumerate<T> implements Component {
         render(element, ifEmpty)
       }
     } else {
+      const { associated } = this
       for (const [item] of of) {
-        this.associated.set(item, render(element, map(item)))
+        associated.set(item, render(element, map(item)))
       }
     }
-    e.addSubscription(of.subscribe({ next: this.onChange }))
+    interactor.addSubscription(of.subscribe({ next: this.onChange }))
   }
 
   @bound

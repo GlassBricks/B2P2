@@ -83,7 +83,6 @@ if (script.active_mods.debugadapter) {
       return
     }
 
-    windows[name][actualAction as Exclude<keyof Window, "name">](player)
     const [success, result] = xpcall(
       () => windows[name][actualAction as Exclude<keyof Window, "name">](player),
       debug.traceback,
