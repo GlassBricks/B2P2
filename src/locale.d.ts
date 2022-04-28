@@ -21,12 +21,18 @@ export declare const enum L_Interaction {
   UnexpectedError = "bbpp.interaction.unexpected-error",
   /** Could not clear cursor */
   CannotClearCursor = "bbpp.interaction.cannot-clear-cursor",
+  /** Select an area for the new assembly */
+  SelectAreaForAssembly = "bbpp.interaction.select-area-for-assembly",
   /** This area intersects with an existing assembly: __1__ */
   IntersectsExistingAssembly = "bbpp.interaction.intersects-existing-assembly",
 }
 export declare const enum L_Gui {
   /** Assemblies */
   AssemblyListTitle = "bbpp.gui.assembly-list-title",
+  /** All assemblies [img=info] */
+  AssemblyListCaption = "bbpp.gui.assembly-list-caption",
+  /** [font=default-bold]Click[/font] to open details.\n[font=default-bold]Control-click[/font] to teleport to assembly location. */
+  AssemblyListCaptionTooltip = "bbpp.gui.assembly-list-caption-tooltip",
   /** No assemblies */
   NoAssemblies = "bbpp.gui.no-assemblies",
   /** New assembly */

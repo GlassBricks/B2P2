@@ -16,6 +16,7 @@ interface ElementInstance {
   readonly subscriptions: MutableLuaMap<string | number, Subscription>
 
   readonly events: PRecord<GuiEventName, Func<any>>
+  readonly data: unknown
 }
 
 export interface ElementInteractor {
@@ -230,6 +231,7 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
       subscriptions,
       playerIndex: element.player_index,
       index: element.index,
+      data: spec.data,
     }
   }
 
@@ -305,7 +307,9 @@ for (const [name] of pairs(guiEventNames)) {
     const instance = getInstance(element)
     if (!instance) return
     const event = instance.events[name]
-    if (event) event(e)
+    if (event) {
+      event(e, instance.data)
+    }
   })
 }
 

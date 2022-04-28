@@ -1,8 +1,8 @@
 import * as path from "path"
 import * as ts from "typescript"
-import * as ConfigParser from "configparser"
 import * as fs from "fs"
 import { format } from "prettier"
+import assert = require("assert")
 
 function toPascalCase(str: string): string {
   return str
@@ -11,39 +11,35 @@ function toPascalCase(str: string): string {
     .join("")
 }
 
-// function convertLocaleValue(value: string): string {
-//   // replace non alphanumeric characters with underscore
-//   let result = value.replace(/[^a-zA-Z0-9]/g, "_")
-//
-//   // get rid of all multi-underscores
-//   result = result.replace(/_+/g, "_")
-//
-//   // get rid of all trailing underscores.
-//   result = result.replace(/_$/, "")
-//   // get rid of all leading underscores.
-//   result = result.replace(/^_/, "")
-//
-//   // limit length to 40 chars
-//   if (result.length > 40) {
-//     const lastUnderscore = result.lastIndexOf("_", 40)
-//     if (lastUnderscore > 0) {
-//       result = result.substring(0, lastUnderscore)
-//     }
-//   }
-//
-//   return result
-// }
-
 const source = path.join(__dirname, "../mod/locale/en/en.cfg")
-const config: ConfigParser.default = new (ConfigParser as any)()
-config.read(source)
+function parseConfig(file: string): Record<string, Record<string, string>> {
+  // parse config
+  const result: Record<string, Record<string, string>> = {}
+  let currentContent: Record<string, string> = {}
+
+  const lines = fs.readFileSync(file, "utf8").split("\n")
+  for (const line of lines) {
+    if (line.startsWith("#")) continue
+    if (line.startsWith("[")) {
+      assert(line.endsWith("]"))
+      const key = line.slice(1, -1)
+      result[key] = currentContent = {}
+    }
+    if (line.includes("=")) {
+      const index = line.indexOf("=")
+      const key = line.slice(0, index)
+      currentContent[key] = line.slice(index + 1)
+    }
+  }
+
+  return result
+}
+
+const config = parseConfig(source)
 
 const enumDeclarations: ts.EnumDeclaration[] = []
 
-const sections = config.sections()
-
-for (const section of sections) {
-  const items = config.items(section)
+for (const [section, items] of Object.entries(config)) {
   const statements: ts.EnumMember[] = []
   for (const [key, value] of Object.entries(items)) {
     const propName = toPascalCase(key)

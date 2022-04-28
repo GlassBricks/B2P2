@@ -9,11 +9,12 @@ export function startAssemblyCreation(player: LuaPlayer): boolean {
     player.print([L_Interaction.CannotClearCursor])
     return false
   }
-  player.cursor_stack.set_stack({ name: Prototypes.SingleSelectionTool })
+  player.cursor_stack.set_stack({ name: Prototypes.AssemblyCreationTool })
+  player.print([L_Interaction.SelectAreaForAssembly])
   return true
 }
 Events.on_player_selected_area((event) => {
-  if (event.item !== Prototypes.SingleSelectionTool) return
+  if (event.item !== Prototypes.AssemblyCreationTool) return
   const player = game.players[event.player_index]
   const assembly = protectedAction(player, () => Assembly.create("Unnamed", event.surface, event.area))
   if (assembly) {

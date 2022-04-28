@@ -225,10 +225,12 @@ describe("destroy", () => {
 
 test("events", () => {
   const func = spy()
+  const data = 2
   const spec: ButtonElementSpec = {
     type: "button",
     on_gui_click: asFunc(func),
     on_gui_opened: asFunc(func),
+    data,
   }
   const element = testRender(spec).native
 
@@ -245,7 +247,7 @@ test("events", () => {
     shift: false,
   }
   script.get_event_handler(defines.events.on_gui_click)(fakeClickEvent)
-  assert.spy(func).called_with(fakeClickEvent)
+  assert.spy(func).called_with(fakeClickEvent, data)
 
   const fakeOpenEvent: OnGuiOpenedEvent = {
     element: element as LuaGuiElement,
@@ -255,7 +257,7 @@ test("events", () => {
     gui_type: defines.gui_type.custom,
   }
   script.get_event_handler(defines.events.on_gui_opened)(fakeOpenEvent)
-  assert.spy(func).called_with(fakeOpenEvent)
+  assert.spy(func).called_with(fakeOpenEvent, data)
 })
 
 test("state", () => {

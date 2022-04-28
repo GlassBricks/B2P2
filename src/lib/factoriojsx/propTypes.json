@@ -11,6 +11,7 @@
   "anchor": [true, true],
   "location": [false, true],
   "children": null,
+  "data": null,
   "elem_type": [true, false],
   "elem_filters": [true, true],
   "elem_value": [false, true, "on_gui_elem_changed"],

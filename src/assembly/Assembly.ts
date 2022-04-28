@@ -195,6 +195,11 @@ export class Assembly {
   getLastResultContent(): Blueprint | undefined {
     return this.resultContent
   }
+
+  // interaction
+  teleportPlayer(player: LuaPlayer): void {
+    player.teleport(bbox.center(this.area), this.surface)
+  }
 }
 
 declare const global: {

@@ -3,7 +3,7 @@ export const enum Styles {
 }
 
 export const enum Prototypes {
-  SingleSelectionTool = "bbpp:single-selection-tool",
+  AssemblyCreationTool = "bbpp:assembly-creation-tool",
 }
 
 export const enum GuiParameters {

@@ -16,7 +16,7 @@ styles[Styles.ListBoxButton] = {
 
 const selectionTool = {
   type: "selection-tool",
-  name: Prototypes.SingleSelectionTool,
+  name: Prototypes.AssemblyCreationTool,
   subgroup: "tool",
   order: "z[bbpp]-[single-selection-tool]",
   icon: "__bbpp__/graphics/selection-tool.png",

@@ -17,6 +17,7 @@ export interface BaseElementSpec {
   anchor?: MaybeObservable<GuiAnchor | undefined>
   location?: MaybeObservable<GuiLocation | undefined>
   children?: Spec[]
+  data?: unknown
 }
 
 export interface ChooseElemButtonElementSpec extends BaseElementSpec {
@@ -25,9 +26,9 @@ export interface ChooseElemButtonElementSpec extends BaseElementSpec {
   elem_filters?: MaybeObservable<ChooseElemButtonFilters[this["elem_type"]] | undefined>
   elem_value?: MaybeState<(this["elem_type"] extends "signal" ? SignalID : string) | undefined>
   locked?: MaybeObservable<boolean>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: ChooseElemButtonGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -36,9 +37,9 @@ export interface DropDownElementSpec extends BaseElementSpec {
   type: "drop-down"
   items?: MaybeObservable<LocalisedString[]>
   selected_index?: MaybeState<uint>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: DropDownGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -46,9 +47,9 @@ export interface DropDownElementSpec extends BaseElementSpec {
 export interface EmptyWidgetElementSpec extends BaseElementSpec {
   type: "empty-widget"
   drag_target?: MaybeObservable<LuaGuiElement | undefined>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: EmptyWidgetGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -56,9 +57,9 @@ export interface EmptyWidgetElementSpec extends BaseElementSpec {
 export interface EntityPreviewElementSpec extends BaseElementSpec {
   type: "entity-preview"
   entity?: MaybeObservable<LuaEntity | undefined>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: EntityPreviewGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -67,9 +68,9 @@ export interface ListBoxElementSpec extends BaseElementSpec {
   type: "list-box"
   items?: MaybeObservable<LocalisedString[]>
   selected_index?: MaybeState<uint>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: ListBoxGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -82,9 +83,9 @@ export interface ScrollPaneElementSpec extends BaseElementSpec {
   vertical_scroll_policy?: MaybeObservable<
     "auto" | "never" | "always" | "auto-and-reserve-space" | "dont-show-but-allow-scrolling"
   >
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: ScrollPaneGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: ScrollPaneStyleMod
 }
@@ -97,9 +98,9 @@ export interface SpriteButtonElementSpec extends BaseElementSpec {
   number?: MaybeObservable<double | undefined>
   show_percent_for_small_numbers?: MaybeObservable<boolean>
   mouse_button_filter?: MaybeObservable<MouseButtonFlags>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: SpriteButtonGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -107,9 +108,9 @@ export interface SpriteButtonElementSpec extends BaseElementSpec {
 export interface TabbedPaneElementSpec extends BaseElementSpec {
   type: "tabbed-pane"
   selected_tab_index?: MaybeState<uint | undefined>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: TabbedPaneGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TabbedPaneStyleMod
 }
@@ -121,10 +122,10 @@ export interface TextBoxElementSpec extends BaseElementSpec {
   selectable?: MaybeObservable<boolean>
   word_wrap?: MaybeObservable<boolean>
   read_only?: MaybeObservable<boolean>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_confirmed?: (event: OnGuiConfirmedEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_confirmed?: (event: OnGuiConfirmedEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: TextBoxGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TextBoxStyleMod
 }
@@ -132,9 +133,9 @@ export interface TextBoxElementSpec extends BaseElementSpec {
 export interface ButtonElementSpec extends BaseElementSpec {
   type: "button"
   mouse_button_filter?: MaybeObservable<MouseButtonFlags>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: ButtonGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: ButtonStyleMod
 }
@@ -145,9 +146,9 @@ export interface CameraElementSpec extends BaseElementSpec {
   surface_index?: MaybeObservable<SurfaceIndex>
   zoom?: MaybeObservable<double>
   entity?: MaybeObservable<LuaEntity | undefined>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: CameraGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -155,9 +156,9 @@ export interface CameraElementSpec extends BaseElementSpec {
 export interface CheckboxElementSpec extends BaseElementSpec {
   type: "checkbox"
   state: MaybeState<boolean>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: CheckboxGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -166,9 +167,9 @@ export interface FlowElementSpec extends BaseElementSpec {
   type: "flow"
   direction?: "horizontal" | "vertical"
   drag_target?: MaybeObservable<LuaGuiElement | undefined>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: FlowGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: FlowStyleMod
 }
@@ -178,10 +179,10 @@ export interface FrameElementSpec extends BaseElementSpec {
   direction?: "horizontal" | "vertical"
   auto_center?: MaybeObservable<boolean>
   drag_target?: MaybeObservable<LuaGuiElement | undefined>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_location_changed?: (event: OnGuiLocationChangedEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_location_changed?: (event: OnGuiLocationChangedEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: FrameGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: FrameStyleMod
 }
@@ -189,9 +190,9 @@ export interface FrameElementSpec extends BaseElementSpec {
 export interface LabelElementSpec extends BaseElementSpec {
   type: "label"
   drag_target?: MaybeObservable<LuaGuiElement | undefined>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: LabelGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: LabelStyleMod
 }
@@ -199,9 +200,9 @@ export interface LabelElementSpec extends BaseElementSpec {
 export interface LineElementSpec extends BaseElementSpec {
   type: "line"
   direction?: "horizontal" | "vertical"
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: LineGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -215,9 +216,9 @@ export interface MinimapElementSpec extends BaseElementSpec {
   zoom?: MaybeObservable<double>
   minimap_player_index?: MaybeObservable<uint>
   entity?: MaybeObservable<LuaEntity | undefined>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: MinimapGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -225,9 +226,9 @@ export interface MinimapElementSpec extends BaseElementSpec {
 export interface ProgressBarElementSpec extends BaseElementSpec {
   type: "progressbar"
   value?: MaybeObservable<double>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: ProgressBarGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: ProgressBarStyleMod
 }
@@ -235,9 +236,9 @@ export interface ProgressBarElementSpec extends BaseElementSpec {
 export interface RadioButtonElementSpec extends BaseElementSpec {
   type: "radiobutton"
   state: MaybeState<boolean>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: RadioButtonGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -251,9 +252,9 @@ export interface SliderElementSpec extends BaseElementSpec {
   discrete_values?: boolean
   slider_value?: MaybeState<double>
   discrete_value?: MaybeObservable<double>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: SliderGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -262,9 +263,9 @@ export interface SpriteElementSpec extends BaseElementSpec {
   type: "sprite"
   sprite?: MaybeObservable<SpritePath>
   resize_to_sprite?: MaybeObservable<boolean>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: SpriteGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: SpriteStyleMod
 }
@@ -277,9 +278,9 @@ export interface SwitchElementSpec extends BaseElementSpec {
   left_label_tooltip?: MaybeObservable<LocalisedString>
   right_label_caption?: MaybeObservable<LocalisedString>
   right_label_tooltip?: MaybeObservable<LocalisedString>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: SwitchGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: BaseStyleMod
 }
@@ -287,9 +288,9 @@ export interface SwitchElementSpec extends BaseElementSpec {
 export interface TabElementSpec extends BaseElementSpec {
   type: "tab"
   badge_text?: MaybeObservable<LocalisedString>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: TabGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TabStyleMod
 }
@@ -302,9 +303,9 @@ export interface TableElementSpec extends BaseElementSpec {
   draw_horizontal_line_after_headers?: MaybeObservable<boolean>
   vertical_centering?: MaybeObservable<boolean>
   drag_target?: MaybeObservable<LuaGuiElement | undefined>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: TableGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TableStyleMod
 }
@@ -318,10 +319,10 @@ export interface TextFieldElementSpec extends BaseElementSpec {
   is_password?: MaybeObservable<boolean>
   lose_focus_on_confirm?: MaybeObservable<boolean>
   clear_and_focus_on_right_click?: MaybeObservable<boolean>
-  on_gui_click?: (event: OnGuiClickEvent) => void
-  on_gui_confirmed?: (event: OnGuiConfirmedEvent) => void
-  on_gui_opened?: (event: OnGuiOpenedEvent) => void
-  on_gui_closed?: (event: OnGuiClosedEvent) => void
+  on_gui_click?: (event: OnGuiClickEvent, data: any) => void
+  on_gui_confirmed?: (event: OnGuiConfirmedEvent, data: any) => void
+  on_gui_opened?: (event: OnGuiOpenedEvent, data: any) => void
+  on_gui_closed?: (event: OnGuiClosedEvent, data: any) => void
   onCreate?: (element: TextFieldGuiElementMembers, interactor: ElementInteractor) => void
   styleMod?: TextFieldStyleMod
 }
