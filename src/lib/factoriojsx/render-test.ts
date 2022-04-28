@@ -13,7 +13,7 @@ import {
   TabbedPaneElementSpec,
   TextBoxElementSpec,
 } from "./spec"
-import { state, TestObservable } from "../observable"
+import { observable, TestObservable } from "../observable"
 import { testRender } from "../test-util/gui"
 import { asFunc } from "../test-util/misc"
 
@@ -38,7 +38,7 @@ describe("create", () => {
   })
 
   test("Listens to source property", () => {
-    const v = state<LocalisedString>("one")
+    const v = observable<LocalisedString>("one")
     const spec: FlowElementSpec = {
       type: "flow",
       caption: v,
@@ -50,7 +50,7 @@ describe("create", () => {
   })
 
   test("Call method property", () => {
-    const value = state(1)
+    const value = observable(1)
     const spec: SliderElementSpec = {
       type: "slider",
       value_step: value,
@@ -62,7 +62,7 @@ describe("create", () => {
   })
 
   test("Slider minimum", () => {
-    const value = state(1)
+    const value = observable(1)
     const spec: SliderElementSpec = {
       type: "slider",
       minimum_value: value,
@@ -77,7 +77,7 @@ describe("create", () => {
   })
 
   test("Slider maximum", () => {
-    const value = state(5)
+    const value = observable(5)
     const spec: SliderElementSpec = {
       type: "slider",
       minimum_value: 1,
@@ -92,7 +92,7 @@ describe("create", () => {
   })
 
   test("Does not allow source on create-only property", () => {
-    const v = state<"vertical" | "horizontal">("vertical")
+    const v = observable<"vertical" | "horizontal">("vertical")
     const spec: FlowElementSpec = {
       type: "flow",
       direction: v as any,
@@ -163,7 +163,7 @@ describe("styleMod", () => {
   })
 
   test("listens to source property", () => {
-    const value = state(1)
+    const value = observable(1)
     const spec: FlowElementSpec = {
       type: "flow",
       styleMod: {
@@ -261,8 +261,8 @@ test("events", () => {
   assert.spy(func).called_with(fakeOpenEvent, data)
 })
 
-test("state", () => {
-  const val = state("one")
+test("observable value", () => {
+  const val = observable("one")
   const spec: TextBoxElementSpec = {
     type: "text-box",
     text: val,

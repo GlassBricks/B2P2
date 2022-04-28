@@ -1,4 +1,4 @@
-import { state, State } from "./State"
+import { observable, ObservableValue } from "./ObservableValue"
 import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
 import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
 import { MutableObservableArray, observableArray, ObservableArrayChange } from "./ObservableArray"
@@ -93,9 +93,9 @@ describe("Event", () => {
 })
 
 describe("State", () => {
-  let s: State<string>
+  let s: ObservableValue<string>
   before_each(() => {
-    s = state("begin")
+    s = observable("begin")
   })
 
   it("can be constructed with initial value", () => {

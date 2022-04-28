@@ -5,7 +5,7 @@ import { bind, Func, funcRef, Functions, isCallable } from "../references"
 import { PRecord } from "../util-types"
 import * as propTypes from "./propTypes.json"
 import { ClassComponentSpec, ElementSpec, FCSpec, FragmentSpec, GuiEvent, GuiEventHandler, Spec } from "./spec"
-import { isObservable, Observer, State, Subscription } from "../observable"
+import { isObservable, ObservableValue, Observer, Subscription } from "../observable"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 
@@ -70,7 +70,7 @@ function setSliderMaxSink(this: SliderGuiElement, value: number) {
   this.set_slider_minimum_maximum(this.get_slider_minimum(), value)
 }
 
-function notifySink(this: { key: string; state: State<unknown> }, event: GuiEvent) {
+function notifySink(this: { key: string; state: ObservableValue<unknown> }, event: GuiEvent) {
   const key = this.key
   this.state.set((event as any)[key] || event.element![key])
 }
@@ -146,7 +146,7 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
       if (event) {
         events[event] = bind(notifySink, {
           key,
-          state: value as State<any>,
+          state: value as ObservableValue<any>,
         })
       }
     } else if (isSpecProp) {

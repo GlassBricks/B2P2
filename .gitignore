@@ -127,3 +127,5 @@ dist
 
 tstlPlugin/*.js
 tstlPlugin/*.js.map
+
+config.ini

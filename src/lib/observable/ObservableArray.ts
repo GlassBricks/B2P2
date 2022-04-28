@@ -38,6 +38,8 @@ export interface MutableObservableArray<T extends AnyNotNil> extends ObservableA
   push(value: T): void
   pop(): T
   swap(indexA: number, indexB: number): void
+
+  end(): void
 }
 
 @Classes.register()
@@ -97,6 +99,10 @@ class ObservableArrayImpl<T extends AnyNotNil>
     array[indexA] = oldValueB
     array[indexB] = oldValueA
     super.next({ array: this, swap: { indexA, indexB, valueA: oldValueA, valueB: oldValueB } })
+  }
+
+  public end() {
+    super.end()
   }
 }
 

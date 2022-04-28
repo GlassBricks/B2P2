@@ -2,7 +2,8 @@ import { Classes } from "../references"
 import { Observable, Observer, Subscription } from "./Observable"
 import { BroadcastingObservable } from "./BroadcastingObservable"
 
-export interface State<T> extends Observable<T> {
+export interface ObservableValue<T> extends Observable<T> {
+  readonly value: T
   get(): T
   set(value: T): void
 
@@ -10,7 +11,7 @@ export interface State<T> extends Observable<T> {
 }
 
 @Classes.register("State")
-class StateImpl<T> extends BroadcastingObservable<T> implements State<T> {
+class ObservableValueImpl<T> extends BroadcastingObservable<T> implements ObservableValue<T> {
   public value: T
   public constructor(value: T) {
     super()
@@ -22,6 +23,10 @@ class StateImpl<T> extends BroadcastingObservable<T> implements State<T> {
     return super.subscribe(observer)
   }
 
+  get(): T {
+    return this.value
+  }
+
   public set(value: T): void {
     this.value = value
     super.next(value)
@@ -30,14 +35,10 @@ class StateImpl<T> extends BroadcastingObservable<T> implements State<T> {
   public end(): void {
     super.end()
   }
-
-  public get(): T {
-    return this.value
-  }
 }
 
-export function state<T>(value: T): State<T> {
-  return new StateImpl(value)
+export function observable<T>(value: T): ObservableValue<T> {
+  return new ObservableValueImpl(value)
 }
 
-export type MaybeState<T> = State<T> | T
+export type MaybeState<T> = ObservableValue<T> | T

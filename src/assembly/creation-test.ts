@@ -30,7 +30,7 @@ test("create", () => {
 
   const assembly = Assembly.getAllAssemblies().value().first()!
   assert.not_nil(assembly, "assembly created")
-  assert.equal("Unnamed", assembly.getName())
+  assert.equal("Unnamed", assembly.name.get())
   assert.equal(player.surface, assembly.surface)
   assert.same(bbox.fromCorners(0, 0, 1, 1), assembly.area)
 })

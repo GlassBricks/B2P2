@@ -1,46 +1,29 @@
-import { Classes, Events } from "../lib"
+import { bound, Classes, Events } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
-import { Blueprint, UpdateablePasteBlueprint } from "../blueprint/Blueprint"
-import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
-import { Import } from "./Import"
-import { pos } from "../lib/geometry/position"
-import {
-  BlueprintDiff,
-  BlueprintPasteConflicts,
-  computeBlueprintDiff,
-  findBlueprintPasteConflictsAndUpdate,
-  findBlueprintPasteConflictsInWorld,
-} from "../blueprint/blueprint-paste"
 import { MutableObservableSet, observableSet, ObservableSet } from "../lib/observable/ObservableSet"
 import { UserError } from "../player-interaction/protected-action"
 import { L_Interaction } from "../locale"
 import { Colors } from "../constants"
-
-interface InternalAssemblyImport {
-  readonly content: Import
-  relativePosition: MapPositionTable
-}
+import { Event, MutableObservableValue, Observable, observable } from "../lib/observable"
+import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 
 @Classes.register()
 export class Assembly {
-  private imports: InternalAssemblyImport[] = []
-  public ownContents: UpdateablePasteBlueprint
-  private importsContent: Blueprint
-  private resultContent: Blueprint | undefined
-
-  private pasteConflicts: readonly BlueprintPasteConflicts[] = []
+  readonly name: MutableObservableValue<string>
+  readonly onDelete: Event<void> = new Event()
 
   private readonly boxRenderId: number
   private readonly textRenderId: number
 
   // lifecycle
 
-  private name: string
-  private constructor(name: string, public readonly surface: LuaSurface, public readonly area: BoundingBoxRead) {
-    this.name = name
-    this.resultContent = Blueprint.take(surface, area, area.left_top)
-    this.ownContents = this.resultContent
-    this.importsContent = Blueprint.of()
+  private constructor(
+    name: string,
+    public readonly surface: LuaSurface,
+    public readonly area: BoundingBoxRead,
+    private readonly content: AssemblyContent,
+  ) {
+    this.name = observable(name)
     this.boxRenderId = rendering.draw_rectangle({
       left_top: area.left_top,
       right_bottom: area.right_bottom,
@@ -58,6 +41,15 @@ export class Assembly {
       scale_with_zoom: true,
       only_in_alt_mode: true,
     })
+
+    this.name.subscribe({
+      next: this.setName,
+    })
+  }
+
+  @bound
+  private setName(name: string): void {
+    rendering.set_text(this.textRenderId, name)
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
@@ -69,7 +61,8 @@ export class Assembly {
   }
 
   static _createUnchecked(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
-    const assembly = new Assembly(name, surface, area)
+    const content = createAssemblyContent(surface, area)
+    const assembly = new Assembly(name, surface, area, content)
     global.assemblies.add(assembly)
     return assembly
   }
@@ -78,7 +71,7 @@ export class Assembly {
     const assembly = Assembly.findAssemblyInArea(surface, area)
     if (assembly) {
       assembly.highlightForError()
-      throw new UserError([L_Interaction.IntersectsExistingAssembly, assembly.name], "flying-text")
+      throw new UserError([L_Interaction.IntersectsExistingAssembly, assembly.name.value], "flying-text")
     }
   }
   private static findAssemblyInArea(surface: LuaSurface, area: BoundingBoxRead): Assembly | undefined {
@@ -112,88 +105,22 @@ export class Assembly {
   delete(): void {
     if (!global.assemblies.has(this)) return
     global.assemblies.delete(this)
+    this.content.delete()
     rendering.destroy(this.boxRenderId)
     rendering.destroy(this.textRenderId)
-    this.ownContents = undefined!
-    this.importsContent = undefined!
-    this.resultContent = undefined!
+    this.onDelete.raise()
+  }
+
+  getContent(): AssemblyContent | undefined {
+    if (this.isValid()) return this.content
+  }
+
+  onDeleteEvent(): Observable<void> | undefined {
+    if (this.isValid()) return this.onDelete
   }
 
   static getAllAssemblies(): ObservableSet<Assembly> {
     return global.assemblies
-  }
-
-  // getters and setters
-
-  getName(): string {
-    return this.name
-  }
-
-  setName(name: string): void {
-    this.name = name
-    rendering.set_text(this.textRenderId, name)
-  }
-  // place and save
-
-  refreshInWorld(): void {
-    assert(this.isValid())
-    clearBuildableEntities(this.surface, this.area)
-
-    const pasteConflicts: BlueprintPasteConflicts[] = []
-    for (const imp of this.imports) {
-      pasteConflicts.push(this.pasteImport(imp))
-    }
-    this.importsContent = Blueprint.take(this.surface, this.area)
-
-    pasteConflicts.push(this.pasteOwnContents(this.importsContent))
-    this.pasteConflicts = pasteConflicts
-
-    this.resultContent = Blueprint.take(this.surface, this.area)
-  }
-
-  private pasteImport(imp: InternalAssemblyImport) {
-    const content = imp.content.getContent()
-    if (!content) return {}
-
-    const resultLocation = pos.add(this.area.left_top, imp.relativePosition)
-    const diagnostics = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, resultLocation)
-    pasteBlueprint(this.surface, resultLocation, content.entities, this.area)
-    return diagnostics
-  }
-  private pasteOwnContents(importsContent: Blueprint): BlueprintPasteConflicts {
-    const conflicts = findBlueprintPasteConflictsAndUpdate(importsContent, this.ownContents)
-    pasteBlueprint(this.surface, this.area.left_top, this.ownContents.entities)
-    return conflicts
-  }
-
-  getChanges(): BlueprintDiff {
-    return computeBlueprintDiff(this.importsContent, Blueprint.take(this.surface, this.area))
-  }
-
-  commitChanges(diff: BlueprintDiff): void {
-    this.ownContents = diff.content
-  }
-
-  forceSaveChanges(): void {
-    this.commitChanges(this.getChanges())
-  }
-
-  getPasteConflicts(): readonly BlueprintPasteConflicts[] {
-    return this.pasteConflicts
-  }
-
-  // content
-
-  addImport(content: Import, position: MapPositionTable): void {
-    this.imports.push({
-      content,
-      relativePosition: position,
-    })
-  }
-
-  // undefined if this is invalid
-  getLastResultContent(): Blueprint | undefined {
-    return this.resultContent
   }
 
   // interaction
@@ -209,9 +136,10 @@ Events.on_init(() => {
   global.assemblies = observableSet()
 })
 Events.on_surface_deleted(() => {
-  for (const [assembly] of global.assemblies) {
-    if (!assembly.surface.valid) {
-      assembly.delete()
+  if (global.assemblies)
+    for (const [assembly] of global.assemblies) {
+      if (!assembly.surface.valid) {
+        assembly.delete()
+      }
     }
-  }
 })
