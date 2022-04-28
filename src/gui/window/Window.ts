@@ -1,5 +1,5 @@
-import { destroy, render, Spec } from "../factoriojsx"
-import { PostLoadAction } from "../test-util/load-action"
+import { destroy, render, Spec } from "../../lib/factoriojsx"
+import { PostLoadAction } from "../../lib/test-util/load-action"
 
 export interface Window {
   readonly name: string

@@ -1,6 +1,6 @@
-import { MutableObservableSet, observableSet } from "../observable/ObservableSet"
-import { ElementWrapper, testRender } from "../test-util/gui"
-import { FactorioJsx, Spec } from "../factoriojsx"
+import { MutableObservableSet, observableSet } from "../../lib/observable/ObservableSet"
+import { ElementWrapper, testRender } from "../../lib/test-util/gui"
+import { FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { EnumerateSet } from "./EnumerateSet"
 
 let set: MutableObservableSet<string>

@@ -213,6 +213,17 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
     for (const child of children) render(element, child)
   }
 
+  // setup tabbed pane
+  if (spec.type === "tabbed-pane") {
+    // alternate indexes tab-content
+    const children = element.children
+    for (const i of $range(1, children.length, 2)) {
+      const tab = children[i - 1]
+      const content = children[i]
+      ;(element as TabbedPaneGuiElement).add_tab(tab, content)
+    }
+  }
+
   const onCreate = spec.onCreate
   if (onCreate) {
     const subscriptionsAsArray = subscriptions as unknown as Subscription[]

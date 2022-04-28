@@ -10,6 +10,7 @@ import {
   FCSpec,
   FlowElementSpec,
   SliderElementSpec,
+  TabbedPaneElementSpec,
   TextBoxElementSpec,
 } from "./spec"
 import { state, TestObservable } from "../observable"
@@ -372,4 +373,22 @@ describe("Class component", () => {
     assert.equal("flow", element.type)
     assert.same(["constructed", "called", "flow"], results)
   })
+})
+
+test("tabbed-pane", () => {
+  const spec: TabbedPaneElementSpec = {
+    type: "tabbed-pane",
+    children: [
+      { type: "tab", caption: "one" },
+      { type: "label", caption: "one content" },
+      { type: "tab", caption: "two" },
+      { type: "label", caption: "two content" },
+    ],
+  }
+  const element = testRender(spec).native
+  assert.equal(2, element.tabs.length)
+  assert.equal("one", element.tabs[0].tab.caption)
+  assert.equal("one content", element.tabs[0].content.caption)
+  assert.equal("two", element.tabs[1].tab.caption)
+  assert.equal("two content", element.tabs[1].content.caption)
 })

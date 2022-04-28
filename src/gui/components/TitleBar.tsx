@@ -1,6 +1,6 @@
-import { ClickEventHandler, destroy, FactorioJsx, Spec } from "../factoriojsx"
-import { Functions } from "../references"
-import { MaybeObservable } from "../observable"
+import { ClickEventHandler, destroy, FactorioJsx, Spec } from "../../lib/factoriojsx"
+import { Functions } from "../../lib"
+import { MaybeObservable } from "../../lib/observable"
 
 const autoOnClose: ClickEventHandler = (e) => {
   const parent = e.element.parent!.parent

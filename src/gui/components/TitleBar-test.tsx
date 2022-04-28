@@ -1,5 +1,5 @@
-import { testRender } from "../test-util/gui"
-import { FactorioJsx } from "../factoriojsx"
+import { testRender } from "../../lib/test-util/gui"
+import { FactorioJsx } from "../../lib/factoriojsx"
 import { TitleBar } from "./TitleBar"
 
 test("onClose", () => {

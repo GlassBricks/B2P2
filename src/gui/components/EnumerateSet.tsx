@@ -1,6 +1,6 @@
-import { bound, Classes } from "../references"
-import { Component, destroy, ElementInteractor, FactorioJsx, Props, render, Spec } from "../factoriojsx"
-import { ObservableSet, ObservableSetChange } from "../observable/ObservableSet"
+import { bound, Classes } from "../../lib"
+import { Component, destroy, ElementInteractor, FactorioJsx, Props, render, Spec } from "../../lib/factoriojsx"
+import { ObservableSet, ObservableSetChange } from "../../lib/observable/ObservableSet"
 
 @Classes.register()
 export class EnumerateSet<T> implements Component {

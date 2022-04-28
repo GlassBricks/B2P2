@@ -21,7 +21,9 @@ import {
   SpecChildren,
   SpriteButtonElementSpec,
   SwitchElementSpec,
+  TabbedPaneElementSpec,
   TabElementSpec,
+  TableElementSpec,
   TextBoxElementSpec,
   TextFieldElementSpec,
 } from "./spec"
@@ -48,7 +50,7 @@ declare global {
       "list-box": IntrinsicElement<ListBoxElementSpec>
       "scroll-pane": IntrinsicElement<ScrollPaneElementSpec>
       "sprite-button": IntrinsicElement<SpriteButtonElementSpec>
-      "tabbed-pane": IntrinsicElement<TextBoxElementSpec>
+      "tabbed-pane": IntrinsicElement<TabbedPaneElementSpec>
       "text-box": IntrinsicElement<TextBoxElementSpec>
       button: IntrinsicElement<ButtonElementSpec>
       camera: IntrinsicElement<CameraElementSpec>
@@ -64,7 +66,7 @@ declare global {
       sprite: IntrinsicElement<SpriteButtonElementSpec>
       switch: IntrinsicElement<SwitchElementSpec>
       tab: IntrinsicElement<TabElementSpec>
-      table: IntrinsicElement<TabElementSpec>
+      table: IntrinsicElement<TableElementSpec>
       textfield: IntrinsicElement<TextFieldElementSpec>
     }
   }

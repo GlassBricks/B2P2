@@ -1,6 +1,6 @@
-import { FlowElementSpec } from "../factoriojsx"
+import { FlowElementSpec } from "../../lib/factoriojsx"
 import { addWindow, Window } from "./Window"
-import { getPlayer } from "../test-util/misc"
+import { getPlayer } from "../../lib/test-util/misc"
 
 const spec: FlowElementSpec = { type: "flow", tags: { isTestWindow: true } }
 
