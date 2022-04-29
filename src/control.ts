@@ -1,6 +1,8 @@
 import { Events } from "./lib"
 import "./assembly"
 import "./gui"
+import { openWindow } from "./gui/window/Window"
+import { getPlayer } from "./lib/test-util/misc"
 
 declare function __getTestFiles(): string[]
 
@@ -29,6 +31,7 @@ if (script.active_mods.testorio) {
     },
     after_test_run() {
       game.players[1]?.gui.screen["testorio:test-config"]?.bring_to_front()
+      openWindow("assemblies-list", getPlayer())
     },
     log_passed_tests: false,
   } as Testorio.Config)

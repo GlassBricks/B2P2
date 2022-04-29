@@ -108,3 +108,11 @@ if (script.active_mods.debugadapter) {
     loadGui([name, action])
   })
 }
+
+export function openWindow(name: string, player: LuaPlayer): void {
+  if (!(name in windows)) {
+    player.print("No such window: " + name)
+    return
+  }
+  windows[name].open(player)
+}
