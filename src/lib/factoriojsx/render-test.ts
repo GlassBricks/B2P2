@@ -344,17 +344,17 @@ describe("Class component", () => {
   const results: unknown[] = []
 
   @Classes.register()
-  class Foo implements Component {
-    declare props: { cb: (element: BaseGuiElement) => void }
+  class Foo extends Component {
     constructor() {
+      super()
       results.push("constructed")
     }
 
-    render(): FlowElementSpec {
+    render(props: { cb: (element: BaseGuiElement) => void }): FlowElementSpec {
       results.push("called")
       return {
         type: "flow",
-        onCreate: this.props.cb,
+        onCreate: props.cb,
       }
     }
   }

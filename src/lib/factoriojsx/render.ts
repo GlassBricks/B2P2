@@ -4,8 +4,17 @@ import { PlayerData } from "../player-data"
 import { bind, Func, funcRef, Functions, isCallable } from "../references"
 import { PRecord } from "../util-types"
 import * as propTypes from "./propTypes.json"
-import { ClassComponentSpec, ElementSpec, FCSpec, FragmentSpec, GuiEvent, GuiEventHandler, Spec } from "./spec"
-import { isObservable, ObservableValue, Observer, Subscription } from "../observable"
+import {
+  ClassComponentSpec,
+  ElementSpec,
+  FCSpec,
+  FragmentSpec,
+  FullSpec,
+  GuiEvent,
+  GuiEventHandler,
+  Spec,
+} from "./spec"
+import { isObservable, MutableObservableValue, Observer, Subscription } from "../observable"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 
@@ -70,7 +79,7 @@ function setSliderMaxSink(this: SliderGuiElement, value: number) {
   this.set_slider_minimum_maximum(this.get_slider_minimum(), value)
 }
 
-function notifySink(this: { key: string; state: ObservableValue<unknown> }, event: GuiEvent) {
+function notifySink(this: { key: string; state: MutableObservableValue<unknown> }, event: GuiEvent) {
   const key = this.key
   this.state.set((event as any)[key] || event.element![key])
 }
@@ -102,7 +111,9 @@ export function render<T extends GuiElementType>(
   spec: ElementSpec & { type: T },
 ): Extract<LuaGuiElement, { type: T }>
 export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement
-export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement {
+export function render(parent: BaseGuiElement, element: FragmentSpec): LuaGuiElement[]
+export function render(parent: BaseGuiElement, element: FullSpec): LuaGuiElement | LuaGuiElement[]
+export function render(parent: BaseGuiElement, element: FullSpec): LuaGuiElement | LuaGuiElement[] {
   const elemType = element.type
   const elemTypeType = type(elemType)
   if (elemTypeType === "string") {
@@ -117,9 +128,16 @@ export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement {
   error("Unknown element spec: " + serpent.block(element))
 }
 
-function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec): LuaGuiElement {
+function renderFragment(parent: BaseGuiElement, spec: FragmentSpec): LuaGuiElement[] {
+  const children = spec.children
+  if (!children) return []
+  return children.map((x) => render(parent, x))
+}
+
+function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec): LuaGuiElement | LuaGuiElement[] {
   if (spec.type === "fragment") {
-    error("Cannot render fragments directly. Try wrapping them in another element.")
+    // error("Cannot render fragments directly. Try wrapping them in another element.")
+    return renderFragment(parent, spec)
   }
 
   const guiSpec: Record<string, any> = {}
@@ -146,7 +164,7 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
       if (event) {
         events[event] = bind(notifySink, {
           key,
-          state: value as ObservableValue<any>,
+          state: value as MutableObservableValue<any>,
         })
       }
     } else if (isSpecProp) {
@@ -255,8 +273,7 @@ function renderFunctionComponent<T>(parent: BaseGuiElement, spec: FCSpec<T>) {
 
 function renderClassComponent<T>(parent: BaseGuiElement, spec: ClassComponentSpec<T>) {
   const instance = new spec.type()
-  instance.props = spec.props
-  return render(parent, instance.render())
+  return render(parent, instance.render(spec.props))
 }
 
 function getInstance(element: BaseGuiElement): ElementInstance | undefined {

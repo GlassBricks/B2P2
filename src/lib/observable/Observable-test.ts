@@ -1,4 +1,4 @@
-import { observable, ObservableValue } from "./ObservableValue"
+import { MutableObservableValue, observable } from "./ObservableValue"
 import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
 import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
 import { MutableObservableArray, observableArray, ObservableArrayChange } from "./ObservableArray"
@@ -92,8 +92,8 @@ describe("Event", () => {
   })
 })
 
-describe("State", () => {
-  let s: ObservableValue<string>
+describe("observable value", () => {
+  let s: MutableObservableValue<string>
   before_each(() => {
     s = observable("begin")
   })
@@ -119,6 +119,13 @@ describe("State", () => {
     s.subscribe({ next: fn })
     s.set("end")
     assert.spy(fn).called_with(match._, "end")
+  })
+
+  test("setValueFn", () => {
+    const fn = s.setValueFn("end")
+    assert.equal(s.get(), "begin")
+    fn()
+    assert.equal(s.get(), "end")
   })
 })
 

@@ -1,18 +1,29 @@
+// noinspection JSUnusedGlobalSymbols
+
 import { ElementSpec } from "./element-specs"
 
 export * from "./element-specs"
 
 export type FunctionComponent<T> = (props: T) => Spec
 
-export interface Component {
-  props: unknown
-  render(): Spec
+export abstract class Component {
+  abstract render(props: unknown): Spec
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  declare _props: Parameters<this["render"]>[0]
 }
 
-export interface ComponentClass<T> {
+export abstract class EmptyComponent {
+  abstract render(): Spec
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  declare _props: {}
+}
+
+export interface ComponentClass<P> {
   name: string
-  prototype: Component
-  new (): Component & { props: T }
+  new (): Component & {
+    _props?: P
+  }
 }
 
 export interface FCSpec<T> {

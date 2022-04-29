@@ -126,10 +126,9 @@ test("Function component with undefined children", () => {
 })
 
 @Classes.register()
-class FooClass implements Component {
-  declare props: { me?: string; children?: SpecChildren }
-  render(): Spec {
-    return <flow caption={this.props.me}>{this.props.children}</flow>
+class FooClass extends Component {
+  render(props: { me?: string; children?: SpecChildren }): Spec {
+    return <flow caption={props.me}>{props.children}</flow>
   }
 }
 

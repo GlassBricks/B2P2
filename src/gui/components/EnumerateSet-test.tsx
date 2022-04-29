@@ -47,7 +47,12 @@ it("removes elements", () => {
 describe("ifEmpty", () => {
   test("is present if empty", () => {
     const wrapper = testRender(
-      <EnumerateSet uses="flow" of={set} map={(v) => <label caption={v} />} ifEmpty={<label caption="empty" />} />,
+      <EnumerateSet
+        uses="flow"
+        of={set}
+        map={(v) => <label caption={v} />}
+        ifEmpty={() => <label caption="empty" />}
+      />,
     )
     assert.same(["empty"], presentElements(wrapper))
   })
@@ -55,7 +60,12 @@ describe("ifEmpty", () => {
   test("is not present if not empty", () => {
     set.add("a")
     const wrapper = testRender(
-      <EnumerateSet uses="flow" of={set} map={(v) => <label caption={v} />} ifEmpty={<label caption="empty" />} />,
+      <EnumerateSet
+        uses="flow"
+        of={set}
+        map={(v) => <label caption={v} />}
+        ifEmpty={() => <label caption="empty" />}
+      />,
     )
     assert.same(["a"], presentElements(wrapper))
   })
@@ -63,7 +73,12 @@ describe("ifEmpty", () => {
   test("is present if made empty", () => {
     set.add("a")
     const wrapper = testRender(
-      <EnumerateSet uses="flow" of={set} map={(v) => <label caption={v} />} ifEmpty={<label caption="empty" />} />,
+      <EnumerateSet
+        uses="flow"
+        of={set}
+        map={(v) => <label caption={v} />}
+        ifEmpty={() => <label caption="empty" />}
+      />,
     )
     set.delete("a")
     assert.same(["empty"], presentElements(wrapper))
@@ -71,7 +86,12 @@ describe("ifEmpty", () => {
 
   test("is not present if made non-empty", () => {
     const wrapper = testRender(
-      <EnumerateSet uses="flow" of={set} map={(v) => <label caption={v} />} ifEmpty={<label caption="empty" />} />,
+      <EnumerateSet
+        uses="flow"
+        of={set}
+        map={(v) => <label caption={v} />}
+        ifEmpty={() => <label caption="empty" />}
+      />,
     )
     set.add("a")
     assert.same(["a"], presentElements(wrapper))

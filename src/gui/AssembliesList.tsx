@@ -1,5 +1,5 @@
-import { bound, Classes } from "../lib"
-import { Component, FactorioJsx, Spec } from "../lib/factoriojsx"
+import { bound, Classes, returns } from "../lib"
+import { EmptyComponent, FactorioJsx, Spec } from "../lib/factoriojsx"
 import { Assembly } from "../assembly/Assembly"
 import { GuiParameters, Styles } from "../constants"
 import { L_Gui } from "../locale"
@@ -7,11 +7,10 @@ import { startAssemblyCreation } from "../assembly/creation"
 import { TitleBar } from "./components/TitleBar"
 import { EnumerateSet } from "./components/EnumerateSet"
 import { addWindow } from "./window/Window"
+import { openAssemblyManager } from "./assembly-manager/AssemblyManager"
 
 @Classes.register()
-export class AssembliesList implements Component {
-  declare props: unknown
-
+export class AssembliesList extends EmptyComponent {
   render(): Spec {
     return (
       <frame
@@ -38,7 +37,7 @@ export class AssembliesList implements Component {
             <EnumerateSet
               of={Assembly.getAllAssemblies()}
               map={this.assemblyButton}
-              ifEmpty={<label caption={[L_Gui.NoAssemblies]} styleMod={{ margin: 5 }} />}
+              ifEmpty={returns(<label caption={[L_Gui.NoAssemblies]} styleMod={{ margin: 5 }} />)}
               uses="scroll-pane"
               direction="vertical"
               horizontal_scroll_policy="never"
@@ -59,7 +58,7 @@ export class AssembliesList implements Component {
   private assemblyButton(assembly: Assembly) {
     return (
       <button
-        caption={assembly.getName()}
+        caption={assembly.name}
         style={Styles.ListBoxButton}
         styleMod={{
           bottom_margin: -4,

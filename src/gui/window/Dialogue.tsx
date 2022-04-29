@@ -1,4 +1,4 @@
-import { Component, destroy, FactorioJsx, render, Spec } from "../../lib/factoriojsx"
+import { Component, destroy, FactorioJsx, GuiEvent, render, Spec } from "../../lib/factoriojsx"
 import { bound, Classes } from "../../lib"
 
 export interface DialogueProps {
@@ -6,10 +6,10 @@ export interface DialogueProps {
   content: Spec
 
   backCaption?: LocalisedString
-  onBack?: () => void
+  onBack?: (player: LuaPlayer) => void
 
   confirmCaption?: LocalisedString
-  onConfirm?: () => void
+  onConfirm?: (player: LuaPlayer) => void
 
   redConfirm?: boolean
 
@@ -18,14 +18,19 @@ export interface DialogueProps {
 }
 
 @Classes.register()
-class Dialogue implements Component {
-  declare props: DialogueProps
-
+class Dialogue extends Component {
   private element!: FrameGuiElementMembers
 
-  render(): Spec {
-    const props = this.props
+  private onBackFn?: (data: any) => void
+  private onConfirmFn?: (data: any) => void
+  private redConfirm?: boolean
+
+  render(props: DialogueProps): Spec {
     assert(props.backCaption || props.confirmCaption, "Dialogue requires at least one button")
+
+    this.onBackFn = props.onBack
+    this.onConfirmFn = props.onConfirm
+    this.redConfirm = props.redConfirm
 
     return (
       <frame
@@ -65,26 +70,24 @@ class Dialogue implements Component {
   }
 
   @bound
-  private onBack() {
-    this.props.onBack?.()
+  private onBack(e: GuiEvent) {
+    this.onBackFn?.(game.players[e.player_index])
     destroy(this.element)
   }
 
   @bound
-  private onConfirm() {
-    this.props.onConfirm?.()
+  private onConfirm(e: GuiEvent) {
+    this.onConfirmFn?.(game.players[e.player_index])
     destroy(this.element)
   }
 
   @bound
-  private onClose() {
-    const props = this.props
-    if (props.redConfirm) {
-      props.onBack?.()
+  private onClose(e: OnGuiClosedEvent) {
+    if (this.redConfirm) {
+      this.onBack(e)
     } else {
-      props.onConfirm?.()
+      this.onConfirm(e)
     }
-    destroy(this.element)
   }
 }
 

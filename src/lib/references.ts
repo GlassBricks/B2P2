@@ -66,7 +66,7 @@ export function bound(this: unknown, target: unknown, name: keyof any): void {
   const prototype = target as ClassInstance
   const constructor = prototype.constructor
 
-  const classInfo = constructor[RClassInfo] ?? (constructor[RClassInfo] = {})
+  const classInfo = rawget(constructor, RClassInfo) ?? (constructor[RClassInfo] = {})
   const boundFuncKeys = classInfo.boundFuncKeys ?? (classInfo.boundFuncKeys = [])
   boundFuncKeys.push(name)
 }
@@ -101,7 +101,7 @@ export const Classes = new (class Classes extends Registry<Class<any>, ClassName
       }
 
       const baseClass: RClass | undefined = currentClass.____super
-      const info = currentClass[RClassInfo] ?? (currentClass[RClassInfo] = {})
+      const info = rawget(currentClass, RClassInfo) ?? (currentClass[RClassInfo] = {})
       if (!info.constructorProcessed) {
         const thisPrototype = currentClass.prototype
         if (info.boundFuncKeys) {
@@ -254,6 +254,19 @@ class BoundPrototypeFunc {
 
 export function boundPrototypeFunc<T extends Record<K, ContextualFun>, K extends keyof T>(obj: T, key: K): Func<T[K]> {
   return new BoundPrototypeFunc(obj, key) as any
+}
+
+@Classes.register()
+class ReturnsValue {
+  constructor(private readonly value: unknown) {}
+
+  __call() {
+    return this.value
+  }
+}
+
+export function returns<T>(value: T): Func<(this: unknown) => T> {
+  return new ReturnsValue(value) as any
 }
 
 /*

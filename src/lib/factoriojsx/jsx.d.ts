@@ -36,10 +36,10 @@ declare global {
     export type Element = Spec
 
     export interface ElementAttributesProperty {
-      props: {}
+      _props
     }
     export interface ElementChildrenAttribute {
-      children: {}
+      children
     }
 
     export interface IntrinsicElements {
