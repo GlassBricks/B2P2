@@ -1,5 +1,5 @@
 import { bound, Classes, reg } from "../../lib"
-import { Component, destroy, FactorioJsx, Props, render, Spec, Tracker } from "../../lib/factoriojsx"
+import { Component, destroy, ElemProps, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
 import { ObservableSet, ObservableSetChange } from "../../lib/observable/ObservableSet"
 import { Unsubscribe } from "../../lib/observable"
 
@@ -14,29 +14,28 @@ export class EnumerateSet<T> extends Component {
       of: ObservableSet<T>
       map: (value: T) => Spec
       ifEmpty?: () => Spec
-    } & Props<"flow" | "scroll-pane">,
-    tracker: Tracker,
+    } & ElemProps<"flow" | "scroll-pane">,
   ): Spec {
     this.of = props.of
     this.map = props.map
     this.ifEmpty = props.ifEmpty
-    return <props.uses {...props} onCreate={this.setup.bind(this, tracker)} />
+    return <props.uses {...(props as any)} />
   }
 
   element!: BaseGuiElement
   associated = new LuaMap<T, BaseGuiElement>()
 
-  private setup(tracker: Tracker, element: BaseGuiElement) {
+  onMount(element: BaseGuiElement, tracker: Tracker): void {
     this.element = element
     const { of, map, ifEmpty } = this
     if (of.size() === 0) {
       if (ifEmpty) {
-        render(element, ifEmpty())
+        render(this.element, ifEmpty())
       }
     } else {
       const { associated } = this
       for (const [item] of of) {
-        associated.set(item, render(element, map(item)))
+        associated.set(item, render(this.element, map(item)))
       }
     }
     const unsubscribe = of.subscribe(reg(this.onChange))

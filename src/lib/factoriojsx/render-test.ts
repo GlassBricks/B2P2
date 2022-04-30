@@ -11,11 +11,14 @@ import {
   FlowElementSpec,
   GuiEventHandler,
   SliderElementSpec,
+  Spec,
   TabbedPaneElementSpec,
   TextBoxElementSpec,
+  Tracker,
 } from "./spec"
 import { observable, TestObservable } from "../observable"
 import { testRender } from "../test-util/gui"
+import { asFunc } from "../test-util/args"
 
 describe("create", () => {
   test("Sets spec property", () => {
@@ -330,32 +333,11 @@ test("tracker onDestroy", () => {
   assert.spy(fn).called()
 })
 
-test("function component", () => {
-  const results: unknown[] = []
-  function Component(props: { cb: (element: BaseGuiElement) => void }): FlowElementSpec {
-    results.push("called")
-    return {
-      type: "flow",
-      onCreate: props.cb,
-    }
-  }
-
-  const cb = function (this: unknown, element: BaseGuiElement) {
-    results.push(element.type)
-  }
-
-  const spec: FCSpec<any> = {
-    type: Component,
-    props: { cb },
-  }
-  const element = testRender(spec).native
-
-  assert.equal("flow", element.type)
-  assert.same(["called", "flow"], results)
-})
-
 describe("Class component", () => {
   const results: unknown[] = []
+  before_each(() => {
+    results.length = 0
+  })
 
   @Classes.register()
   class Foo extends Component {
@@ -364,20 +346,56 @@ describe("Class component", () => {
       results.push("constructed")
     }
 
-    render(props: { cb: (element: BaseGuiElement) => void }): FlowElementSpec {
-      results.push("called")
+    render(props: { cb: (element: BaseGuiElement) => void }, tracker: Tracker): FlowElementSpec {
+      tracker.onMount(() => results.push("trackerOnMount"))
+      results.push("render")
       return {
         type: "flow",
         onCreate: props.cb,
       }
     }
-  }
 
-  test("Create", () => {
-    const cb = function (this: unknown, element: BaseGuiElement) {
-      results.push(element.type)
+    onMount(element: BaseGuiElement) {
+      results.push("mount")
+      results.push(element?.type ?? error("no element in onMount"))
     }
 
+    onDestroy() {
+      results.push("destroyed")
+    }
+  }
+
+  @Classes.register()
+  class Foo2 extends Component {
+    constructor() {
+      super()
+      results.push("constructed2")
+    }
+
+    render(props: { cb: (element: BaseGuiElement) => void }, tracker: Tracker): Spec {
+      tracker.onMount(() => results.push("trackerOnMount2"))
+      results.push("render2")
+      return {
+        type: Foo,
+        props: { cb: props.cb },
+      }
+    }
+
+    onMount(element: BaseGuiElement) {
+      results.push("mount2")
+      results.push((element?.type ?? error("no element in onMount")) + "2")
+    }
+
+    onDestroy() {
+      results.push("destroyed2")
+    }
+  }
+
+  const cb = function (this: unknown, element: BaseGuiElement) {
+    results.push("cb " + element.type)
+  }
+
+  test("create1", () => {
     const spec: ClassComponentSpec<any> = {
       type: Foo,
       props: { cb },
@@ -385,7 +403,100 @@ describe("Class component", () => {
     const element = testRender(spec).native
 
     assert.equal("flow", element.type)
-    assert.same(["constructed", "called", "flow"], results)
+    assert.same(["constructed", "render", "cb flow", "trackerOnMount", "mount", "flow"], results)
+    results.length = 0
+    destroy(element)
+    assert.same(["destroyed"], results)
+  })
+
+  test("create2", () => {
+    const spec: ClassComponentSpec<any> = {
+      type: Foo2,
+      props: { cb },
+    }
+    const element = testRender(spec).native
+
+    assert.equal("flow", element.type)
+    assert.same(
+      [
+        "constructed2",
+        "render2",
+        "constructed",
+        "render",
+        "cb flow",
+        "trackerOnMount",
+        "mount",
+        "flow",
+        "trackerOnMount2",
+        "mount2",
+        "flow2",
+      ],
+      results,
+    )
+    results.length = 0
+    destroy(element)
+    assert.same(["destroyed2", "destroyed"], results)
+  })
+})
+
+describe("function component", () => {
+  const results: unknown[] = []
+  before_each(() => {
+    results.length = 0
+  })
+
+  function Component(props: { cb: (element: BaseGuiElement) => void }, tracker: Tracker): FlowElementSpec {
+    results.push("render")
+    tracker.onMount(() => results.push("mountA"))
+    tracker.onMount(() => results.push("mountB"))
+    tracker.onDestroy(asFunc(() => results.push("destroyed")))
+    return {
+      type: "flow",
+      onCreate: props.cb,
+    }
+  }
+
+  function Component2(props: { cb: (element: BaseGuiElement) => void }, tracker: Tracker): Spec {
+    results.push("render2")
+    tracker.onMount(() => results.push("mount2A"))
+    tracker.onMount(() => results.push("mount2B"))
+    tracker.onDestroy(asFunc(() => results.push("destroyed2")))
+    return {
+      type: Component,
+      props: { cb: props.cb },
+    }
+  }
+
+  const cb = function (this: unknown, element: BaseGuiElement) {
+    results.push(element.type)
+  }
+
+  test("render 1", () => {
+    const spec: FCSpec<any> = {
+      type: Component,
+      props: { cb },
+    }
+    const element = testRender(spec).native
+
+    assert.equal("flow", element.type)
+    assert.same(["render", "flow", "mountA", "mountB"], results)
+    results.length = 0
+    destroy(element)
+    assert.same(["destroyed"], results)
+  })
+
+  test("render 2", () => {
+    const spec: FCSpec<any> = {
+      type: Component2,
+      props: { cb },
+    }
+    const element = testRender(spec).native
+
+    assert.equal("flow", element.type)
+    assert.same(["render2", "render", "flow", "mount2A", "mount2B", "mountA", "mountB"], results)
+    results.length = 0
+    destroy(element)
+    assert.same(["destroyed2", "destroyed"], results)
   })
 })
 

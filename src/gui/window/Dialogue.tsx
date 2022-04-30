@@ -40,9 +40,7 @@ class Dialogue extends Component {
           use_header_filler: true,
         }}
         direction={"vertical"}
-        onCreate={(e) => {
-          this.element = e
-        }}
+        onCreate={(e) => (this.element = e)}
         on_gui_closed={reg(this.onClose)}
       >
         {props.content}

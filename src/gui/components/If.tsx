@@ -1,7 +1,7 @@
 // this could maybe be moved to shared lib in the future
 
 import { bound, Classes } from "../../lib"
-import { Component, FactorioJsx, Props, render, Spec, Tracker } from "../../lib/factoriojsx"
+import { Component, ElemProps, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
 import { State } from "../../lib/observable"
 
 @Classes.register()
@@ -15,7 +15,7 @@ export class If extends Component {
       condition: State<boolean>
       then: () => Spec | undefined
       else?: () => Spec | undefined
-    } & Props<"flow">,
+    } & ElemProps<"flow">,
     tracker: Tracker,
   ): Spec {
     this.then = props.then

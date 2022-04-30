@@ -6,6 +6,7 @@ import { PRecord } from "../util-types"
 import * as propTypes from "./propTypes.json"
 import {
   ClassComponentSpec,
+  Component,
   ElementSpec,
   FCSpec,
   FragmentSpec,
@@ -30,7 +31,8 @@ interface ElementInstance {
 
 interface TrackerInternal extends Tracker {
   subscriptions: Callback[] & MutableLuaMap<string, Callback>
-  onCreateCallbacks: Array<(this: unknown, element: LuaGuiElement) => void>
+  onMountCallbacks: ((this: unknown, element: LuaGuiElement) => void)[][]
+  shiftOnMountCallbacks(): void
 }
 
 function setValueObserver(
@@ -73,16 +75,23 @@ function setStateFunc(this: MutableState<unknown>, key: string, event: GuiEvent)
   this.set((event as any)[key] || event.element![key])
 }
 
-Functions.registerAll({ setValueObserver, callSetterObserver, setStateFunc })
+function callComponentOnDestroy(this: Component) {
+  this.onDestroy?.()
+}
+
+Functions.registerAll({ setValueObserver, callSetterObserver, setStateFunc, callComponentOnDestroy })
 
 function newTracker(): TrackerInternal {
   const subscriptions = {} as TrackerInternal["subscriptions"]
-  const onCreateCallbacks: Array<(this: unknown, element: LuaGuiElement) => void> = []
+  const onMountCallbacks: TrackerInternal["onMountCallbacks"] = [[]]
   return {
     subscriptions,
-    onCreateCallbacks,
+    onMountCallbacks,
     onMount(callback: (this: unknown, firstElement: LuaGuiElement) => void) {
-      onCreateCallbacks.push(callback)
+      onMountCallbacks[onMountCallbacks.length - 1].push(callback)
+    },
+    shiftOnMountCallbacks() {
+      onMountCallbacks.push([])
     },
     onDestroy(callback: Callback) {
       subscriptions.push(callback)
@@ -200,8 +209,9 @@ function renderElement(
   }
 
   spec.onCreate?.(element as any)
-  for (const onCreateCallback of tracker.onCreateCallbacks) {
-    onCreateCallback(element as any)
+  for (const i of $range(tracker.onMountCallbacks.length, 1, -1)) {
+    const callbacks = tracker.onMountCallbacks[i - 1]
+    for (const callback of callbacks) callback(element as any)
   }
 
   if (!isEmpty(subscriptions) || !isEmpty(events)) {
@@ -223,7 +233,13 @@ function renderFunctionComponent<T>(parent: BaseGuiElement, spec: FCSpec<T>, tra
 
 function renderClassComponent<T>(parent: BaseGuiElement, spec: ClassComponentSpec<T>, tracker: TrackerInternal) {
   const instance = new spec.type()
-  return renderInternal(parent, instance.render(spec.props, tracker), tracker)
+
+  const resultSpec = instance.render(spec.props, tracker)
+  if (instance.onMount) tracker.onMount((element) => instance.onMount!.call(instance, element, tracker))
+  if (instance.onDestroy) tracker.onDestroy(bind(callComponentOnDestroy, instance))
+
+  tracker.shiftOnMountCallbacks()
+  return renderInternal(parent, resultSpec, tracker)
 }
 
 function getInstance(element: BaseGuiElement): ElementInstance | undefined {

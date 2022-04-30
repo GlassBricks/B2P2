@@ -12,4 +12,4 @@ export namespace FactorioJsx {
   export const Fragment = "fragment"
 }
 
-export type Props<T extends GuiElementType> = JSX.IntrinsicElements[T]
+export type ElemProps<T extends GuiElementType> = JSX.IntrinsicElements[T]

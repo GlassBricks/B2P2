@@ -24,6 +24,9 @@ export abstract class Component {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   declare _props: Parameters<this["render"]>[0]
+
+  onMount?(firstElement: LuaGuiElement, tracker: Tracker): void
+  onDestroy?(): void
 }
 
 export abstract class EmptyComponent {
