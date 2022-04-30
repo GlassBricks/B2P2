@@ -138,9 +138,8 @@ export type AnyFunction = Function
 export type ContextualFun = (this: any, ...args: any) => any
 export type SelflessFun = (this: void, ...args: any) => any
 
-export type Func<F extends AnyFunction> = F & {
-  constructor: unknown
-}
+export type Registered = { readonly constructor: unknown }
+export type Func<F extends AnyFunction> = F & Registered
 
 export type FuncName = string & { _funcNameBrand: any }
 
@@ -172,64 +171,199 @@ export function isCallable(obj: unknown): boolean {
   return false
 }
 
-@Classes.register()
-class RegisteredFunc {
-  private readonly funcName: FuncName
-  private func?: SelflessFun
+export type Callback = () => void & Registered
 
-  constructor(func: AnyFunction) {
-    this.func = func as SelflessFun
-    this.funcName = Functions.nameOf(func)
+// func classes
+interface FuncClassTemplate {
+  func: SelflessFun
+  funcName?: FuncName
+  [key: string]: unknown
+}
+function funcRefBasedClass<C extends unknown[], A extends unknown[], R>(
+  init: (this: FuncClassTemplate, ...args: C) => void,
+  __call: (this: FuncClassTemplate, thisArg: unknown, ...args: A) => R,
+  name: string,
+): {
+  new (func: AnyFunction, ...args: C): Func<(this: unknown, ...args: A) => R>
+  func: SelflessFun
+  funcName?: FuncName
+} {
+  const fullName = `funcRef: ${name}` as ClassName
+  const resultPrototype: any = {
+    __call,
+    [RClassInfo]: fullName,
   }
+  resultPrototype.__index = resultPrototype
+  const resultClass = {
+    prototype: resultPrototype,
+    name: fullName,
+  }
+  resultPrototype.constructor = resultClass
 
-  [OnLoad](): void {
-    Functions.get(this.funcName)
+  const initialPrototype: any = {
+    __call(this: FuncClassTemplate, ...args: any[]) {
+      if (this.funcName) {
+        this.func = Functions.get(this.funcName)
+      }
+      setmetatable(this, resultPrototype)
+      return (this as unknown as SelflessFun)(...args)
+    },
+    ____constructor(this: FuncClassTemplate, func: SelflessFun, ...args: C) {
+      this.func = func
+      if (typeof func === "function") {
+        this.funcName = Functions.nameOf(func)
+      } else {
+        const meta = getmetatable(func)
+        assert(meta && meta.__call, "func must be callable")
+        if (meta === FuncRef.prototype) {
+          this.func = (func as FuncClassTemplate).func
+          this.funcName = (func as FuncClassTemplate).funcName
+        }
+      }
+      init.call(this, ...args)
+      setmetatable(this, resultPrototype)
+    },
+    [RClassInfo]: fullName,
+    [OnLoad](this: FuncClassTemplate) {
+      if (this.funcName) Functions.get(this.funcName)
+      // check existence, but do not change value yet
+      // else possible error on load
+    },
   }
+  initialPrototype.__index = initialPrototype
+  const initialClass = {
+    prototype: initialPrototype,
+    name: fullName,
+  }
+  initialPrototype.constructor = initialClass
 
-  __call(thisArg: unknown, ...args: any[]) {
-    if (!this.func) {
-      this.func = Functions.get(this.funcName)
-    }
-    return this.func(...args)
-  }
+  Classes.registerAs(fullName, initialClass)
+
+  return initialClass as any
 }
 
-/** Requires function to be registered first. */
+const FuncRef = funcRefBasedClass(
+  () => {
+    // nothing
+  },
+  function (this: FuncClassTemplate, _thisArg: unknown, ...args: unknown[]) {
+    return this.func(...args)
+  },
+  "FuncRef",
+)
+
+/** Requires function to be registered. Resulting func takes "this" parameter. */
 export function funcRef<F extends (this: void, ...args: any) => any>(
   func: F,
-): Func<(this: unknown, ...args: any) => any> {
-  return new RegisteredFunc(func) as any
+): Func<F extends (this: void, ...args: infer A) => infer R ? (this: unknown, ...args: A) => R : never> {
+  return new FuncRef(func) as any
+}
+
+const Bound0 = funcRefBasedClass(
+  function (this: FuncClassTemplate, thisArg: unknown) {
+    this.thisArg = thisArg
+  },
+  function (this: FuncClassTemplate, thisArg: unknown, ...args: unknown[]) {
+    return this.func(this.thisArg, ...args)
+  },
+  "BoundThis",
+)
+
+const Bound1 = funcRefBasedClass(
+  function (this: FuncClassTemplate, thisArg: unknown, arg1: unknown) {
+    this.thisArg = thisArg
+    this.arg1 = arg1
+  },
+  function (this: FuncClassTemplate, thisArg: unknown, ...args: unknown[]) {
+    return this.func(this.thisArg, this.arg1, ...args)
+  },
+  "Bound1",
+)
+
+const Bound2 = funcRefBasedClass(
+  function (this: FuncClassTemplate, thisArg: unknown, arg1: unknown, arg2: unknown) {
+    this.thisArg = thisArg
+    this.arg1 = arg1
+    this.arg2 = arg2
+  },
+  function (this: FuncClassTemplate, thisArg: unknown, ...args: unknown[]) {
+    return this.func(this.thisArg, this.arg1, this.arg2, ...args)
+  },
+  "Bound2",
+)
+
+const Bound3 = funcRefBasedClass(
+  function (this: FuncClassTemplate, thisArg: unknown, arg1: unknown, arg2: unknown, arg3: unknown) {
+    this.thisArg = thisArg
+    this.arg1 = arg1
+    this.arg2 = arg2
+    this.arg3 = arg3
+  },
+  function (this: FuncClassTemplate, thisArg: unknown, ...args: unknown[]) {
+    return this.func(this.thisArg, this.arg1, this.arg2, this.arg3, ...args)
+  },
+  "Bound3",
+)
+
+const Bound4 = funcRefBasedClass(
+  function (this: FuncClassTemplate, thisArg: unknown, arg1: unknown, arg2: unknown, arg3: unknown, arg4: unknown) {
+    this.thisArg = thisArg
+    this.arg1 = arg1
+    this.arg2 = arg2
+    this.arg3 = arg3
+    this.arg4 = arg4
+  },
+  function (this: FuncClassTemplate, thisArg: unknown, ...args: unknown[]) {
+    return this.func(this.thisArg, this.arg1, this.arg2, this.arg3, this.arg4, ...args)
+  },
+  "Bound4",
+)
+
+const BoundN = funcRefBasedClass(
+  function (this: FuncClassTemplate, ...args: unknown[]) {
+    this.args = args
+  },
+  function (this: FuncClassTemplate, thisArg: unknown, ...args: unknown[]) {
+    return this.func(...(this.args as any[]), ...args)
+  },
+  "BoundN",
+)
+
+const boundFuncClasses = [Bound0, Bound1, Bound2, Bound3, Bound4] as typeof BoundN[]
+
+export function bind<T, A extends any[], R>(
+  func: (this: T, ...args: A[]) => R,
+  thisValue: T,
+): Func<(this: unknown, ...args: A) => R>
+export function bind<T, A1, A extends any[], R>(
+  func: (this: T, arg1: A1, ...args: A[]) => R,
+  thisValue: T,
+): Func<(this: unknown, ...args: A) => R>
+export function bind<T, A1, A2, A extends any[], R>(
+  func: (this: T, arg1: A1, arg2: A2, ...args: A[]) => R,
+  thisValue: T,
+): Func<(this: unknown, ...args: A) => R>
+export function bind<T, A1, A2, A3, A extends any[], R>(
+  func: (this: T, arg1: A1, arg2: A2, arg3: A3, ...args: A[]) => R,
+  thisValue: T,
+): Func<(this: unknown, ...args: A) => R>
+export function bind<T, A1, A2, A3, A4, A extends any[], R>(
+  func: (this: T, arg1: A1, arg2: A2, arg3: A3, arg4: A4, ...args: A[]) => R,
+  thisValue: T,
+): Func<(this: unknown, ...args: A) => R>
+export function bind<T, AN, R>(
+  func: (this: T, ...args: AN[]) => R,
+  thisValue: T,
+  ...args: AN[]
+): Func<(this: unknown, ...args: AN[]) => R>
+export function bind(func: ContextualFun, thisArg: unknown, ...args: unknown[]): ContextualFun {
+  const argCount = select("#", ...args)
+  const type = boundFuncClasses[argCount] ?? BoundN
+  return new type(func, thisArg, ...args)
 }
 
 @Classes.register()
-class BoundFunc {
-  private readonly funcName: FuncName
-  private func?: ContextualFun
-
-  constructor(private readonly thisValue: unknown, func: ContextualFun) {
-    this.func = func
-    this.funcName = Functions.nameOf(func)
-  }
-
-  [OnLoad](): void {
-    Functions.get(this.funcName)
-  }
-
-  __call(thisArg: unknown, ...args: any[]) {
-    if (!this.func) {
-      this.func = Functions.get(this.funcName)
-    }
-    return this.func.call(this.thisValue, ...args)
-  }
-}
-
-/** Requires function to be registered first. */
-export function bind<T, F extends (this: T, ...args: any) => any>(func: F, thisValue: T): Func<OmitThisParameter<F>> {
-  return new BoundFunc(thisValue, func) as any
-}
-
-@Classes.register()
-class InstanceFunc {
+class KeyFunc {
   constructor(private readonly instance: Record<keyof any, ContextualFun>, private readonly key: keyof any) {}
 
   __call(thisArg: unknown, ...args: unknown[]) {
@@ -238,7 +372,7 @@ class InstanceFunc {
 }
 
 export function funcOn<T extends Record<K, ContextualFun>, K extends keyof T>(obj: T, key: K): Func<T[K]> {
-  return new InstanceFunc(obj, key) as any
+  return new KeyFunc(obj, key) as any
 }
 
 @Classes.register()
@@ -255,74 +389,3 @@ class BoundPrototypeFunc {
 export function boundPrototypeFunc<T extends Record<K, ContextualFun>, K extends keyof T>(obj: T, key: K): Func<T[K]> {
   return new BoundPrototypeFunc(obj, key) as any
 }
-
-@Classes.register()
-class ReturnsValue {
-  constructor(private readonly value: unknown) {}
-
-  __call() {
-    return this.value
-  }
-}
-
-export function returns<T>(value: T): Func<(this: unknown) => T> {
-  return new ReturnsValue(value) as any
-}
-
-/*
-
-
-@registerFuncClass
-class Bind1<A0> extends Func<AnyFunction> {
-  constructor(private readonly func: Func<(arg0: A0, ...args: any) => any>, private readonly arg0: A0) {
-    super()
-  }
-
-  __call(...args: any[]) {
-    return this.func(this.arg0, ...args)
-  }
-}
-
-@registerFuncClass
-class Bind2<A0, A1> extends Func<AnyFunction> {
-  constructor(
-    private readonly func: Func<(arg0: A0, arg1: A1, ...args: any) => any>,
-    private readonly arg0: A0,
-    private readonly arg1: A1,
-  ) {
-    super()
-  }
-
-  __call(...args: any[]) {
-    return this.func(this.arg0, this.arg1, ...args)
-  }
-}
-
-@registerFuncClass
-class BindAll<A extends any[]> extends Func<() => any> {
-  constructor(private readonly func: Func<(...args: A) => any>, private readonly args: A) {
-    super()
-  }
-
-  __call() {
-    return this.func(...this.args)
-  }
-}
-
-export function bind1<A0, A extends any[], R>(
-  func: Func<(arg0: A0, ...args: A) => R>,
-  arg0: A0,
-): Func<(...args: A) => R> {
-  return new Bind1(func, arg0)
-}
-export function bind2<A0, A1, A extends any[], R>(
-  func: Func<(arg0: A0, arg1: A1, ...args: A) => R>,
-  arg0: A0,
-  arg1: A1,
-): Func<(...args: A) => R> {
-  return new Bind2(func, arg0, arg1)
-}
-export function bindAll<A extends any[], R>(func: Func<(...args: A) => R>, ...args: A): Func<() => R> {
-  return new BindAll(func, args)
-}
-*/
