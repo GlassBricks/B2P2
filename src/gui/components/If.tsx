@@ -2,8 +2,9 @@
 
 import { bound, Classes } from "../../lib"
 import { Component, FactorioJsx, Props, render, Spec } from "../../lib/factoriojsx"
-import { ObservableValue } from "../../lib/observable"
+import { State } from "../../lib/observable"
 
+// todo: fix
 @Classes.register()
 export class If extends Component {
   then!: () => Spec | undefined
@@ -12,7 +13,7 @@ export class If extends Component {
 
   render(
     props: {
-      condition: ObservableValue<boolean>
+      condition: State<boolean>
       then: () => Spec | undefined
       else?: () => Spec | undefined
     } & Props<"flow">,
@@ -22,13 +23,11 @@ export class If extends Component {
     return (
       <flow
         {...props}
-        onCreate={(element, interactor) => {
+        onCreate={(element) => {
           this.element = element
           this.onChange(props.condition.value)
-          const subscription = props.condition.subscribe({
-            next: this.onChange,
-          })
-          interactor.addSubscription(subscription)
+          const subscription = props.condition.subscribe(this.onChange)
+          // interactor.addSubscription(subscription)
         }}
       />
     )
@@ -36,7 +35,8 @@ export class If extends Component {
 
   lastValue: boolean | undefined
   @bound
-  private onChange(value: boolean) {
+  private onChange(value?: boolean, end?: boolean) {
+    if (end) return
     if (value === this.lastValue) return
     this.lastValue = value
     this.element.clear()

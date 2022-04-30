@@ -1,26 +1,27 @@
-import { Observable, ObservableBrand, Observer, Subscription } from "./Observable"
+import { Observable, ObservableBrand, Observer } from "./Observable"
+import { Callback } from "../references"
 import Spy = spy.Spy
 
 export class TestObservable<T> implements Observable<T> {
   public subscriber: Observer<T> | undefined
-  public unsubscribeFn: Spy<(this: unknown) => void> = spy()
+  public unsubscribeFn: Spy<Callback> = spy()
 
   constructor(public immediateValue?: T) {}
 
-  subscribe(observer: Observer<T>): Subscription {
+  subscribe(observer: Observer<T>): Callback {
     this.subscriber = observer
     if (this.immediateValue !== undefined) {
-      observer.next?.(this.immediateValue)
+      observer(this.immediateValue)
     }
-    return { unsubscribe: this.unsubscribeFn }
+    return this.unsubscribeFn
   }
 
   fire(value: T): void {
-    this.subscriber?.next?.(value)
+    this.subscriber?.(value)
   }
 
   end(): void {
-    this.subscriber?.end?.()
+    this.subscriber?.(undefined, true)
   }
 
   declare [ObservableBrand]: true

@@ -1,6 +1,7 @@
-import { bound, Classes } from "../../lib"
-import { Component, destroy, ElementInteractor, FactorioJsx, Props, render, Spec } from "../../lib/factoriojsx"
+import { bound, Classes, reg } from "../../lib"
+import { Component, destroy, FactorioJsx, Props, render, Spec } from "../../lib/factoriojsx"
 import { ObservableSet, ObservableSetChange } from "../../lib/observable/ObservableSet"
+import { Unsubscribe } from "../../lib/observable"
 
 @Classes.register()
 export class EnumerateSet<T> extends Component {
@@ -24,7 +25,7 @@ export class EnumerateSet<T> extends Component {
   element!: BaseGuiElement
   associated = new LuaMap<T, BaseGuiElement>()
 
-  private setup(element: BaseGuiElement, interactor: ElementInteractor) {
+  private setup(element: BaseGuiElement) {
     this.element = element
     const { of, map, ifEmpty } = this
     if (of.size() === 0) {
@@ -37,13 +38,15 @@ export class EnumerateSet<T> extends Component {
         associated.set(item, render(element, map(item)))
       }
     }
-    interactor.addSubscription(of.subscribe({ next: this.onChange }))
+    // todo: fix
+    of.subscribe(reg(this.onChange))
   }
 
   @bound
-  private onChange(change: ObservableSetChange<T>) {
+  private onChange(change?: ObservableSetChange<T>) {
+    if (!change) return
     const { map, ifEmpty, associated, element } = this
-    if (!element.valid) return false
+    if (!element.valid) return Unsubscribe
     const { value, added } = change
     if (added) {
       if (ifEmpty && change.set.size() === 1) {

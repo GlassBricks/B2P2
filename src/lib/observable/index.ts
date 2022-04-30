@@ -6,5 +6,5 @@ import { BroadcastingObservable } from "./BroadcastingObservable"
 import { TestObservable } from "./test-observable"
 
 export * from "./Observable"
-export * from "./ObservableValue"
+export * from "./State"
 export { Event, observableSet, ObservableMap, ObservableArray, BroadcastingObservable, TestObservable }

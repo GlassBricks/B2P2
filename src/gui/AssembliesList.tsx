@@ -1,4 +1,4 @@
-import { bound, Classes, returns } from "../lib"
+import { bind, bound, Classes, reg, returns } from "../lib"
 import { EmptyComponent, FactorioJsx, Spec } from "../lib/factoriojsx"
 import { Assembly } from "../assembly/Assembly"
 import { GuiParameters, Styles } from "../constants"
@@ -48,7 +48,7 @@ export class AssembliesList extends EmptyComponent {
             />
           </frame>
           <flow direction="horizontal">
-            <button caption={[L_Gui.NewAssembly]} on_gui_click={this.newAssembly} />
+            <button caption={[L_Gui.NewAssembly]} on_gui_click={reg(this.newAssembly)} />
           </flow>
         </frame>
       </frame>
@@ -63,14 +63,13 @@ export class AssembliesList extends EmptyComponent {
         styleMod={{
           bottom_margin: -4,
         }}
-        data={assembly}
-        on_gui_click={this.assemblyButtonClick}
+        on_gui_click={bind(this.assemblyButtonClick, this, assembly)}
       />
     )
   }
 
   @bound
-  private assemblyButtonClick(event: OnGuiClickEvent, assembly: Assembly) {
+  private assemblyButtonClick(assembly: Assembly, event: OnGuiClickEvent) {
     const player = game.players[event.player_index]
     if (event.control) {
       // teleport player

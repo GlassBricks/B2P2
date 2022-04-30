@@ -1,8 +1,8 @@
 import { ClickEventHandler, destroy, FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { Functions } from "../../lib"
+import { funcRef, Functions } from "../../lib"
 import { MaybeObservable } from "../../lib/observable"
 
-const autoOnClose: ClickEventHandler = (e) => {
+function autoOnClose(e: OnGuiClickEvent) {
   const parent = e.element.parent!.parent
   if (parent) destroy(parent)
 }
@@ -14,7 +14,7 @@ export function TitleBar(props: {
   closesParent?: boolean
 }): Spec {
   if (props.closesParent && !props.onClose) {
-    props.onClose = autoOnClose
+    props.onClose = funcRef(autoOnClose)
   }
   return (
     <flow

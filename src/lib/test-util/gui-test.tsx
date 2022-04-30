@@ -1,5 +1,5 @@
 import { getPlayer } from "./misc"
-import { FactorioJsx } from "../factoriojsx"
+import { FactorioJsx, GuiEventHandler } from "../factoriojsx"
 import { getDescription, isRoot, makeWrapper, testRender } from "./gui"
 
 describe("makeWrapper", () => {
@@ -66,7 +66,7 @@ describe("findSatisfying", () => {
 })
 
 test("simulateEvent", () => {
-  const fn = spy()
+  const fn = spy<GuiEventHandler>()
   const button = testRender(<button on_gui_click={fn} />)
   assert.spy(fn).not_called()
   button.simulateClick()

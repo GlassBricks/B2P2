@@ -1,7 +1,7 @@
 import { isEmpty, shallowCopy } from "../util"
 import Events from "../Events"
 import { PlayerData } from "../player-data"
-import { bind, Func, funcRef, Functions, isCallable } from "../references"
+import { bind, Callback, Func, funcRef, Functions, isCallable, SelflessFun } from "../references"
 import { PRecord } from "../util-types"
 import * as propTypes from "./propTypes.json"
 import {
@@ -14,7 +14,7 @@ import {
   GuiEventHandler,
   Spec,
 } from "./spec"
-import { isObservable, MutableObservableValue, Observer, Subscription } from "../observable"
+import { isObservable, MutableState, Observer, Unsubscribe } from "../observable"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 
@@ -22,85 +22,52 @@ interface ElementInstance {
   readonly element: GuiElementMembers
   readonly playerIndex: PlayerIndex
   readonly index: GuiElementIndex
-  readonly subscriptions: MutableLuaMap<string | number, Subscription>
+  readonly subscriptions: MutableLuaMap<string | number, Callback>
 
   readonly events: PRecord<GuiEventName, Func<any>>
-  readonly data: unknown
 }
 
-export interface ElementInteractor {
-  addSubscription(subscription: Subscription): void
-}
-
-// sinks
-function setValueSink(
-  this: {
-    readonly element: { readonly valid: boolean } & Record<string, any>
-    readonly key: string
-  },
+function setValueObserver(
+  this: LuaGuiElement | LuaStyle,
+  element: LuaGuiElement,
+  key: string,
   value: any,
+  end?: boolean,
 ) {
-  const { element } = this
-  if (!element.valid) {
-    destroy(element as any)
+  if (end) {
+    getInstance(element)?.subscriptions.delete(key)
     return
   }
-  element[this.key] = value
-}
-
-function callMethodSink(
-  this: {
-    readonly element: { readonly valid: boolean } & Record<string, (this: void, arg: any) => any>
-    readonly key: string
-  },
-  value: any,
-) {
-  const { element } = this
-  if (!element.valid) {
-    destroy(element as any)
-    return
-  }
-  element[this.key](value)
-}
-
-function setSliderMinSink(this: SliderGuiElement, value: number) {
   if (!this.valid) {
-    destroy(this as any)
-    return
+    destroy(element)
+    return Unsubscribe
   }
-  this.set_slider_minimum_maximum(value, this.get_slider_maximum())
+  ;(this as any)[key] = value
 }
 
-function setSliderMaxSink(this: SliderGuiElement, value: number) {
+function callSetterObserver(this: LuaGuiElement, key: string, value: any, end?: boolean) {
+  if (end) {
+    getInstance(this)?.subscriptions.delete(key)
+    return
+  }
   if (!this.valid) {
-    destroy(this as any)
-    return
+    destroy(this)
+    return Unsubscribe
   }
-  this.set_slider_minimum_maximum(this.get_slider_minimum(), value)
-}
-
-function notifySink(this: { key: string; state: MutableObservableValue<unknown> }, event: GuiEvent) {
-  const key = this.key
-  this.state.set((event as any)[key] || event.element![key])
-}
-
-function removeSubscription(this: { subscriptions: ElementInstance["subscriptions"]; key: string }) {
-  const { subscriptions, key } = this
-  const subscription = subscriptions.get(key)
-  if (subscription) {
-    subscription.unsubscribe()
-    subscriptions.delete(key)
+  if (key === "slider_minimum") {
+    ;(this as SliderGuiElement).set_slider_minimum_maximum(value, (this as SliderGuiElement).get_slider_maximum())
+  } else if (key === "slider_maximum") {
+    ;(this as SliderGuiElement).set_slider_minimum_maximum((this as SliderGuiElement).get_slider_minimum(), value)
+  } else {
+    ;(this as any as Record<any, SelflessFun>)[key](value)
   }
 }
 
-Functions.registerAll({
-  setValueSink,
-  callMethodSink,
-  setSliderMinSink,
-  setSliderMaxSink,
-  notifySink,
-  removeSubscription,
-})
+function setStateFunc(this: MutableState<unknown>, key: string, event: GuiEvent) {
+  this.set((event as any)[key] || event.element![key])
+}
+
+Functions.registerAll({ setValueObserver, callSetterObserver, setStateFunc })
 
 const Elements = PlayerData<Record<GuiElementIndex, ElementInstance>>("gui:Elements", () => ({}))
 
@@ -156,16 +123,13 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
     }
     const isSpecProp = propProperties[0]
     const isElemProp: string | boolean | null = propProperties[1]
-    const event = propProperties[2] as GuiEventName | null
+    const stateEvent = propProperties[2] as GuiEventName | null
     if (!isSpecProp || isObservable(value)) {
       if (!isElemProp) error(`${key} cannot be a source value`)
       if (typeof isElemProp === "string") elemProps.set([isElemProp], value)
       else elemProps.set(key, value)
-      if (event) {
-        events[event] = bind(notifySink, {
-          key,
-          state: value as MutableObservableValue<any>,
-        })
+      if (stateEvent) {
+        events[stateEvent] = bind(setStateFunc, value as MutableState<any>, key)
       }
     } else if (isSpecProp) {
       guiSpec[key] = value
@@ -177,28 +141,16 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
 
   for (const [key, value] of pairs(elemProps)) {
     if (isObservable(value)) {
-      let observer: Observer<unknown>["next"]
+      let observer: Observer<unknown>
       let name: string
       if (typeof key !== "object") {
-        observer = bind(setValueSink, { element, key })
+        observer = bind(setValueObserver, element, element, key)
         name = key
       } else {
         name = key[0]
-        if (name === "slider_minimum") {
-          observer = bind(setSliderMinSink, element as SliderGuiElement)
-        } else if (name === "slider_maximum") {
-          observer = bind(setSliderMaxSink, element as SliderGuiElement)
-        } else {
-          observer = bind(callMethodSink, { element: element as any, key: name })
-        }
+        observer = bind(callSetterObserver, element, name)
       }
-      subscriptions.set(
-        name,
-        value.subscribe({
-          next: observer,
-          end: bind(removeSubscription, { subscriptions, key: name }),
-        }),
-      )
+      subscriptions.set(name, value.subscribe(observer))
     } else if (typeof key !== "object") {
       // simple value
       ;(element as any)[key] = value
@@ -213,13 +165,7 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
     const style = element.style
     for (const [key, value] of pairs(styleMod)) {
       if (isObservable(value)) {
-        subscriptions.set(
-          key,
-          value.subscribe({
-            next: bind(setValueSink, { element: style, key }),
-            end: bind(removeSubscription, { subscriptions, key }),
-          }),
-        )
+        subscriptions.set(key, value.subscribe(bind(setValueObserver, style, element, key)))
       } else {
         ;(style as any)[key] = value
       }
@@ -242,16 +188,7 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
     }
   }
 
-  const onCreate = spec.onCreate
-  if (onCreate) {
-    const subscriptionsAsArray = subscriptions as unknown as Subscription[]
-    const interactor: ElementInteractor = {
-      addSubscription(subscription: Subscription) {
-        subscriptionsAsArray.push(subscription)
-      },
-    }
-    onCreate(element as any, interactor)
-  }
+  spec.onCreate?.(element as any)
 
   if (!isEmpty(subscriptions) || !isEmpty(events)) {
     Elements[element.player_index][element.index] = {
@@ -260,7 +197,6 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
       subscriptions,
       playerIndex: element.player_index,
       index: element.index,
-      data: spec.data,
     }
   }
 
@@ -303,7 +239,7 @@ export function destroy(element: BaseGuiElement | undefined, destroyElement = tr
     }
   }
   for (const [, subscription] of shallowCopy(subscriptions)) {
-    subscription.unsubscribe()
+    subscription()
   }
   if (destroyElement && element.valid) {
     element.destroy()
@@ -336,7 +272,7 @@ for (const [name] of pairs(guiEventNames)) {
     if (!instance) return
     const event = instance.events[name]
     if (event) {
-      event(e, instance.data)
+      event(e)
     }
   })
 }

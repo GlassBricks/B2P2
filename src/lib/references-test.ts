@@ -1,4 +1,4 @@
-import { bind, bound, Classes, ContextualFun, Func, funcOn, funcRef, Functions } from "./references"
+import { bind, bindN, bound, Classes, ContextualFun, Func, funcOn, funcRef, Functions, reg } from "./references"
 
 declare const global: {
   __tbl: object
@@ -36,10 +36,10 @@ describe("classes", () => {
     })
   })
 
-  test("classes survives reload", () => {
+  test("class and boundMethod survives reload", () => {
     const instance = new TestClass("1")
     global.__tbl = instance
-    global.__ref = instance.foo
+    global.__ref = reg(instance.foo)
 
     assert.is_true(global.__tbl instanceof TestClass)
     assert.equal("12", global.__ref("12"))
@@ -55,8 +55,8 @@ describe("functions", () => {
   }
   Functions.register("test func 1")(func)
 
-  function func2(this: unknown, arg: unknown) {
-    return [this, arg]
+  function func2(this: unknown, ...args: unknown[]) {
+    return [this, ...args]
   }
   Functions.register("test func 2")(func2)
 
@@ -89,12 +89,12 @@ describe("functions", () => {
               __call: (thisArg: unknown, ...args: unknown[]) => args,
             })
 
-      const boundFn = bind(fun, "this", ...args)
+      const boundFn = bindN(fun, "this", ...args)
       assert.same([...args, 15, 16, 17], boundFn(15, 16, 17))
     })
   })
 
-  test("func ref survives reload", () => {
+  test("func ref urvives reload", () => {
     global.__ref = funcRef(func)
     global.__boundRef = bind(func2, 2)
     global.__boundRef2 = bind(func2, 2, 1)

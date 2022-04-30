@@ -1,5 +1,5 @@
 import { Component, destroy, FactorioJsx, GuiEvent, render, Spec } from "../../lib/factoriojsx"
-import { bound, Classes } from "../../lib"
+import { bound, Classes, reg } from "../../lib"
 
 export interface DialogueProps {
   title: LocalisedString
@@ -43,12 +43,12 @@ class Dialogue extends Component {
         onCreate={(e) => {
           this.element = e
         }}
-        on_gui_closed={this.onClose}
+        on_gui_closed={reg(this.onClose)}
       >
         {props.content}
         <flow style="dialog_buttons_horizontal_flow">
           {props.backCaption !== undefined && (
-            <button style="back_button" caption={props.backCaption} on_gui_click={this.onBack} />
+            <button style="back_button" caption={props.backCaption} on_gui_click={reg(this.onBack)} />
           )}
           <empty-widget
             style="draggable_space"
@@ -61,7 +61,7 @@ class Dialogue extends Component {
             <button
               style={props.redConfirm ? "red_confirm_button" : "confirm_button"}
               caption={props.confirmCaption}
-              on_gui_click={this.onConfirm}
+              on_gui_click={reg(this.onConfirm)}
             />
           )}
         </flow>

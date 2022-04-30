@@ -1,15 +1,15 @@
-import { bound, Classes, Events } from "../lib"
+import { bound, Classes, Events, reg } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
 import { MutableObservableSet, observableSet, ObservableSet } from "../lib/observable/ObservableSet"
 import { UserError } from "../player-interaction/protected-action"
 import { L_Interaction } from "../locale"
 import { Colors } from "../constants"
-import { Event, MutableObservableValue, Observable, observable } from "../lib/observable"
+import { Event, MutableState, Observable, observable } from "../lib/observable"
 import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 
 @Classes.register()
 export class Assembly {
-  readonly name: MutableObservableValue<string>
+  readonly name: MutableState<string>
   readonly onDelete: Event<void> = new Event()
 
   private readonly boxRenderId: number
@@ -42,14 +42,12 @@ export class Assembly {
       only_in_alt_mode: true,
     })
 
-    this.name.subscribe({
-      next: this.setName,
-    })
+    this.name.subscribe(reg(this.setName))
   }
 
   @bound
-  private setName(name: string): void {
-    rendering.set_text(this.textRenderId, name)
+  private setName(name?: string): void {
+    if (name) rendering.set_text(this.textRenderId, name)
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {

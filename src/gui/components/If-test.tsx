@@ -1,10 +1,10 @@
 import { ElementWrapper, testRender } from "../../lib/test-util/gui"
 import { If } from "./If"
-import { observable, State } from "../../lib/observable"
+import { MutableState, observable } from "../../lib/observable"
 import { FactorioJsx } from "../../lib/factoriojsx"
 import { returns } from "../../lib"
 
-let condition: State<boolean>
+let condition: MutableState<boolean>
 
 before_each(() => {
   condition = observable(true)

@@ -1,9 +1,13 @@
-import { MutableObservableValue, observable } from "./ObservableValue"
+import { MutableState, observable } from "./State"
 import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
 import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
 import { MutableObservableArray, observableArray, ObservableArrayChange } from "./ObservableArray"
 import { Event } from "./Event"
+import { Observer } from "./Observable"
 
+function spy() {
+  return globalThis.spy<Observer<any>>()
+}
 describe("Event", () => {
   let event: Event<string>
   before_each(() => {
@@ -12,15 +16,16 @@ describe("Event", () => {
   it("can be constructed", () => {
     assert.not_nil(event)
   })
+
   describe("subscribe", () => {
     it("can be subscribed to", () => {
       const fn = spy()
-      event.subscribe({ next: fn })
+      event.subscribe(fn)
       assert.spy(fn).not_called()
     })
     it("calls the subscriber with the value", () => {
       const fn = spy()
-      event.subscribe({ next: fn })
+      event.subscribe(fn)
       event.raise("hello")
       assert.spy(fn).called(1)
       assert.spy(fn).called_with(match._, "hello")
@@ -28,7 +33,7 @@ describe("Event", () => {
 
     it("can fire events multiple times", () => {
       const fn = spy()
-      event.subscribe({ next: fn })
+      event.subscribe(fn)
       event.raise("1")
       event.raise("2")
       assert.spy(fn).called(2)
@@ -39,8 +44,8 @@ describe("Event", () => {
     it("broadcasts to multiple subscribers", () => {
       const fn = spy()
       const fn2 = spy()
-      event.subscribe({ next: fn })
-      event.subscribe({ next: fn2 })
+      event.subscribe(fn)
+      event.subscribe(fn2)
       event.raise("hello")
       assert.spy(fn).called(1)
       assert.spy(fn2).called(1)
@@ -48,7 +53,7 @@ describe("Event", () => {
 
     it("allows the same observer to be subscribed multiple times", () => {
       const fn = spy()
-      const observer = { next: fn }
+      const observer = fn
       event.subscribe(observer)
       event.subscribe(observer)
       event.raise("1")
@@ -59,31 +64,31 @@ describe("Event", () => {
   describe("end", () => {
     it("calls observer end when ended", () => {
       const end = spy()
-      event.subscribe({ end })
+      event.subscribe(end)
       event.end()
-      assert.spy(end).called(1)
+      assert.spy(end).called_with(match._, match.nil(), match.true())
     })
 
     it("does not notify observers after end", () => {
       const fn = spy()
-      event.subscribe({ next: fn })
+      event.subscribe(fn)
       event.end()
       event.raise("hello")
-      assert.spy(fn).not_called()
+      assert.spy(fn).not_called_with(match._, "hello", match._)
     })
   })
 
   describe("unsubscribe", () => {
     it("returns subscription object", () => {
       const fn = spy()
-      const subscription = event.subscribe({ next: fn })
+      const subscription = event.subscribe(fn)
       assert.not_nil(subscription)
     })
     it("can be unsubscribed", () => {
       const fn = spy()
-      const subscription = event.subscribe({ next: fn })
+      const subscription = event.subscribe(fn)
       event.raise("before")
-      subscription.unsubscribe()
+      subscription()
       event.raise("after")
       assert.spy(fn).called(1)
       assert.spy(fn).called_with(match._, "before")
@@ -93,7 +98,7 @@ describe("Event", () => {
 })
 
 describe("observable value", () => {
-  let s: MutableObservableValue<string>
+  let s: MutableState<string>
   before_each(() => {
     s = observable("begin")
   })
@@ -109,14 +114,14 @@ describe("observable value", () => {
 
   it("notifies subscribers of value upon subscription", () => {
     const fn = spy()
-    s.subscribe({ next: fn })
+    s.subscribe(fn)
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, "begin")
   })
 
   it("notifies subscribers of value when value changed", () => {
     const fn = spy()
-    s.subscribe({ next: fn })
+    s.subscribe(fn)
     s.set("end")
     assert.spy(fn).called_with(match._, "end")
   })
@@ -175,7 +180,7 @@ describe("ObservableSet", () => {
 
   it("notifies subscribers of added items", () => {
     const fn = spy()
-    set.subscribe({ next: fn })
+    set.subscribe(fn)
     set.add("a")
     const change: ObservableSetChange<string> = {
       set,
@@ -189,7 +194,7 @@ describe("ObservableSet", () => {
   it("does not notify subscribers of already present items", () => {
     set.add("a")
     const fn = spy()
-    set.subscribe({ next: fn })
+    set.subscribe(fn)
     set.add("a")
     assert.spy(fn).not_called()
   })
@@ -197,7 +202,7 @@ describe("ObservableSet", () => {
   it("notifies subscribers of deleted items", () => {
     set.add("a")
     const fn = spy()
-    set.subscribe({ next: fn })
+    set.subscribe(fn)
     set.delete("a")
     const change: ObservableSetChange<string> = {
       set,
@@ -209,7 +214,7 @@ describe("ObservableSet", () => {
 
   it("does not notify subscribers of deleting not present items", () => {
     const fn = spy()
-    set.subscribe({ next: fn })
+    set.subscribe(fn)
     set.delete("a")
     assert.spy(fn).not_called()
   })
@@ -267,7 +272,7 @@ describe("ObservableMap", () => {
 
   it("notifies subscribers of added items", () => {
     const fn = spy()
-    map.subscribe({ next: fn })
+    map.subscribe(fn)
     map.set("a", 1)
     const change: ObservableMapChange<string, number> = {
       map,
@@ -282,7 +287,7 @@ describe("ObservableMap", () => {
   it("does not notify subscribers of unchanged items", () => {
     map.set("a", 1)
     const fn = spy()
-    map.subscribe({ next: fn })
+    map.subscribe(fn)
     map.set("a", 1)
     assert.spy(fn).not_called()
   })
@@ -290,7 +295,7 @@ describe("ObservableMap", () => {
   it("notifies subscribers of changed items", () => {
     map.set("a", 1)
     const fn = spy()
-    map.subscribe({ next: fn })
+    map.subscribe(fn)
     map.set("a", 2)
     const change: ObservableMapChange<string, number> = {
       map,
@@ -305,7 +310,7 @@ describe("ObservableMap", () => {
   it("notifies subscribers of deleted items", () => {
     map.set("a", 1)
     const fn = spy()
-    map.subscribe({ next: fn })
+    map.subscribe(fn)
     map.delete("a")
     const change: ObservableMapChange<string, number> = {
       map,
@@ -319,7 +324,7 @@ describe("ObservableMap", () => {
 
   it("does not notify subscribers of deleting not present items", () => {
     const fn = spy()
-    map.subscribe({ next: fn })
+    map.subscribe(fn)
     map.delete("a")
     assert.spy(fn).not_called()
   })
@@ -352,7 +357,7 @@ describe("ObservableArray", () => {
 
   test("notifies subscribers of pushed items", () => {
     const fn = spy()
-    array.subscribe({ next: fn })
+    array.subscribe(fn)
     array.push("a")
     const change: ObservableArrayChange<string> = {
       array,
@@ -368,7 +373,7 @@ describe("ObservableArray", () => {
   it("notifies subscribers of inserted items", () => {
     array.push("a")
     const fn = spy()
-    array.subscribe({ next: fn })
+    array.subscribe(fn)
     array.insert(0, "b")
     const change: ObservableArrayChange<string> = {
       array,
@@ -384,7 +389,7 @@ describe("ObservableArray", () => {
   it("notifies subscribers of popped items", () => {
     array.push("a")
     const fn = spy()
-    array.subscribe({ next: fn })
+    array.subscribe(fn)
     array.pop()
     const change: ObservableArrayChange<string> = {
       array,
@@ -401,7 +406,7 @@ describe("ObservableArray", () => {
     array.push("a")
     array.push("b")
     const fn = spy()
-    array.subscribe({ next: fn })
+    array.subscribe(fn)
     array.remove(0)
     const change: ObservableArrayChange<string> = {
       array,
@@ -418,7 +423,7 @@ describe("ObservableArray", () => {
     array.push("a")
     array.push("b")
     const fn = spy()
-    array.subscribe({ next: fn })
+    array.subscribe(fn)
     array.set(0, "c")
     const change: ObservableArrayChange<string> = {
       array,
@@ -436,7 +441,7 @@ describe("ObservableArray", () => {
     array.push("a")
     array.push("b")
     const fn = spy()
-    array.subscribe({ next: fn })
+    array.subscribe(fn)
     array.set(0, "a")
     assert.spy(fn).not_called()
   })
@@ -452,7 +457,7 @@ describe("ObservableArray", () => {
     array.push("a")
     array.push("b")
     const fn = spy()
-    array.subscribe({ next: fn })
+    array.subscribe(fn)
     array.swap(0, 1)
     const change: ObservableArrayChange<string> = {
       array,

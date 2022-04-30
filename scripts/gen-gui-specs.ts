@@ -271,11 +271,6 @@ const stateProps = {} as Record<GuiElementType, Record<string, string>>
     type: "Spec[]",
     optional: true,
   }
-  elementSpecs.base.data = {
-    name: "data",
-    type: "unknown",
-    optional: true,
-  }
 }
 
 function getPropName(name: string): string | ts.StringLiteral {
@@ -393,28 +388,9 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
       if (events && type !== "base")
         for (const [name, value] of Object.entries(events[type as GuiElementType])) {
           if (value !== true) continue
-          const type = ts.factory.createFunctionTypeNode(
-            undefined,
-            [
-              ts.factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                undefined,
-                "event",
-                undefined,
-                ts.factory.createTypeReferenceNode(toPascalCase(name) + "Event"),
-              ),
-              ts.factory.createParameterDeclaration(
-                undefined,
-                undefined,
-                undefined,
-                "data",
-                undefined,
-                ts.factory.createTypeReferenceNode("any"),
-              ),
-            ],
-            ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
-          )
+          const type = ts.factory.createTypeReferenceNode("GuiEventHandler", [
+            ts.factory.createTypeReferenceNode(toPascalCase(name) + "Event"),
+          ])
           members.push(
             ts.factory.createPropertySignature(
               undefined,
@@ -458,28 +434,9 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
         undefined,
         "onCreate",
         ts.factory.createToken(ts.SyntaxKind.QuestionToken),
-        ts.factory.createFunctionTypeNode(
-          undefined,
-          [
-            ts.factory.createParameterDeclaration(
-              undefined,
-              undefined,
-              undefined,
-              "element",
-              undefined,
-              ts.factory.createTypeReferenceNode(toPascalCase(type) + "GuiElementMembers"),
-            ),
-            ts.factory.createParameterDeclaration(
-              undefined,
-              undefined,
-              undefined,
-              "interactor",
-              undefined,
-              ts.factory.createTypeReferenceNode("ElementInteractor"),
-            ),
-          ],
-          ts.factory.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword),
-        ),
+        ts.factory.createTypeReferenceNode("OnCreateHandler", [
+          ts.factory.createTypeReferenceNode(toPascalCase(type) + "GuiElementMembers"),
+        ]),
       ),
       ts.factory.createPropertySignature(
         undefined,
@@ -503,10 +460,9 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   )
   createMembers("StyleMod", styleMods, () => [])
 
-  const header = `import { MaybeObservable, MaybeState } from "../observable"
-import { ElementInteractor } from "./render"
-import { Spec } from "./spec"
-
+  const header = `
+  import { MaybeObservable, MaybeState } from "../observable"
+  import { GuiEventHandler, OnCreateHandler, Spec } from "./spec"
 `
   printFile("element-specs.d.ts", header, statements)
 }

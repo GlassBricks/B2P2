@@ -9,13 +9,13 @@ import {
   Component,
   FCSpec,
   FlowElementSpec,
+  GuiEventHandler,
   SliderElementSpec,
   TabbedPaneElementSpec,
   TextBoxElementSpec,
 } from "./spec"
 import { observable, TestObservable } from "../observable"
 import { testRender } from "../test-util/gui"
-import { asFunc } from "../test-util/misc"
 
 describe("create", () => {
   test("Sets spec property", () => {
@@ -225,13 +225,11 @@ describe("destroy", () => {
 })
 
 test("events", () => {
-  const func = spy()
-  const data = 2
+  const func = spy<GuiEventHandler>()
   const spec: ButtonElementSpec = {
     type: "button",
-    on_gui_click: asFunc(func),
-    on_gui_opened: asFunc(func),
-    data,
+    on_gui_click: func,
+    on_gui_opened: func,
   }
   const element = testRender(spec).native
 
@@ -248,7 +246,7 @@ test("events", () => {
     shift: false,
   }
   script.get_event_handler(defines.events.on_gui_click)(fakeClickEvent)
-  assert.spy(func).called_with(fakeClickEvent, data)
+  assert.spy(func).called_with(match._, fakeClickEvent)
 
   const fakeOpenEvent: OnGuiOpenedEvent = {
     element: element as LuaGuiElement,
@@ -258,7 +256,7 @@ test("events", () => {
     gui_type: defines.gui_type.custom,
   }
   script.get_event_handler(defines.events.on_gui_opened)(fakeOpenEvent)
-  assert.spy(func).called_with(fakeOpenEvent, data)
+  assert.spy(func).called_with(match._, fakeOpenEvent)
 })
 
 test("observable value", () => {
@@ -300,21 +298,21 @@ test("onCreate", () => {
   const element = testRender(spec).native
   assert.equal(element1, element)
 })
-
-test("onCreate addSubscription", () => {
-  const fn = spy()
-  const spec: FlowElementSpec = {
-    type: "flow",
-    onCreate(_, interactor) {
-      interactor.addSubscription({ unsubscribe: fn as any })
-    },
-  }
-
-  const element = testRender(spec).native
-  assert.spy(fn).not_called()
-  destroy(element)
-  assert.spy(fn).called()
-})
+//
+// test("onCreate addSubscription", () => {
+//   const fn = spy<Callback>()
+//   const spec: FlowElementSpec = {
+//     type: "flow",
+//     onCreate(_) {
+//       interactor.addSubscription(fn)
+//     },
+//   }
+//
+//   const element = testRender(spec).native
+//   assert.spy(fn).not_called()
+//   destroy(element)
+//   assert.spy(fn).called()
+// })
 
 test("function component", () => {
   const results: unknown[] = []
