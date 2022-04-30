@@ -466,7 +466,3 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
 `
   printFile("element-specs.d.ts", header, statements)
 }
-
-// todo:
-// ref
-// tabs

@@ -13,6 +13,7 @@ import {
   GuiEvent,
   GuiEventHandler,
   Spec,
+  Tracker,
 } from "./spec"
 import { isObservable, MutableState, Observer, Unsubscribe } from "../observable"
 
@@ -22,9 +23,14 @@ interface ElementInstance {
   readonly element: GuiElementMembers
   readonly playerIndex: PlayerIndex
   readonly index: GuiElementIndex
-  readonly subscriptions: MutableLuaMap<string | number, Callback>
+  readonly subscriptions: MutableLuaMap<string, Callback>
 
   readonly events: PRecord<GuiEventName, Func<any>>
+}
+
+interface TrackerInternal extends Tracker {
+  subscriptions: Callback[] & MutableLuaMap<string, Callback>
+  onCreateCallbacks: Array<(this: unknown, element: LuaGuiElement) => void>
 }
 
 function setValueObserver(
@@ -69,42 +75,47 @@ function setStateFunc(this: MutableState<unknown>, key: string, event: GuiEvent)
 
 Functions.registerAll({ setValueObserver, callSetterObserver, setStateFunc })
 
+function newTracker(): TrackerInternal {
+  const subscriptions = {} as TrackerInternal["subscriptions"]
+  const onCreateCallbacks: Array<(this: unknown, element: LuaGuiElement) => void> = []
+  return {
+    subscriptions,
+    onCreateCallbacks,
+    onMount(callback: (this: unknown, firstElement: LuaGuiElement) => void) {
+      onCreateCallbacks.push(callback)
+    },
+    onDestroy(callback: Callback) {
+      subscriptions.push(callback)
+    },
+  }
+}
+
 const Elements = PlayerData<Record<GuiElementIndex, ElementInstance>>("gui:Elements", () => ({}))
 
 const type = _G.type
 
-export function render<T extends GuiElementType>(
-  parent: BaseGuiElement,
-  spec: ElementSpec & { type: T },
-): Extract<LuaGuiElement, { type: T }>
-export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement
-export function render(parent: BaseGuiElement, element: FragmentSpec): LuaGuiElement[]
-export function render(parent: BaseGuiElement, element: FullSpec): LuaGuiElement | LuaGuiElement[]
-export function render(parent: BaseGuiElement, element: FullSpec): LuaGuiElement | LuaGuiElement[] {
+function renderInternal(parent: BaseGuiElement, element: FullSpec, tracker: TrackerInternal): LuaGuiElement {
   const elemType = element.type
   const elemTypeType = type(elemType)
   if (elemTypeType === "string") {
-    return renderElement(parent, element as ElementSpec | FragmentSpec)
+    return renderElement(parent, element as ElementSpec | FragmentSpec, tracker)
   }
   if (elemTypeType === "table") {
-    return renderClassComponent(parent, element as ClassComponentSpec<any>)
+    return renderClassComponent(parent, element as ClassComponentSpec<any>, tracker)
   }
   if (elemTypeType === "function") {
-    return renderFunctionComponent(parent, element as FCSpec<any>)
+    return renderFunctionComponent(parent, element as FCSpec<any>, tracker)
   }
   error("Unknown element spec: " + serpent.block(element))
 }
 
-function renderFragment(parent: BaseGuiElement, spec: FragmentSpec): LuaGuiElement[] {
-  const children = spec.children
-  if (!children) return []
-  return children.map((x) => render(parent, x))
-}
-
-function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec): LuaGuiElement | LuaGuiElement[] {
+function renderElement(
+  parent: BaseGuiElement,
+  spec: ElementSpec | FragmentSpec,
+  tracker: TrackerInternal,
+): LuaGuiElement {
   if (spec.type === "fragment") {
-    // error("Cannot render fragments directly. Try wrapping them in another element.")
-    return renderFragment(parent, spec)
+    error("Cannot render fragments directly. Try wrapping in another element.")
   }
 
   const guiSpec: Record<string, any> = {}
@@ -137,7 +148,7 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
   }
 
   const element = parent.add(guiSpec as GuiSpec)
-  const subscriptions: ElementInstance["subscriptions"] = new LuaMap()
+  const subscriptions = tracker.subscriptions
 
   for (const [key, value] of pairs(elemProps)) {
     if (isObservable(value)) {
@@ -174,7 +185,7 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
 
   const children = spec.children
   if (children) {
-    for (const child of children) render(element, child)
+    for (const child of children) renderInternal(element, child, newTracker())
   }
 
   // setup tabbed pane
@@ -189,6 +200,9 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
   }
 
   spec.onCreate?.(element as any)
+  for (const onCreateCallback of tracker.onCreateCallbacks) {
+    onCreateCallback(element as any)
+  }
 
   if (!isEmpty(subscriptions) || !isEmpty(events)) {
     Elements[element.player_index][element.index] = {
@@ -203,13 +217,13 @@ function renderElement(parent: BaseGuiElement, spec: ElementSpec | FragmentSpec)
   return element
 }
 
-function renderFunctionComponent<T>(parent: BaseGuiElement, spec: FCSpec<T>) {
-  return render(parent, spec.type(spec.props))
+function renderFunctionComponent<T>(parent: BaseGuiElement, spec: FCSpec<T>, tracker: TrackerInternal) {
+  return renderInternal(parent, spec.type(spec.props, tracker), tracker)
 }
 
-function renderClassComponent<T>(parent: BaseGuiElement, spec: ClassComponentSpec<T>) {
+function renderClassComponent<T>(parent: BaseGuiElement, spec: ClassComponentSpec<T>, tracker: TrackerInternal) {
   const instance = new spec.type()
-  return render(parent, instance.render(spec.props))
+  return renderInternal(parent, instance.render(spec.props, tracker), tracker)
 }
 
 function getInstance(element: BaseGuiElement): ElementInstance | undefined {
@@ -245,6 +259,15 @@ export function destroy(element: BaseGuiElement | undefined, destroyElement = tr
     element.destroy()
   }
   Elements[playerIndex][index] = undefined!
+}
+
+export function render<T extends GuiElementType>(
+  parent: BaseGuiElement,
+  spec: ElementSpec & { type: T },
+): Extract<LuaGuiElement, { type: T }>
+export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement
+export function render(parent: BaseGuiElement, element: FullSpec): LuaGuiElement {
+  return renderInternal(parent, element, newTracker())
 }
 
 // -- gui events --

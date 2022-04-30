@@ -1,14 +1,26 @@
 // noinspection JSUnusedGlobalSymbols
 
 import { ElementSpec } from "./element-specs"
-import { Func } from "../references"
+import { Callback, Func } from "../references"
 
 export * from "./element-specs"
 
-export type FunctionComponent<T> = (props: T) => Spec
+/** @noSelf */
+export interface Tracker {
+  /**
+   * This does not have to be a registered func.
+   */
+  onMount(callback: (this: unknown, firstElement: LuaGuiElement) => void): void
+  /**
+   * As this function will be stored, only registered funcs can be added.
+   */
+  onDestroy(callback: Callback): void
+}
+
+export type FunctionComponent<T> = (props: T, tracker: Tracker) => Spec
 
 export abstract class Component {
-  abstract render(props: unknown): Spec
+  abstract render(props: unknown, tracker: Tracker): Spec
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   declare _props: Parameters<this["render"]>[0]

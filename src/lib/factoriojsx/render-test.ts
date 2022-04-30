@@ -1,6 +1,6 @@
 // noinspection UnnecessaryLocalVariableJS
 
-import { Classes } from "../references"
+import { Callback, Classes } from "../references"
 import { destroy } from "./render"
 import {
   ButtonElementSpec,
@@ -298,21 +298,37 @@ test("onCreate", () => {
   const element = testRender(spec).native
   assert.equal(element1, element)
 })
-//
-// test("onCreate addSubscription", () => {
-//   const fn = spy<Callback>()
-//   const spec: FlowElementSpec = {
-//     type: "flow",
-//     onCreate(_) {
-//       interactor.addSubscription(fn)
-//     },
-//   }
-//
-//   const element = testRender(spec).native
-//   assert.spy(fn).not_called()
-//   destroy(element)
-//   assert.spy(fn).called()
-// })
+
+test("tracker onMount", () => {
+  const fn = spy<Callback>()
+  const spec: FCSpec<any> = {
+    type(props, tracker) {
+      tracker.onMount(fn)
+      return { type: "flow" }
+    },
+    props: {},
+  }
+  const element = testRender(spec).native
+  assert.spy(fn).called()
+  assert.same(fn.calls[0].refs[1], element)
+})
+
+test("tracker onDestroy", () => {
+  const fn = spy<Callback>()
+  const spec: FCSpec<any> = {
+    type(props, tracker) {
+      tracker.onDestroy(fn)
+
+      return { type: "flow" }
+    },
+    props: {},
+  }
+
+  const element = testRender(spec).native
+  assert.spy(fn).not_called()
+  destroy(element)
+  assert.spy(fn).called()
+})
 
 test("function component", () => {
   const results: unknown[] = []

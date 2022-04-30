@@ -400,6 +400,9 @@ export function bound(this: unknown, target: unknown, name: keyof any): void {
   boundFuncKeys.push(name)
 }
 
+/**
+ * Asserts that the given function is registered. Returns the function.
+ */
 export function reg<F extends ContextualFun>(func: F): Func<F> {
   if (typeof func === "function") error("tried to pass raw function where registered function is needed")
   if (!func[RClassInfo]) error("This func class is not registered")

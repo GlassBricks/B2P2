@@ -1,5 +1,5 @@
 import { bound, Classes, reg } from "../../lib"
-import { Component, destroy, FactorioJsx, Props, render, Spec } from "../../lib/factoriojsx"
+import { Component, destroy, FactorioJsx, Props, render, Spec, Tracker } from "../../lib/factoriojsx"
 import { ObservableSet, ObservableSetChange } from "../../lib/observable/ObservableSet"
 import { Unsubscribe } from "../../lib/observable"
 
@@ -15,17 +15,18 @@ export class EnumerateSet<T> extends Component {
       map: (value: T) => Spec
       ifEmpty?: () => Spec
     } & Props<"flow" | "scroll-pane">,
+    tracker: Tracker,
   ): Spec {
     this.of = props.of
     this.map = props.map
     this.ifEmpty = props.ifEmpty
-    return <props.uses {...props} onCreate={this.setup.bind(this)} />
+    return <props.uses {...props} onCreate={this.setup.bind(this, tracker)} />
   }
 
   element!: BaseGuiElement
   associated = new LuaMap<T, BaseGuiElement>()
 
-  private setup(element: BaseGuiElement) {
+  private setup(tracker: Tracker, element: BaseGuiElement) {
     this.element = element
     const { of, map, ifEmpty } = this
     if (of.size() === 0) {
@@ -38,8 +39,8 @@ export class EnumerateSet<T> extends Component {
         associated.set(item, render(element, map(item)))
       }
     }
-    // todo: fix
-    of.subscribe(reg(this.onChange))
+    const unsubscribe = of.subscribe(reg(this.onChange))
+    tracker.onDestroy(unsubscribe)
   }
 
   @bound
