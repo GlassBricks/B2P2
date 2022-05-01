@@ -13,6 +13,7 @@ test("BasicImport", () => {
   const area = bbox.normalize(area1)
   pasteBlueprint(surface, area.left_top, blueprint)
   const assembly = Assembly.create("test", surface, area)
+  after_test(() => assembly.delete())
   const im = new BasicImport(assembly)
   assert.same("test", im.getName().get())
   const content = im.getContent().get()!
