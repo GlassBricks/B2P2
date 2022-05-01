@@ -41,14 +41,15 @@ export class AssembliesList extends Component {
           >
             <EnumerateSet
               of={Assembly.getAllAssemblies()}
-              map={this.assemblyButton}
-              ifEmpty={returns(<label caption={[L_Gui.NoAssemblies]} styleMod={{ margin: 5 }} />)}
+              map={reg(this.assemblyButton)}
+              ifEmpty={returns(<label caption={[L_Gui.NoAssemblies]} styleMod={{ height: 28, left_padding: 10 }} />)}
               uses="scroll-pane"
               direction="vertical"
               horizontal_scroll_policy="never"
               styleMod={{
                 maximal_height: GuiConstants.AssembliesListMaxHeight,
                 horizontally_stretchable: true,
+                bottom_padding: -6,
               }}
             />
           </frame>
