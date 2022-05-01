@@ -1,7 +1,7 @@
 import { isEmpty, shallowCopy } from "../util"
 import Events from "../Events"
 import { PlayerData } from "../player-data"
-import { bind, Callback, Func, funcRef, Functions, isCallable, SelflessFun } from "../references"
+import { bind, Callback, Classes, Func, funcRef, Functions, isCallable, SelflessFun } from "../references"
 import { PRecord } from "../util-types"
 import * as propTypes from "./propTypes.json"
 import {
@@ -274,7 +274,9 @@ function renderFunctionComponent<T>(parent: BaseGuiElement, spec: FCSpec<T>, tra
 }
 
 function renderClassComponent<T>(parent: BaseGuiElement, spec: ClassComponentSpec<T>, tracker: TrackerInternal) {
-  const instance = new spec.type()
+  const Component = spec.type
+  Classes.nameOf(Component) // assert registered
+  const instance = new Component()
 
   const resultSpec = instance.render(spec.props, tracker)
   if (instance.onMount) tracker.onMount((element) => instance.onMount!.call(instance, element, tracker))

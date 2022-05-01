@@ -437,6 +437,19 @@ describe("Class component", () => {
     destroy(element)
     assert.same(["destroyed2", "destroyed"], results)
   })
+
+  test("unregistered components give error", () => {
+    class C extends Component {
+      render(): Spec {
+        return { type: "flow" }
+      }
+    }
+    const spec: ClassComponentSpec<any> = {
+      type: C,
+      props: {},
+    }
+    assert.error(() => testRender(spec))
+  })
 })
 
 describe("function component", () => {
