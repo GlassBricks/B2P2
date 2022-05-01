@@ -12,8 +12,6 @@ class AsFunc<F extends AnyFunction> {
   }
 }
 
-export function asFunc<F extends (this: void, ...args: any) => any>(
-  func: F,
-): Func<(this: unknown, ...args: any) => any> {
+export function asFunc<F extends (this: void, ...args: any) => any>(func: F): Func<(...args: any) => any> {
   return new AsFunc(func) as any
 }

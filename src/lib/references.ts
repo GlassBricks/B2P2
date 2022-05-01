@@ -130,7 +130,10 @@ export type ContextualFun = (this: any, ...args: any) => any
 export type SelflessFun = (this: void, ...args: any) => any
 
 export type Registered = { _registeredBrand: true }
-export type Func<F extends ContextualFun> = F & Registered
+export type Func<F extends ContextualFun> = (F extends (this: any, ...args: infer A) => infer R
+  ? (this: unknown, ...args: A) => R
+  : ContextualFun) &
+  Registered
 
 export type FuncName = string & { _funcNameBrand: any }
 
@@ -175,7 +178,7 @@ function funcRefBasedClass<C extends unknown[], A extends unknown[], R>(
   __call: (this: FuncClassTemplate, thisArg: unknown, ...args: A) => R,
   name: string,
 ): {
-  new (func: AnyFunction, ...args: C): Func<(this: unknown, ...args: A) => R>
+  new (func: AnyFunction, ...args: C): Func<(...args: A) => R>
   func: SelflessFun
   funcName?: FuncName
 } {
@@ -321,28 +324,25 @@ const BoundN = funcRefBasedClass(
 
 const boundFuncClasses = [Bound0, Bound1, Bound2, Bound3, Bound4] as typeof BoundN[]
 
-export function bind<T, A extends any[], R>(
-  func: (this: T, ...args: A) => R,
-  thisValue: T,
-): Func<(this: unknown, ...args: A) => R>
+export function bind<T, A extends any[], R>(func: (this: T, ...args: A) => R, thisValue: T): Func<(...args: A) => R>
 export function bind<T, A1, A extends any[], R>(
   func: (this: T, arg1: A1, ...args: A) => R,
   thisValue: T,
   arg1: A1,
-): Func<(this: unknown, ...args: A) => R>
+): Func<(...args: A) => R>
 export function bind<T, A1, A2, A extends any[], R>(
   func: (this: T, arg1: A1, arg2: A2, ...args: A) => R,
   thisValue: T,
   arg1: A1,
   arg2: A2,
-): Func<(this: unknown, ...args: A) => R>
+): Func<(...args: A) => R>
 export function bind<T, A1, A2, A3, A extends any[], R>(
   func: (this: T, arg1: A1, arg2: A2, arg3: A3, ...args: A) => R,
   thisValue: T,
   arg1: A1,
   arg2: A2,
   arg3: A3,
-): Func<(this: unknown, ...args: A) => R>
+): Func<(...args: A) => R>
 export function bind<T, A1, A2, A3, A4, A extends any[], R>(
   func: (this: T, arg1: A1, arg2: A2, arg3: A3, arg4: A4, ...args: A) => R,
   thisValue: T,
@@ -350,7 +350,7 @@ export function bind<T, A1, A2, A3, A4, A extends any[], R>(
   arg2: A2,
   arg3: A3,
   arg4: A4,
-): Func<(this: unknown, ...args: A) => R>
+): Func<(...args: A) => R>
 export function bind(func: ContextualFun, thisValue: unknown, ...args: unknown[]): ContextualFun {
   const argCount = select("#", ...args)
   const type = boundFuncClasses[argCount] ?? BoundN
@@ -361,7 +361,7 @@ export const bindN: <T, AX, R>(
   func: (this: T, ...args: AX[]) => R,
   thisValue: T,
   ...args: AX[]
-) => Func<(this: unknown, ...args: AX[]) => R> = bind as any
+) => Func<(...args: AX[]) => R> = bind as any
 
 @Classes.register()
 class KeyFunc {

@@ -41,7 +41,7 @@ export class SaveButtons extends Component {
       backCaption: ["gui.back"],
       confirmCaption: ["gui.save"],
       redConfirm: true,
-      onConfirm: this.beginSave,
+      onConfirm: reg(this.beginSave),
     })
   }
 
@@ -76,7 +76,7 @@ export class SaveButtons extends Component {
       backCaption: ["gui.back"],
       confirmCaption: ["gui.save"],
       redConfirm: true,
-      onConfirm: this.commitSave,
+      onConfirm: reg(this.commitSave),
     })
   }
 }

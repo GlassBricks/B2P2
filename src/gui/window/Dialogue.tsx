@@ -1,15 +1,15 @@
 import { Component, destroy, FactorioJsx, GuiEvent, render, Spec } from "../../lib/factoriojsx"
-import { bound, Classes, reg } from "../../lib"
+import { bound, Classes, Func, reg } from "../../lib"
 
 export interface DialogueProps {
   title: LocalisedString
   content: Spec
 
   backCaption?: LocalisedString
-  onBack?: (player: LuaPlayer) => void
+  onBack?: Func<(player: LuaPlayer) => void>
 
   confirmCaption?: LocalisedString
-  onConfirm?: (player: LuaPlayer) => void
+  onConfirm?: Func<(player: LuaPlayer) => void>
 
   redConfirm?: boolean
 

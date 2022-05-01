@@ -70,7 +70,7 @@ export type GuiEvent =
   | OnGuiTextChangedEvent
   | OnGuiValueChangedEvent
 
-export type GuiEventHandler<T extends GuiEvent = GuiEvent> = Func<(this: unknown, event: T) => void>
+export type GuiEventHandler<T extends GuiEvent = GuiEvent> = Func<(event: T) => void>
 export type CheckedStateChangedEventHandler = GuiEventHandler<OnGuiCheckedStateChangedEvent>
 export type ClosedEventHandler = GuiEventHandler<OnGuiClosedEvent>
 export type ClickEventHandler = GuiEventHandler<OnGuiClickEvent>

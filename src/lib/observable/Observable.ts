@@ -36,7 +36,7 @@ export class MappedObservable<T, U> extends Observable<U> {
   }
 }
 
-export type Mapper<T, U> = Func<(this: unknown, value: T) => U>
+export type Mapper<T, U> = Func<(value: T) => U>
 
 export function isObservable(obj: unknown): obj is Observable<any> {
   return obj instanceof Observable

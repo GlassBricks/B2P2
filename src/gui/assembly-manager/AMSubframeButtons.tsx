@@ -19,7 +19,7 @@ export class AMSubframeButtons extends Component {
         direction="horizontal"
         styleMod={{
           horizontally_stretchable: true,
-          padding: [5, 10],
+          bottom_padding: -5,
         }}
       >
         <HorizontalPusher />
