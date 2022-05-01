@@ -10,7 +10,6 @@ import {
   ElementSpec,
   FCSpec,
   FragmentSpec,
-  FullSpec,
   GuiEvent,
   GuiEventHandler,
   Spec,
@@ -32,6 +31,7 @@ interface ElementInstance {
 interface TrackerInternal extends Tracker {
   subscriptions: Callback[] & MutableLuaMap<string, Callback>
   onMountCallbacks: ((this: unknown, element: LuaGuiElement) => void)[][]
+  groupedElements?: LuaGuiElement[]
   shiftOnMountCallbacks(): void
 }
 
@@ -99,11 +99,19 @@ function newTracker(): TrackerInternal {
   }
 }
 
+function isLuaGuiElement(element: unknown): element is LuaGuiElement {
+  return typeof element === "object" && (element as LuaGuiElement).object_name === "LuaGuiElement"
+}
+
 const Elements = PlayerData<Record<GuiElementIndex, ElementInstance>>("gui:Elements", () => ({}))
 
 const type = _G.type
 
-function renderInternal(parent: BaseGuiElement, element: FullSpec, tracker: TrackerInternal): LuaGuiElement {
+function renderInternal(
+  parent: BaseGuiElement,
+  element: Spec,
+  tracker: TrackerInternal,
+): LuaGuiElement | LuaGuiElement[] | undefined {
   const elemType = element.type
   const elemTypeType = type(elemType)
   if (elemTypeType === "string") {
@@ -115,16 +123,43 @@ function renderInternal(parent: BaseGuiElement, element: FullSpec, tracker: Trac
   if (elemTypeType === "function") {
     return renderFunctionComponent(parent, element as FCSpec<any>, tracker)
   }
-  error("Unknown element spec: " + serpent.block(element))
+  error("Unknown spec type: " + serpent.block(element))
+}
+
+function renderFragment(
+  parent: BaseGuiElement,
+  spec: FragmentSpec,
+  tracker: TrackerInternal,
+): LuaGuiElement[] | undefined {
+  const children = spec.children || []
+  let usedTracker: TrackerInternal = tracker
+  const elements: LuaGuiElement[] = []
+  for (const child of children) {
+    const childResult = renderInternal(parent, child, usedTracker)
+    if (!childResult || isEmpty(childResult)) continue
+    usedTracker = newTracker()
+    if (isLuaGuiElement(childResult)) {
+      elements.push(childResult)
+    } else {
+      elements.push(...childResult)
+    }
+  }
+  if (elements.length === 0) {
+    for (const [, cb] of pairs(shallowCopy(tracker.subscriptions as unknown as Record<any, Callback>))) {
+      cb()
+    }
+    return
+  }
+  return elements
 }
 
 function renderElement(
   parent: BaseGuiElement,
   spec: ElementSpec | FragmentSpec,
   tracker: TrackerInternal,
-): LuaGuiElement {
+): LuaGuiElement | LuaGuiElement[] | undefined {
   if (spec.type === "fragment") {
-    error("Cannot render fragments directly. Try wrapping in another element.")
+    return renderFragment(parent, spec, tracker)
   }
 
   const guiSpec: Record<string, any> = {}
@@ -194,7 +229,9 @@ function renderElement(
 
   const children = spec.children
   if (children) {
-    for (const child of children) renderInternal(element, child, newTracker())
+    for (const child of children as Spec[]) {
+      renderInternal(element, child, newTracker())
+    }
   }
 
   // setup tabbed pane
@@ -281,9 +318,14 @@ export function render<T extends GuiElementType>(
   parent: BaseGuiElement,
   spec: ElementSpec & { type: T },
 ): Extract<LuaGuiElement, { type: T }>
-export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement
-export function render(parent: BaseGuiElement, element: FullSpec): LuaGuiElement {
-  return renderInternal(parent, element, newTracker())
+export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement | undefined
+export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement | undefined {
+  const result = renderInternal(parent, element, newTracker())
+  if (!result || isLuaGuiElement(result)) return result
+  if (result.length > 1) {
+    error("cannot render multiple elements at root. Try wrapping them in another element.")
+  }
+  return result[0]
 }
 
 // -- gui events --

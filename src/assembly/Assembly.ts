@@ -4,7 +4,7 @@ import { MutableObservableSet, observableSet, ObservableSet } from "../lib/obser
 import { UserError } from "../player-interaction/protected-action"
 import { L_Interaction } from "../locale"
 import { Colors } from "../constants"
-import { Event, MutableState, Observable, observable } from "../lib/observable"
+import { Event, MutableState, Observable, state } from "../lib/observable"
 import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 
 @Classes.register()
@@ -23,7 +23,7 @@ export class Assembly {
     public readonly area: BoundingBoxRead,
     private readonly content: AssemblyContent,
   ) {
-    this.name = observable(name)
+    this.name = state(name)
     this.boxRenderId = rendering.draw_rectangle({
       left_top: area.left_top,
       right_bottom: area.right_bottom,

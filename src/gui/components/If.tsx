@@ -25,7 +25,6 @@ export class If extends Component {
         {...props}
         onCreate={(element) => {
           this.element = element
-          this.onChange(props.condition.value)
           const unsubscribe = props.condition.subscribe(this.onChange)
           tracker.onDestroy(unsubscribe)
         }}

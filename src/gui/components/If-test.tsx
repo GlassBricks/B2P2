@@ -1,13 +1,13 @@
 import { ElementWrapper, testRender } from "../../lib/test-util/gui"
 import { If } from "./If"
-import { MutableState, observable } from "../../lib/observable"
+import { MutableState, state } from "../../lib/observable"
 import { FactorioJsx } from "../../lib/factoriojsx"
 import { returns } from "../../lib"
 
 let condition: MutableState<boolean>
 
 before_each(() => {
-  condition = observable(true)
+  condition = state(true)
 })
 
 function findAllLabels(root: ElementWrapper): LocalisedString[] {

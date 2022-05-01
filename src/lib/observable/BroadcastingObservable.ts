@@ -1,11 +1,12 @@
 import { bind, Callback, Classes } from "../references"
-import { Observable, ObservableBrand, Observer, Unsubscribe } from "./Observable"
+import { Observable, Observer, Unsubscribe } from "./Observable"
 
 interface ObserverKey {
   _observerKeyBrand?: any
 }
+
 @Classes.register()
-export class BroadcastingObservable<T> implements Observable<T> {
+export class BroadcastingObservable<T> extends Observable<T> {
   private readonly observers = new LuaMap<ObserverKey, Observer<T>>()
   subscribe(observer: Observer<T>): Callback {
     const key: ObserverKey = {}
@@ -32,6 +33,4 @@ export class BroadcastingObservable<T> implements Observable<T> {
       observers.delete(key)
     }
   }
-  declare [ObservableBrand]: true
 }
-BroadcastingObservable.prototype[ObservableBrand] = true

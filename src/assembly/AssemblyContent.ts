@@ -11,7 +11,7 @@ import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { MutableObservableArray, observableArray } from "../lib/observable/ObservableArray"
 import { pos } from "../lib/geometry/position"
-import { MutableState, observable, State } from "../lib/observable"
+import { MutableState, state, State } from "../lib/observable"
 
 export interface AssemblyImport {
   readonly content: Import
@@ -43,8 +43,8 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   private importsContent: Blueprint
 
-  lastPasteConflicts: MutableState<BlueprintPasteConflicts[]> = observable([{}])
-  pendingSave: MutableState<BlueprintDiff | undefined> = observable(undefined)
+  lastPasteConflicts: MutableState<BlueprintPasteConflicts[]> = state([{}])
+  pendingSave: MutableState<BlueprintDiff | undefined> = state(undefined)
 
   constructor(private readonly surface: LuaSurface, private readonly area: BoundingBoxRead) {
     this.ownContents = Blueprint.take(surface, area, area.left_top)

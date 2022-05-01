@@ -16,7 +16,7 @@ import {
   TextBoxElementSpec,
   Tracker,
 } from "./spec"
-import { observable, TestObservable } from "../observable"
+import { state, TestObservable } from "../observable"
 import { testRender } from "../test-util/gui"
 import { asFunc } from "../test-util/args"
 
@@ -41,7 +41,7 @@ describe("create", () => {
   })
 
   test("Listens to source property", () => {
-    const v = observable<LocalisedString>("one")
+    const v = state<LocalisedString>("one")
     const spec: FlowElementSpec = {
       type: "flow",
       caption: v,
@@ -53,7 +53,7 @@ describe("create", () => {
   })
 
   test("Call method property", () => {
-    const value = observable(1)
+    const value = state(1)
     const spec: SliderElementSpec = {
       type: "slider",
       value_step: value,
@@ -65,7 +65,7 @@ describe("create", () => {
   })
 
   test("Slider minimum", () => {
-    const value = observable(1)
+    const value = state(1)
     const spec: SliderElementSpec = {
       type: "slider",
       minimum_value: value,
@@ -80,7 +80,7 @@ describe("create", () => {
   })
 
   test("Slider maximum", () => {
-    const value = observable(5)
+    const value = state(5)
     const spec: SliderElementSpec = {
       type: "slider",
       minimum_value: 1,
@@ -95,7 +95,7 @@ describe("create", () => {
   })
 
   test("Does not allow source on create-only property", () => {
-    const v = observable<"vertical" | "horizontal">("vertical")
+    const v = state<"vertical" | "horizontal">("vertical")
     const spec: FlowElementSpec = {
       type: "flow",
       direction: v as any,
@@ -166,7 +166,7 @@ describe("styleMod", () => {
   })
 
   test("listens to source property", () => {
-    const value = observable(1)
+    const value = state(1)
     const spec: FlowElementSpec = {
       type: "flow",
       styleMod: {
@@ -263,7 +263,7 @@ test("events", () => {
 })
 
 test("observable value", () => {
-  const val = observable("one")
+  const val = state("one")
   const spec: TextBoxElementSpec = {
     type: "text-box",
     text: val,
@@ -497,6 +497,48 @@ describe("function component", () => {
     results.length = 0
     destroy(element)
     assert.same(["destroyed2", "destroyed"], results)
+  })
+})
+
+describe("Fragments", () => {
+  test("rendering fragment with multiple children at root is error", () => {
+    const spec: Spec = {
+      type: "fragment",
+      children: [{ type: "flow" }, { type: "flow" }],
+    }
+    assert.error(() => testRender(spec as any))
+  })
+
+  test("Fragment with multiple children inside another element is ok", () => {
+    const spec: Spec = {
+      type: "flow",
+      children: [{ type: "fragment", children: [{ type: "flow" }, { type: "flow" }] }],
+    }
+    const element = testRender(spec).native
+    assert.equal("flow", element.type)
+    assert.equal(2, element.children.length)
+    assert.equal("flow", element.children[0].type)
+    assert.equal("flow", element.children[1].type)
+  })
+
+  test("fragment with multiple children as result of functional component", () => {
+    function Comp(): Spec {
+      return {
+        type: "fragment",
+        children: [{ type: "flow" }, { type: "flow" }],
+      }
+    }
+    assert.error(() => testRender({ type: Comp, props: {} }))
+
+    const spec2: Spec = {
+      type: "flow",
+      children: [{ type: Comp, props: {} }],
+    }
+    const element = testRender(spec2).native
+    assert.equal("flow", element.type)
+    assert.equal(2, element.children.length)
+    assert.equal("flow", element.children[0].type)
+    assert.equal("flow", element.children[1].type)
   })
 })
 

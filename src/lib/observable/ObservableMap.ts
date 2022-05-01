@@ -1,3 +1,5 @@
+// noinspection JSUnusedLocalSymbols
+
 import { Classes } from "../references"
 import { BroadcastingObservable } from "./BroadcastingObservable"
 import { Observable } from "./Observable"
@@ -30,34 +32,34 @@ class ObservableMapImpl<K extends AnyNotNil, V>
   extends BroadcastingObservable<ObservableMapChange<K, V>>
   implements MutableObservableMap<K, V>
 {
-  private map = new LuaMap<K, V | undefined>()
+  private _map = new LuaMap<K, V | undefined>()
   private _size = 0
 
   public size(): number {
     return this._size
   }
   public get(key: K): V | undefined {
-    return this.map.get(key)
+    return this._map.get(key)
   }
 
   public has(key: K): boolean {
-    return this.map.has(key)
+    return this._map.has(key)
   }
 
   public value(): LuaMap<K, V | undefined> {
-    return this.map
+    return this._map
   }
 
   public set(key: K, value: V | undefined): void {
-    const { map } = this
-    const oldValue = map.get(key)
+    const { _map } = this
+    const oldValue = _map.get(key)
     if (oldValue !== value) {
       if (oldValue === undefined) {
         this._size++
       } else if (value === undefined) {
         this._size--
       }
-      map.set(key, value)
+      _map.set(key, value)
       super.next({ map: this, key, oldValue, value })
     }
   }
@@ -67,7 +69,7 @@ class ObservableMapImpl<K extends AnyNotNil, V>
   }
 
   __pairs() {
-    return pairs(this.map)
+    return pairs(this._map)
   }
 }
 

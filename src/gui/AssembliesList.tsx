@@ -1,26 +1,31 @@
 import { bind, bound, Classes, reg, returns } from "../lib"
-import { EmptyComponent, FactorioJsx, Spec } from "../lib/factoriojsx"
+import { Component, destroy, EmptyProps, FactorioJsx, Spec } from "../lib/factoriojsx"
 import { Assembly } from "../assembly/Assembly"
-import { GuiParameters, Styles } from "../constants"
+import { GuiConstants, Styles } from "../constants"
 import { L_Gui } from "../locale"
 import { startAssemblyCreation } from "../assembly/creation"
-import { TitleBar } from "./components/TitleBar"
+import { DraggableSpace, TitleBar } from "./components/TitleBar"
 import { EnumerateSet } from "./components/EnumerateSet"
 import { addWindow } from "./window/Window"
 import { openAssemblyManager } from "./assembly-manager/AssemblyManager"
+import { CloseButton } from "./components/Buttons"
 
 @Classes.register()
-export class AssembliesList extends EmptyComponent {
-  render(): Spec {
+export class AssembliesList extends Component {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  render(_props: EmptyProps): Spec {
     return (
       <frame
         auto_center
         direction="vertical"
         styleMod={{
-          width: GuiParameters.AssembliesListWidth,
+          width: GuiConstants.AssembliesListWidth,
         }}
       >
-        <TitleBar title={[L_Gui.AssemblyListTitle]} closesParent />
+        <TitleBar title={[L_Gui.AssemblyListTitle]}>
+          <DraggableSpace />
+          <CloseButton onClick={reg(this.close)} />
+        </TitleBar>
         <frame style="inside_shallow_frame_with_padding" direction="vertical">
           <label
             style="bold_label"
@@ -42,7 +47,7 @@ export class AssembliesList extends EmptyComponent {
               direction="vertical"
               horizontal_scroll_policy="never"
               styleMod={{
-                maximal_height: GuiParameters.AssembliesListMaxHeight,
+                maximal_height: GuiConstants.AssembliesListMaxHeight,
                 horizontally_stretchable: true,
               }}
             />
@@ -75,13 +80,23 @@ export class AssembliesList extends EmptyComponent {
       // teleport player
       assembly.teleportPlayer(player)
     } else {
-      player.print("TODO: gui for assembly")
+      openAssemblyManager(player, assembly)
     }
   }
 
   @bound
   private newAssembly(event: OnGuiClickEvent) {
     startAssemblyCreation(game.players[event.player_index])
+  }
+
+  element!: BaseGuiElement
+  onMount(element: BaseGuiElement): void {
+    this.element = element
+  }
+
+  @bound
+  private close() {
+    destroy(this.element)
   }
 }
 

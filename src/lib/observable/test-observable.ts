@@ -1,12 +1,15 @@
-import { Observable, ObservableBrand, Observer } from "./Observable"
-import { Callback } from "../references"
+import { Observable, Observer } from "./Observable"
+import { Callback, Classes } from "../references"
 import Spy = spy.Spy
 
-export class TestObservable<T> implements Observable<T> {
+@Classes.register()
+export class TestObservable<T> extends Observable<T> {
   public subscriber: Observer<T> | undefined
   public unsubscribeFn: Spy<Callback> = spy()
 
-  constructor(public immediateValue?: T) {}
+  constructor(public immediateValue?: T) {
+    super()
+  }
 
   subscribe(observer: Observer<T>): Callback {
     this.subscriber = observer
@@ -23,8 +26,4 @@ export class TestObservable<T> implements Observable<T> {
   end(): void {
     this.subscriber?.(undefined, true)
   }
-
-  declare [ObservableBrand]: true
 }
-
-TestObservable.prototype[ObservableBrand] = true

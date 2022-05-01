@@ -1,13 +1,18 @@
 import { bind, Callback, Classes } from "../references"
-import { Observable, Observer } from "./Observable"
+import { MappedObservable, Mapper, Observable, Observer } from "./Observable"
 import { BroadcastingObservable } from "./BroadcastingObservable"
 
+/**
+ * When states are subscribed to, the observer is immediately notified of the current state.
+ */
 export interface State<T> extends Observable<T> {
-  readonly value: T
   get(): T
+
+  map<V>(mapper: Mapper<T, V>): State<V>
 }
 
 export interface MutableState<T> extends State<T> {
+  readonly value: T
   set(value: T): void
 
   end(): void
@@ -16,6 +21,8 @@ export interface MutableState<T> extends State<T> {
 
   toggleFn(this: MutableState<boolean>): Callback
 }
+
+export type MaybeState<T> = State<T> | T
 
 @Classes.register("State")
 class StateImpl<T> extends BroadcastingObservable<T> implements MutableState<T> {
@@ -55,10 +62,30 @@ class StateImpl<T> extends BroadcastingObservable<T> implements MutableState<T> 
   toggleFn(this: MutableState<boolean>): Callback {
     return bind(StateImpl.toggleFn, this)
   }
+
+  map<V>(mapper: Mapper<T, V>): State<V> {
+    return new MappedState(this, mapper)
+  }
 }
 
-export function observable<T>(value: T): MutableState<T> {
+export function state<T>(value: T): MutableState<T> {
   return new StateImpl(value)
 }
 
-export type MaybeState<T> = State<T> | T
+@Classes.register()
+class MappedState<T, U> extends MappedObservable<T, U> implements State<U> {
+  public constructor(source: State<T>, mapper: Mapper<T, U>) {
+    super(source, mapper)
+  }
+  protected declare source: State<T>
+
+  get(): U {
+    return this.mapper(this.source.get())
+  }
+
+  map<V>(mapper: Mapper<U, V>): State<V> {
+    return new MappedState(this, mapper)
+  }
+}
+
+// possibly make lazy version of this in the future

@@ -1,9 +1,10 @@
-import { MutableState, observable } from "./State"
+import { MutableState, state } from "./State"
 import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
 import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
 import { MutableObservableArray, observableArray, ObservableArrayChange } from "./ObservableArray"
 import { Event } from "./Event"
 import { Observer } from "./Observable"
+import { asFunc } from "../test-util/args"
 
 function spy() {
   return globalThis.spy<Observer<any>>()
@@ -100,7 +101,7 @@ describe("Event", () => {
 describe("observable value", () => {
   let s: MutableState<string>
   before_each(() => {
-    s = observable("begin")
+    s = state("begin")
   })
 
   it("can be constructed with initial value", () => {
@@ -470,5 +471,41 @@ describe("ObservableArray", () => {
     }
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, change)
+  })
+})
+
+describe("map", () => {
+  test("maps correct values to observers", () => {
+    const val = state(3)
+    const mapped = val.map(asFunc((x) => x * 2))
+    const fn = spy()
+    mapped.subscribe(fn)
+
+    assert.spy(fn).called(1)
+    assert.spy(fn).called_with(match._, 6)
+
+    val.set(4)
+
+    assert.spy(fn).called(2)
+    assert.spy(fn).called_with(match._, 8)
+  })
+
+  test("gives correct value for get()", () => {
+    const val = state(3)
+    const mapped = val.map(asFunc((x) => x * 2))
+    assert.same(6, mapped.get())
+  })
+
+  test("choice", () => {
+    const val = state(false)
+    const choice = val.choice("yes", "no")
+
+    const fn = spy()
+    choice.subscribe(fn)
+    assert.spy(fn).called(1)
+    assert.spy(fn).called_with(match._, "no")
+    val.set(true)
+    assert.spy(fn).called(2)
+    assert.spy(fn).called_with(match._, "yes")
   })
 })

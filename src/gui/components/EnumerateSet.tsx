@@ -35,7 +35,10 @@ export class EnumerateSet<T> extends Component {
     } else {
       const { associated } = this
       for (const [item] of of) {
-        associated.set(item, render(this.element, map(item)))
+        const result = render(this.element, map(item))
+        if (result) {
+          associated.set(item, result)
+        }
       }
     }
     const unsubscribe = of.subscribe(reg(this.onChange))
@@ -52,7 +55,10 @@ export class EnumerateSet<T> extends Component {
       if (ifEmpty && change.set.size() === 1) {
         element.clear()
       }
-      associated.set(value, render(element, map(value)))
+      const result = render(element, map(value))
+      if (result) {
+        associated.set(value, result)
+      }
     } else {
       const item = associated.get(value)
       destroy(item)

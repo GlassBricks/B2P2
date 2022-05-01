@@ -25,7 +25,7 @@ export function addWindow(rawName: string, spec: Spec): Window {
   const name = `${script.mod_name}:window:${rawName}`
   function create(screen: LuaGuiElement): void {
     const element = render(screen, spec)
-    element.name = name
+    if (element) element.name = name
   }
   const window: Window = {
     name,

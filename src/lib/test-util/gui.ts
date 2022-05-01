@@ -158,9 +158,10 @@ export class ElementWrapper<T extends GuiElementType = GuiElementType> {
 // jsx
 
 export function testRender<T extends GuiElementType>(spec: ElementSpec & { type: T }): ElementWrapper<T>
-export function testRender(spec: Spec): ElementWrapper<GuiElementType>
-export function testRender(spec: Spec): ElementWrapper<GuiElementType> {
+export function testRender(spec: Spec): ElementWrapper
+export function testRender(spec: Spec): ElementWrapper {
   const element = render(getPlayer().gui.screen, spec)
+  if (!element) error("no elements rendered")
   makeTestRoot(element)
   return new ElementWrapper(element)
 }

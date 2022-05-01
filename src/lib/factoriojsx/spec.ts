@@ -29,11 +29,7 @@ export abstract class Component {
   onDestroy?(): void
 }
 
-export abstract class EmptyComponent {
-  abstract render(): Spec
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  declare _props: {}
-}
+export type EmptyProps = Record<any, never>
 
 export interface ComponentClass<P> {
   name: string
@@ -57,8 +53,7 @@ export interface FragmentSpec {
   children?: Spec[]
 }
 
-export type Spec = ElementSpec | FCSpec<any> | ClassComponentSpec<any>
-export type FullSpec = Spec | FragmentSpec
+export type Spec = ElementSpec | FragmentSpec | FCSpec<any> | ClassComponentSpec<any>
 export type SpecChildren = Spec | false | undefined | Array<Spec | false | undefined>
 
 export type GuiEvent =

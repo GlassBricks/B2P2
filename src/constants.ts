@@ -6,9 +6,11 @@ export const enum Prototypes {
   AssemblyCreationTool = "bbpp:assembly-creation-tool",
 }
 
-export const enum GuiParameters {
+export const enum GuiConstants {
   AssembliesListWidth = 400,
-  AssembliesListMaxHeight = 500,
+  AssembliesListMaxHeight = 400,
+
+  AssemblyManagerWidth = 500,
 }
 
 export namespace Colors {

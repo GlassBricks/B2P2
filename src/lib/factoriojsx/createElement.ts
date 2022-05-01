@@ -1,13 +1,13 @@
-import { BaseElementSpec, ComponentClass, ElementSpec, FullSpec, FunctionComponent, Spec } from "./spec"
+import { BaseElementSpec, ComponentClass, ElementSpec, FunctionComponent, Spec } from "./spec"
 
 const _select = select
 
 function flattenChildren(
-  ...children: Array<false | undefined | FullSpec> | [Array<false | undefined | FullSpec>]
+  ...children: Array<false | undefined | Spec> | [Array<false | undefined | Spec>]
 ): Spec[] | undefined {
   let childrenLen = _select("#", ...children)
   if (childrenLen === 0) return undefined
-  let childArray: (false | FullSpec | undefined)[]
+  let childArray: (false | Spec | undefined)[]
   if (childrenLen === 1) {
     // optimize for the common case
     const [child] = children
@@ -39,7 +39,7 @@ function flattenChildren(
   return result
 }
 
-function flattenChildrenToProp(...children: Array<false | undefined | FullSpec>): unknown {
+function flattenChildrenToProp(...children: Array<false | undefined | Spec>): unknown {
   const childrenLen = _select("#", ...children)
   if (childrenLen === 0) return undefined
   if (childrenLen === 1) {
