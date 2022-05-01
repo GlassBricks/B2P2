@@ -25,6 +25,8 @@ export declare const enum L_Interaction {
   SelectAreaForAssembly = "bbpp.interaction.select-area-for-assembly",
   /** This area intersects with an existing assembly: __1__ */
   IntersectsExistingAssembly = "bbpp.interaction.intersects-existing-assembly",
+  /** This import location does not intersect with the target assembly. */
+  ImportDoesNotIntersectAssembly = "bbpp.interaction.import-does-not-intersect-assembly",
   /** Assembly saved\n  [font=default-bold]__1__[/font] entities */
   AssemblySaved = "bbpp.interaction.assembly-saved",
 }
@@ -41,6 +43,18 @@ export declare const enum L_Gui {
   DeleteAssembly = "bbpp.gui.delete-assembly",
   /** Are you sure you want to delete the assembly "__1__"? */
   DeleteAssemblyConfirmation = "bbpp.gui.delete-assembly-confirmation",
+  /** Imports */
+  Imports = "bbpp.gui.imports",
+  /** Add import */
+  AddImport = "bbpp.gui.add-import",
+  /** Save */
+  Save = "bbpp.gui.save",
+  /** There are paste conflicts in this assembly. Some entities may not save as expected. Are you sure you want to save? */
+  ConfirmSaveWithPasteConflicts = "bbpp.gui.confirm-save-with-paste-conflicts",
+  /** View conflicts */
+  ViewConflicts = "bbpp.gui.view-conflicts",
+  /** Some entities, from imports, have been deleted. These will be re-added upon resetting the assembly, and so will not be saved. Are you sure you want to save? */
+  ConfirmSaveWithDeletions = "bbpp.gui.confirm-save-with-deletions",
   /** Assemblies */
   AssemblyListTitle = "bbpp.gui.assembly-list-title",
   /** All assemblies [img=info] */
@@ -53,12 +67,4 @@ export declare const enum L_Gui {
   NewAssembly = "bbpp.gui.new-assembly",
   /** Assembly: */
   AssemblyManagerTitle = "bbpp.gui.assembly-manager-title",
-  /** Save */
-  Save = "bbpp.gui.save",
-  /** There are paste conflicts in this assembly. Some entities may not save as expected. Are you sure you want to save? */
-  ConfirmSaveWithPasteConflicts = "bbpp.gui.confirm-save-with-paste-conflicts",
-  /** View conflicts */
-  ViewConflicts = "bbpp.gui.view-conflicts",
-  /** Some entities, from imports, have been deleted. These will be re-added upon resetting the assembly, and so will not be saved. Are you sure you want to save? */
-  ConfirmSaveWithDeletions = "bbpp.gui.confirm-save-with-deletions",
 }

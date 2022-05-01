@@ -6,17 +6,12 @@ import {
   findBlueprintPasteConflictsAndUpdate,
   findBlueprintPasteConflictsInWorld,
 } from "../blueprint/blueprint-paste"
-import { Import } from "./imports/Import"
+import { AssemblyImport } from "./imports/AssemblyImport"
 import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { MutableObservableList, observableList } from "../lib/observable/ObservableList"
 import { pos } from "../lib/geometry/position"
 import { MutableState, state, State } from "../lib/observable"
-
-export interface AssemblyImport {
-  readonly content: Import
-  readonly relativePosition: MapPositionTable
-}
 
 export interface AssemblyContent {
   readonly ownContents: PasteBlueprint
@@ -72,10 +67,10 @@ export class DefaultAssemblyContent implements AssemblyContent {
   }
 
   private pasteImport(imp: AssemblyImport) {
-    const content = imp.content.getContent().get()
+    const content = imp.getContent().get()
     if (!content) return {}
 
-    const resultLocation = pos.add(this.area.left_top, imp.relativePosition)
+    const resultLocation = pos.add(this.area.left_top, imp.getRelativePosition())
     const diagnostics = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, resultLocation)
     pasteBlueprint(this.surface, resultLocation, content.entities, this.area)
     return diagnostics

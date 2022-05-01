@@ -101,10 +101,7 @@ describe("import", () => {
   })
   test("adding import to blueprint adds to in world", () => {
     const content = createAssemblyContent()
-    content.imports.push({
-      content: mockImport(originalBlueprintSample),
-      relativePosition: pos(0, 0),
-    })
+    content.imports.push(mockImport(originalBlueprintSample))
     assert.same({}, content.ownContents.entities)
     content.resetInWorld()
     const bp = Blueprint.take(surface, area)
@@ -114,10 +111,7 @@ describe("import", () => {
   })
   test("adding import to blueprint adds to in world at specified location", () => {
     const content = createAssemblyContent()
-    content.imports.push({
-      content: mockImport(originalBlueprintSample),
-      relativePosition: pos(1, 2),
-    })
+    content.imports.push(mockImport(originalBlueprintSample, pos(1, 2)))
     assert.same({}, content.ownContents.entities)
     content.resetInWorld()
     const bp = Blueprint.take(surface, bbox.shift(area, pos(1, 2)))
@@ -143,10 +137,8 @@ describe("import", () => {
       },
     ]
     const content = createAssemblyContent(bbox(area.left_top, pos.add(area.left_top, pos(5, 5))))
-    content.imports.push({
-      content: mockImport(Blueprint.fromArray(mockEntities)),
-      relativePosition: pos(0, 0),
-    })
+    content.imports.push(mockImport(Blueprint.fromArray(mockEntities)))
+
     content.resetInWorld()
     const bp = Blueprint.take(surface, area, area.left_top)
     const expected = Blueprint.fromArray(mockEntities.slice(0, 1))
@@ -156,10 +148,7 @@ describe("import", () => {
 
   test("does not paste invalid import", () => {
     const content = createAssemblyContent()
-    content.imports.push({
-      content: invalidMockImport(),
-      relativePosition: pos(0, 0),
-    })
+    content.imports.push(invalidMockImport())
     const bp = Blueprint.take(surface, area, area.left_top)
     assert.same({}, bp.entities)
   })
@@ -267,7 +256,7 @@ describe("paste conflicts", () => {
     const contents = createAssemblyContent()
     const aboveBlueprint = Blueprint.fromArray(below)
     // assembly.addImport(mockImport(aboveBlueprint), pos(0, 0))
-    contents.imports.push({ content: mockImport(aboveBlueprint), relativePosition: pos(0, 0) })
+    contents.imports.push(mockImport(aboveBlueprint))
     contents.prepareSave()
     contents.commitSave()
     contents.resetInWorld()
@@ -323,7 +312,7 @@ describe("saveChanges", () => {
 
   it("is empty when content exactly matches imports", () => {
     const contents = createAssemblyContent()
-    contents.imports.push({ content: mockImport(originalBlueprintSample), relativePosition: pos(0, 0) })
+    contents.imports.push(mockImport(originalBlueprintSample))
     contents.resetInWorld()
     contents.prepareSave()
     contents.commitSave()
