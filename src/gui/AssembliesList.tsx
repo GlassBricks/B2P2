@@ -63,7 +63,7 @@ export class AssembliesList extends Component {
   private assemblyButton(assembly: Assembly) {
     return (
       <button
-        caption={assembly.name}
+        caption={assembly.displayName}
         style={Styles.ListBoxButton}
         styleMod={{
           bottom_margin: -4,

@@ -16,7 +16,7 @@ export function startAssemblyCreation(player: LuaPlayer): boolean {
 Events.on_player_selected_area((event) => {
   if (event.item !== Prototypes.AssemblyCreationTool) return
   const player = game.players[event.player_index]
-  const assembly = protectedAction(player, () => Assembly.create("Unnamed", event.surface, event.area))
+  const assembly = protectedAction(player, () => Assembly.create("", event.surface, event.area))
   if (assembly) {
     player.clear_cursor()
   }

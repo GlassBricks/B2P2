@@ -2,15 +2,16 @@ import { bound, Classes, Events, reg } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
 import { MutableObservableSet, observableSet, ObservableSet } from "../lib/observable/ObservableSet"
 import { UserError } from "../player-interaction/protected-action"
-import { L_Interaction } from "../locale"
+import { L_Gui, L_Interaction } from "../locale"
 import { Colors } from "../constants"
-import { Event, MutableState, Observable, state } from "../lib/observable"
+import { Event, MutableState, Observable, State, state } from "../lib/observable"
 import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 import { PositionClass } from "../lib/geometry/position"
 
 @Classes.register()
 export class Assembly {
   readonly name: MutableState<string>
+  readonly displayName: State<LocalisedString>
   readonly onDelete: Event<void> = new Event()
 
   private readonly boxRenderId: number
@@ -25,6 +26,7 @@ export class Assembly {
     private readonly content: AssemblyContent,
   ) {
     this.name = state(name)
+    this.displayName = this.name.map(reg(this.unnamedIfEmpty))
     this.boxRenderId = rendering.draw_rectangle({
       left_top: area.left_top,
       right_bottom: area.right_bottom,
@@ -48,7 +50,13 @@ export class Assembly {
 
   @bound
   private setName(name?: string): void {
-    if (name) rendering.set_text(this.textRenderId, name)
+    if (!name) return
+    rendering.set_text(this.textRenderId, name)
+  }
+
+  @bound
+  private unnamedIfEmpty(name: string): LocalisedString {
+    return name === "" ? [L_Gui.UnnamedAssembly] : name
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {

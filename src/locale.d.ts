@@ -29,12 +29,18 @@ export declare const enum L_Interaction {
   AssemblySaved = "bbpp.interaction.assembly-saved",
 }
 export declare const enum L_Gui {
+  /** <Unnamed assembly> */
+  UnnamedAssembly = "bbpp.gui.unnamed-assembly",
   /** Rename assembly */
   RenameAssembly = "bbpp.gui.rename-assembly",
   /** Cancel rename */
   CancelRenameAssembly = "bbpp.gui.cancel-rename-assembly",
   /** Teleport to assembly */
   TeleportToAssembly = "bbpp.gui.teleport-to-assembly",
+  /** Delete assembly */
+  DeleteAssembly = "bbpp.gui.delete-assembly",
+  /** Are you sure you want to delete the assembly "__1__"? */
+  DeleteAssemblyConfirmation = "bbpp.gui.delete-assembly-confirmation",
   /** Assemblies */
   AssemblyListTitle = "bbpp.gui.assembly-list-title",
   /** All assemblies [img=info] */

@@ -20,7 +20,7 @@ export class AMTitleBar extends Component {
         <If
           condition={this.isEditingName}
           then={reg(this.makeEditTextfield)}
-          else={returns(<label caption={this.assembly.name} style="frame_title" ignored_by_interaction />)}
+          else={returns(<label caption={this.assembly.displayName} style="frame_title" ignored_by_interaction />)}
         />
         <RenameButton onClick={this.isEditingName.toggleFn()} isEditing={this.isEditingName} />
         <DraggableSpace />
@@ -43,7 +43,7 @@ export class AMTitleBar extends Component {
   @bound
   private renameConfirmed(event: OnGuiConfirmedEvent) {
     const element = event.element as TextFieldGuiElement
-    this.assembly.name.set(element.text)
+    this.assembly.name.set(element.text.trim())
     this.isEditingName.set(false)
   }
 }
