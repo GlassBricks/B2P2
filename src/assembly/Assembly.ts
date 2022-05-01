@@ -111,10 +111,11 @@ export class Assembly {
   }
   delete(): void {
     if (!global.assemblies.has(this)) return
-    global.assemblies.delete(this)
+    this.name.end()
     this.content.delete()
     rendering.destroy(this.boxRenderId)
     rendering.destroy(this.textRenderId)
+    global.assemblies.delete(this)
     this.onDelete.raise()
   }
 

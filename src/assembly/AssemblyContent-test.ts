@@ -2,7 +2,7 @@ import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blu
 import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { Blueprint } from "../blueprint/Blueprint"
 import { BlueprintSampleName, BlueprintSampleNames, getBlueprintSample } from "../test/blueprint-sample"
-import { invalidMockImport, mockImport } from "./import-mock"
+import { invalidMockImport, mockImport } from "./imports/import-mock"
 import { pos } from "../lib/geometry/position"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { BlueprintPasteConflicts, Overlap } from "../blueprint/blueprint-paste"
@@ -53,15 +53,16 @@ describe("initializing contents", () => {
   before_each(() => {
     clearBuildableEntities(surface, area)
   })
-  test("initializing in an empty area yields empty ownContents ", () => {
+  test("in an empty area yields empty ownContents ", () => {
     const content = createAssemblyContent()
     assert.same({}, content.ownContents.entities)
   })
 
-  test("initializing in an area with entities sets ownContents", () => {
+  test("in an area with entities sets ownContents", () => {
     pasteBlueprint(surface, area.left_top, originalBlueprintSample.entities)
     const content = createAssemblyContent()
     assertBlueprintsEquivalent(originalBlueprintSample, content.ownContents)
+    assertBlueprintsEquivalent(originalBlueprintSample, content.resultContent.get()!)
   })
 })
 
@@ -75,6 +76,7 @@ describe("refreshInWorld", () => {
     content.resetInWorld()
     const bp = Blueprint.take(surface, area, area.left_top)
     assert.same({}, bp.entities)
+    assert.same({}, content.resultContent.get()!.entities)
   })
   test.each<BlueprintSampleName>(
     ["original", "module change", "module purple sci"],
@@ -87,6 +89,8 @@ describe("refreshInWorld", () => {
       const bp = Blueprint.take(surface, area, area.left_top)
       assertBlueprintsEquivalent(sample, bp)
       assertNoGhosts()
+
+      assertBlueprintsEquivalent(sample, content.resultContent.get()!)
     },
   )
 })
@@ -106,6 +110,7 @@ describe("import", () => {
     const bp = Blueprint.take(surface, area)
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
     assertNoGhosts()
+    assertBlueprintsEquivalent(originalBlueprintSample, content.resultContent.get()!)
   })
   test("adding import to blueprint adds to in world at specified location", () => {
     const content = createAssemblyContent()
@@ -118,6 +123,11 @@ describe("import", () => {
     const bp = Blueprint.take(surface, bbox.shift(area, pos(1, 2)))
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
     assertNoGhosts()
+
+    const shiftedBlueprint = Blueprint.fromArray(
+      originalBlueprintSample.asArray().map((x) => ({ ...x, position: pos.add(x.position, pos(1, 2)) })),
+    )
+    assertBlueprintsEquivalent(shiftedBlueprint, content.resultContent.get()!)
   })
   test("imported entities do not extend beyond bounding box", () => {
     const mockEntities: BlueprintEntityRead[] = [

@@ -6,7 +6,7 @@ import {
   findBlueprintPasteConflictsAndUpdate,
   findBlueprintPasteConflictsInWorld,
 } from "../blueprint/blueprint-paste"
-import { Import } from "./Import"
+import { Import } from "./imports/Import"
 import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { MutableObservableList, observableList } from "../lib/observable/ObservableList"
@@ -26,6 +26,8 @@ export interface AssemblyContent {
   resetInWorld(): void
   readonly lastPasteConflicts: State<BlueprintPasteConflicts[]>
 
+  readonly resultContent: State<Blueprint | undefined> // undefined when invalid
+
   prepareSave(): BlueprintDiff
   readonly pendingSave: State<BlueprintDiff | undefined>
   commitSave(): BlueprintDiff | undefined
@@ -39,7 +41,8 @@ export interface AssemblyContent {
 @Classes.register()
 export class DefaultAssemblyContent implements AssemblyContent {
   ownContents: PasteBlueprint
-  imports: MutableObservableList<AssemblyImport> = observableList()
+  readonly imports: MutableObservableList<AssemblyImport> = observableList()
+  readonly resultContent: MutableState<Blueprint | undefined>
 
   private importsContent: Blueprint
 
@@ -47,8 +50,10 @@ export class DefaultAssemblyContent implements AssemblyContent {
   pendingSave: MutableState<BlueprintDiff | undefined> = state(undefined)
 
   constructor(private readonly surface: LuaSurface, private readonly area: BoundingBoxRead) {
-    this.ownContents = Blueprint.take(surface, area, area.left_top)
+    const content = Blueprint.take(surface, area, area.left_top)
+    this.ownContents = content
     this.importsContent = Blueprint.of()
+    this.resultContent = state(content)
   }
 
   resetInWorld(): void {
@@ -62,10 +67,12 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
     pasteConflicts.push(this.pasteOwnContents(this.importsContent))
     this.lastPasteConflicts.set(pasteConflicts)
+
+    this.resultContent.set(Blueprint.take(this.surface, this.area))
   }
 
   private pasteImport(imp: AssemblyImport) {
-    const content = imp.content.getContent()
+    const content = imp.content.getContent().get()
     if (!content) return {}
 
     const resultLocation = pos.add(this.area.left_top, imp.relativePosition)
@@ -96,6 +103,10 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   delete(): void {
     this.imports.end()
+    this.resultContent.set(undefined)
+    this.resultContent.end()
+    this.lastPasteConflicts.end()
+    this.pendingSave.end()
   }
 }
 
