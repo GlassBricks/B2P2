@@ -7,12 +7,13 @@ import { If } from "../components/If"
 import { DraggableSpace, TitleBar } from "../components/TitleBar"
 import { CloseButton } from "../components/buttons"
 
+type AMTitleParProps = { assembly: Assembly; onClose: Callback }
 @Classes.register()
-export class AMTitleBar extends Component {
+export class AMTitleBar extends Component<{ assembly: Assembly; onClose: Callback }> {
   assembly!: Assembly
   isEditingName = state(false)
 
-  render(props: { assembly: Assembly; onClose: Callback }): Spec {
+  render(props: AMTitleParProps): Spec {
     this.assembly = props.assembly
 
     return (

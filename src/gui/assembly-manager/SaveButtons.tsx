@@ -6,7 +6,7 @@ import { showDialogue } from "../window/Dialogue"
 import { isEmpty } from "../../lib/util"
 
 @Classes.register()
-export class SaveButtons extends Component {
+export class SaveButtons extends Component<{ assembly: Assembly }> {
   assembly!: Assembly
   render(props: { assembly: Assembly }): Spec {
     this.assembly = props.assembly

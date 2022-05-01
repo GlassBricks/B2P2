@@ -7,7 +7,7 @@ import { showDialogue } from "../window/Dialogue"
 import { HorizontalPusher } from "../components/misc"
 
 @Classes.register()
-export class AMSubframeButtons extends Component {
+export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
   assembly!: Assembly
 
   render(props: { assembly: Assembly }): Spec {

@@ -68,7 +68,8 @@ test("basic element with array children", () => {
   )
 })
 
-function Foo(props: { me?: string; children?: SpecChildren }) {
+type TestProps = { me?: string; children?: SpecChildren }
+function Foo(props: TestProps) {
   return <flow caption={props.me}>{props.children}</flow>
 }
 
@@ -126,8 +127,8 @@ test("Function component with undefined children", () => {
 })
 
 @Classes.register()
-class FooClass extends Component {
-  render(props: { me?: string; children?: SpecChildren }): Spec {
+class FooClass extends Component<TestProps> {
+  render(props: TestProps): Spec {
     return <flow caption={props.me}>{props.children}</flow>
   }
 }

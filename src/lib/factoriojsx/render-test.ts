@@ -7,6 +7,7 @@ import {
   ChooseElemButtonElementSpec,
   ClassComponentSpec,
   Component,
+  EmptyProps,
   FCSpec,
   FlowElementSpec,
   GuiEventHandler,
@@ -339,14 +340,18 @@ describe("Class component", () => {
     results.length = 0
   })
 
+  interface Props {
+    cb: (element: BaseGuiElement) => void
+  }
+
   @Classes.register()
-  class Foo extends Component {
+  class Foo extends Component<Props> {
     constructor() {
       super()
       results.push("constructed")
     }
 
-    render(props: { cb: (element: BaseGuiElement) => void }, tracker: Tracker): FlowElementSpec {
+    render(props: Props, tracker: Tracker): Spec {
       tracker.onMount(() => results.push("trackerOnMount"))
       results.push("render")
       return {
@@ -366,13 +371,13 @@ describe("Class component", () => {
   }
 
   @Classes.register()
-  class Foo2 extends Component {
+  class Foo2 extends Component<Props> {
     constructor() {
       super()
       results.push("constructed2")
     }
 
-    render(props: { cb: (element: BaseGuiElement) => void }, tracker: Tracker): Spec {
+    render(props: Props, tracker: Tracker): Spec {
       tracker.onMount(() => results.push("trackerOnMount2"))
       results.push("render2")
       return {
@@ -439,7 +444,7 @@ describe("Class component", () => {
   })
 
   test("unregistered components give error", () => {
-    class C extends Component {
+    class C extends Component<EmptyProps> {
       render(): Spec {
         return { type: "flow" }
       }

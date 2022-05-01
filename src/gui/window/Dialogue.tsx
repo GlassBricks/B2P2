@@ -18,7 +18,7 @@ export interface DialogueProps {
 }
 
 @Classes.register()
-class Dialogue extends Component {
+class Dialogue extends Component<DialogueProps> {
   private element!: FrameGuiElementMembers
 
   private onBackFn?: (data: any) => void

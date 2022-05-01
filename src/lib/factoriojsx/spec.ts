@@ -19,11 +19,9 @@ export interface Tracker {
 
 export type FunctionComponent<T> = (props: T, tracker: Tracker) => Spec
 
-export abstract class Component {
-  abstract render(props: unknown, tracker: Tracker): Spec
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  declare _props: Parameters<this["render"]>[0]
+export abstract class Component<P> {
+  abstract render(props: P, tracker: Tracker): Spec
+  declare _props: P
 
   onMount?(firstElement: LuaGuiElement, tracker: Tracker): void
   onDestroy?(): void
@@ -33,9 +31,7 @@ export type EmptyProps = Record<any, never>
 
 export interface ComponentClass<P> {
   name: string
-  new (): Component & {
-    _props?: P
-  }
+  new (): Component<P>
 }
 
 export interface FCSpec<T> {

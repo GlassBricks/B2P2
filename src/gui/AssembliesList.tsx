@@ -11,9 +11,8 @@ import { openAssemblyManager } from "./assembly-manager/AssemblyManager"
 import { CloseButton } from "./components/buttons"
 
 @Classes.register()
-export class AssembliesList extends Component {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  render(_props: EmptyProps): Spec {
+export class AssembliesList extends Component<EmptyProps> {
+  render(): Spec {
     return (
       <frame
         auto_center
@@ -44,7 +43,6 @@ export class AssembliesList extends Component {
               map={reg(this.assemblyButton)}
               ifEmpty={returns(<label caption={[L_Gui.NoAssemblies]} styleMod={{ height: 28, left_padding: 10 }} />)}
               uses="scroll-pane"
-              direction="vertical"
               horizontal_scroll_policy="never"
               styleMod={{
                 maximal_height: GuiConstants.AssembliesListMaxHeight,

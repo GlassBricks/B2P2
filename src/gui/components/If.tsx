@@ -4,20 +4,19 @@ import { bound, Classes } from "../../lib"
 import { Component, ElemProps, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
 import { State } from "../../lib/observable"
 
+export type IfProps = {
+  condition: State<boolean>
+  then: () => Spec | undefined
+  else?: () => Spec | undefined
+} & ElemProps<"flow">
+
 @Classes.register()
-export class If extends Component {
+export class If extends Component<IfProps> {
   then!: () => Spec | undefined
   else?: () => Spec | undefined
   element!: FlowGuiElementMembers
 
-  render(
-    props: {
-      condition: State<boolean>
-      then: () => Spec | undefined
-      else?: () => Spec | undefined
-    } & ElemProps<"flow">,
-    tracker: Tracker,
-  ): Spec {
+  render(props: IfProps, tracker: Tracker): Spec {
     this.then = props.then
     this.else = props.else
     return (

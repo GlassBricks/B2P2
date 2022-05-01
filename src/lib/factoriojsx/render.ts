@@ -76,7 +76,7 @@ function setStateFunc(this: MutableState<unknown>, key: string, event: GuiEvent)
   this.set((event as any)[key] || event.element![key])
 }
 
-function callComponentOnDestroy(this: Component) {
+function callComponentOnDestroy(this: Component<any>) {
   this.onDestroy?.()
 }
 

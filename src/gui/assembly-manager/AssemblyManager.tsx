@@ -8,7 +8,7 @@ import { AMSubframeButtons } from "./AMSubframeButtons"
 
 const openedAssemblies = PlayerData("opened AssembliesManager", () => new LuaMap<Assembly, AssemblyManager>())
 @Classes.register()
-class AssemblyManager extends Component {
+class AssemblyManager extends Component<{ assembly: Assembly }> {
   assembly!: Assembly
   element!: FrameGuiElementMembers
 
