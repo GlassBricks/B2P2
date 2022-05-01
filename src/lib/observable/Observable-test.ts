@@ -1,7 +1,7 @@
 import { MutableState, state } from "./State"
 import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
 import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
-import { MutableObservableArray, observableArray, ObservableArrayChange } from "./ObservableArray"
+import { MutableObservableList, observableList, ObservableListChange } from "./ObservableList"
 import { Event } from "./Event"
 import { Observer } from "./Observable"
 import { asFunc } from "../test-util/args"
@@ -331,10 +331,10 @@ describe("ObservableMap", () => {
   })
 })
 
-describe("ObservableArray", () => {
-  let array: MutableObservableArray<string>
+describe("ObservableList", () => {
+  let array: MutableObservableList<string>
   before_each(() => {
-    array = observableArray<string>()
+    array = observableList<string>()
   })
 
   it("can be constructed", () => {
@@ -360,12 +360,12 @@ describe("ObservableArray", () => {
     const fn = spy()
     array.subscribe(fn)
     array.push("a")
-    const change: ObservableArrayChange<string> = {
+    assert.same(["a"], array.value())
+    const change: ObservableListChange<string> = {
       array,
-      add: {
-        index: 0,
-        value: "a",
-      },
+      type: "add",
+      index: 0,
+      value: "a",
     }
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, change)
@@ -376,12 +376,12 @@ describe("ObservableArray", () => {
     const fn = spy()
     array.subscribe(fn)
     array.insert(0, "b")
-    const change: ObservableArrayChange<string> = {
+    assert.same(["b", "a"], array.value())
+    const change: ObservableListChange<string> = {
       array,
-      add: {
-        index: 0,
-        value: "b",
-      },
+      type: "add",
+      index: 0,
+      value: "b",
     }
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, change)
@@ -392,12 +392,12 @@ describe("ObservableArray", () => {
     const fn = spy()
     array.subscribe(fn)
     array.pop()
-    const change: ObservableArrayChange<string> = {
+    assert.same([], array.value())
+    const change: ObservableListChange<string> = {
       array,
-      remove: {
-        index: 0,
-        value: "a",
-      },
+      type: "remove",
+      index: 0,
+      value: "a",
     }
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, change)
@@ -409,12 +409,12 @@ describe("ObservableArray", () => {
     const fn = spy()
     array.subscribe(fn)
     array.remove(0)
-    const change: ObservableArrayChange<string> = {
+    assert.same(["b"], array.value())
+    const change: ObservableListChange<string> = {
       array,
-      remove: {
-        index: 0,
-        value: "a",
-      },
+      type: "remove",
+      index: 0,
+      value: "a",
     }
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, change)
@@ -426,13 +426,13 @@ describe("ObservableArray", () => {
     const fn = spy()
     array.subscribe(fn)
     array.set(0, "c")
-    const change: ObservableArrayChange<string> = {
+    assert.same(["c", "b"], array.value())
+    const change: ObservableListChange<string> = {
       array,
-      change: {
-        index: 0,
-        oldValue: "a",
-        value: "c",
-      },
+      type: "set",
+      index: 0,
+      oldValue: "a",
+      value: "c",
     }
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, change)
@@ -444,14 +444,8 @@ describe("ObservableArray", () => {
     const fn = spy()
     array.subscribe(fn)
     array.set(0, "a")
+    assert.same(["a", "b"], array.value())
     assert.spy(fn).not_called()
-  })
-
-  test("swap", () => {
-    array.push("a")
-    array.push("b")
-    array.swap(0, 1)
-    assert.same(["b", "a"], array.value())
   })
 
   test("it notifies subscribers of swapped items", () => {
@@ -460,14 +454,14 @@ describe("ObservableArray", () => {
     const fn = spy()
     array.subscribe(fn)
     array.swap(0, 1)
-    const change: ObservableArrayChange<string> = {
+    assert.same(["b", "a"], array.value())
+    const change: ObservableListChange<string> = {
       array,
-      swap: {
-        indexA: 0,
-        indexB: 1,
-        valueA: "a",
-        valueB: "b",
-      },
+      type: "swap",
+      indexA: 0,
+      indexB: 1,
+      newValueA: "b",
+      newValueB: "a",
     }
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, change)

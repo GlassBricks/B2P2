@@ -9,7 +9,7 @@ import {
 import { Import } from "./Import"
 import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
-import { MutableObservableArray, observableArray } from "../lib/observable/ObservableArray"
+import { MutableObservableList, observableList } from "../lib/observable/ObservableList"
 import { pos } from "../lib/geometry/position"
 import { MutableState, state, State } from "../lib/observable"
 
@@ -21,7 +21,7 @@ export interface AssemblyImport {
 export interface AssemblyContent {
   readonly ownContents: PasteBlueprint
 
-  readonly imports: MutableObservableArray<AssemblyImport>
+  readonly imports: MutableObservableList<AssemblyImport>
 
   resetInWorld(): void
   readonly lastPasteConflicts: State<BlueprintPasteConflicts[]>
@@ -39,7 +39,7 @@ export interface AssemblyContent {
 @Classes.register()
 export class DefaultAssemblyContent implements AssemblyContent {
   ownContents: PasteBlueprint
-  imports: MutableObservableArray<AssemblyImport> = observableArray()
+  imports: MutableObservableList<AssemblyImport> = observableList()
 
   private importsContent: Blueprint
 

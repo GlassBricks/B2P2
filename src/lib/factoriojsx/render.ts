@@ -29,6 +29,7 @@ interface ElementInstance {
 }
 
 interface TrackerInternal extends Tracker {
+  firstIndex: number | undefined
   subscriptions: Callback[] & MutableLuaMap<string, Callback>
   onMountCallbacks: ((this: unknown, element: LuaGuiElement) => void)[][]
   groupedElements?: LuaGuiElement[]
@@ -81,10 +82,11 @@ function callComponentOnDestroy(this: Component) {
 
 Functions.registerAll({ setValueObserver, callSetterObserver, setStateFunc, callComponentOnDestroy })
 
-function newTracker(): TrackerInternal {
+function newTracker(index?: number): TrackerInternal {
   const subscriptions = {} as TrackerInternal["subscriptions"]
   const onMountCallbacks: TrackerInternal["onMountCallbacks"] = [[]]
   return {
+    firstIndex: index,
     subscriptions,
     onMountCallbacks,
     onMount(callback: (this: unknown, firstElement: LuaGuiElement) => void) {
@@ -189,6 +191,9 @@ function renderElement(
     } else if (isSpecProp) {
       guiSpec[key] = value
     }
+  }
+  if (tracker.firstIndex) {
+    guiSpec.index = tracker.firstIndex
   }
 
   const element = parent.add(guiSpec as GuiSpec)
@@ -317,10 +322,11 @@ export function destroy(element: BaseGuiElement | undefined, destroyElement = tr
 export function render<T extends GuiElementType>(
   parent: BaseGuiElement,
   spec: ElementSpec & { type: T },
+  index?: number,
 ): Extract<LuaGuiElement, { type: T }>
-export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement | undefined
-export function render(parent: BaseGuiElement, element: Spec): LuaGuiElement | undefined {
-  const result = renderInternal(parent, element, newTracker())
+export function render(parent: BaseGuiElement, element: Spec, index?: number): LuaGuiElement | undefined
+export function render(parent: BaseGuiElement, element: Spec, index?: number): LuaGuiElement | undefined {
+  const result = renderInternal(parent, element, newTracker(index))
   if (!result || isLuaGuiElement(result)) return result
   if (result.length > 1) {
     error("cannot render multiple elements at root. Try wrapping them in another element.")
