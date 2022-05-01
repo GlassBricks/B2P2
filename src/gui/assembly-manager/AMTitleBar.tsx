@@ -5,10 +5,10 @@ import { Observable, state } from "../../lib/observable"
 import { L_Gui } from "../../locale"
 import { If } from "../components/If"
 import { DraggableSpace, TitleBar } from "../components/TitleBar"
-import { CloseButton } from "../components/Buttons"
+import { CloseButton } from "../components/buttons"
 
 @Classes.register()
-export class TopButtons extends Component {
+export class AMTitleBar extends Component {
   assembly!: Assembly
   isEditingName = state(false)
 
@@ -16,26 +16,27 @@ export class TopButtons extends Component {
     this.assembly = props.assembly
 
     return (
-      <>
-        {/* titlebar */}
-        <TitleBar title={[L_Gui.AssemblyManagerTitle]}>
-          <If
-            condition={this.isEditingName}
-            then={returns(
-              <textfield
-                text={this.assembly.name.get()}
-                on_gui_confirmed={reg(this.renameConfirmed)}
-                clear_and_focus_on_right_click
-              />,
-            )}
-            else={returns(<label caption={this.assembly.name} style="frame_title" ignored_by_interaction />)}
-          />
-          <RenameButton onClick={this.isEditingName.toggleFn()} isEditing={this.isEditingName} />
-          <DraggableSpace />
-          <CloseButton onClick={props.onClose} />
-        </TitleBar>
-        {/* buttons */}
-      </>
+      <TitleBar title={[L_Gui.AssemblyManagerTitle]}>
+        <If
+          condition={this.isEditingName}
+          then={reg(this.makeEditTextfield)}
+          else={returns(<label caption={this.assembly.name} style="frame_title" ignored_by_interaction />)}
+        />
+        <RenameButton onClick={this.isEditingName.toggleFn()} isEditing={this.isEditingName} />
+        <DraggableSpace />
+        <CloseButton onClick={props.onClose} />
+      </TitleBar>
+    )
+  }
+
+  @bound
+  private makeEditTextfield(): Spec {
+    return (
+      <textfield
+        text={this.assembly.name.get()}
+        clear_and_focus_on_right_click
+        on_gui_confirmed={reg(this.renameConfirmed)}
+      />
     )
   }
 

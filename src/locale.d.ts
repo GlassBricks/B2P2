@@ -33,6 +33,8 @@ export declare const enum L_Gui {
   RenameAssembly = "bbpp.gui.rename-assembly",
   /** Cancel rename */
   CancelRenameAssembly = "bbpp.gui.cancel-rename-assembly",
+  /** Teleport to assembly */
+  TeleportToAssembly = "bbpp.gui.teleport-to-assembly",
   /** Assemblies */
   AssemblyListTitle = "bbpp.gui.assembly-list-title",
   /** All assemblies [img=info] */

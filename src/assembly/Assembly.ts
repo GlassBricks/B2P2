@@ -6,6 +6,7 @@ import { L_Interaction } from "../locale"
 import { Colors } from "../constants"
 import { Event, MutableState, Observable, state } from "../lib/observable"
 import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
+import { PositionClass } from "../lib/geometry/position"
 
 @Classes.register()
 export class Assembly {
@@ -124,6 +125,9 @@ export class Assembly {
   // interaction
   teleportPlayer(player: LuaPlayer): void {
     player.teleport(bbox.center(this.area), this.surface)
+  }
+  getCenter(): PositionClass {
+    return bbox.center(this.area)
   }
 }
 

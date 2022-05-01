@@ -8,7 +8,7 @@ import { DraggableSpace, TitleBar } from "./components/TitleBar"
 import { EnumerateSet } from "./components/EnumerateSet"
 import { addWindow } from "./window/Window"
 import { openAssemblyManager } from "./assembly-manager/AssemblyManager"
-import { CloseButton } from "./components/Buttons"
+import { CloseButton } from "./components/buttons"
 
 @Classes.register()
 export class AssembliesList extends Component {

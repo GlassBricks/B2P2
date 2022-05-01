@@ -3,7 +3,8 @@ import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../../li
 import { GuiConstants } from "../../constants"
 import { Assembly } from "../../assembly/Assembly"
 import { SaveButtons } from "./SaveButtons"
-import { TopButtons } from "./TopButtons"
+import { AMTitleBar } from "./AMTitleBar"
+import { AMSubframeButtons } from "./AMSubframeButtons"
 
 const openedAssemblies = PlayerData("opened AssembliesManager", () => new LuaMap<Assembly, AssemblyManager>())
 @Classes.register()
@@ -32,8 +33,8 @@ class AssemblyManager extends Component {
           width: GuiConstants.AssemblyManagerWidth,
         }}
       >
-        <TopButtons assembly={this.assembly} onClose={reg(this.closeSelf)} />
-
+        <AMTitleBar assembly={this.assembly} onClose={reg(this.closeSelf)} />
+        <AMSubframeButtons assembly={this.assembly} />
         <frame style="inside_deep_frame_for_tabs" direction="vertical">
           <tabbed-pane
             style="tabbed_pane_with_no_side_padding"

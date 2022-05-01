@@ -1,7 +1,7 @@
 /** @noSelfInFile */
 
 import { DOWN, LEFT, RIGHT, UP } from "./rotation"
-import { pos } from "./position"
+import { pos, PositionClass } from "./position"
 
 // Down is positive y, right is positive x
 
@@ -74,9 +74,9 @@ namespace bbox {
       { x: right_bottom.x * factor, y: right_bottom.y * factor },
     )
   }
-  export function center(box: BoundingBoxRead): MapPositionTable {
+  export function center(box: BoundingBoxRead): PositionClass {
     const { left_top, right_bottom } = box
-    return { x: (left_top.x + right_bottom.x) / 2, y: (left_top.y + right_bottom.y) / 2 }
+    return pos((left_top.x + right_bottom.x) / 2, (left_top.y + right_bottom.y) / 2)
   }
   export function rotateAboutOrigin(box: BoundingBoxRead, direction: defines.direction): BoundingBoxClass {
     if (direction === UP) return bbox.from(box)

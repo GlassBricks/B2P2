@@ -6,6 +6,11 @@ export const enum Prototypes {
   AssemblyCreationTool = "bbpp:assembly-creation-tool",
 }
 
+export const enum Sprites {
+  TeleportBlack = "bbpp:teleport-black",
+  TeleportWhite = "bbpp:teleport-white",
+}
+
 export const enum GuiConstants {
   AssembliesListWidth = 400,
   AssembliesListMaxHeight = 400,
