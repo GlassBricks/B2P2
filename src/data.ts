@@ -1,5 +1,6 @@
 import { Data } from "typed-factorio/data/types"
 import { Prototypes, Sprites, Styles } from "./constants"
+import * as util from "util"
 
 declare const data: Data
 
@@ -14,14 +15,14 @@ styles[Styles.ListBoxButton] = {
   horizontally_stretchable: "on",
 }
 
-const selectionTool = {
+const assemblyCreationTool = {
   type: "selection-tool",
   name: Prototypes.AssemblyCreationTool,
-  subgroup: "tool",
+  // subgroup: "tool",
   order: "z[bbpp]-[single-selection-tool]",
   icon: "__bbpp__/graphics/selection-tool.png",
   icon_size: 64,
-  flags: ["only-in-cursor"],
+  flags: ["only-in-cursor", "hidden", "not-stackable"],
   stack_size: 1,
   stackable: false,
   selection_color: [250, 250, 250],
@@ -32,7 +33,43 @@ const selectionTool = {
   alt_selection_cursor_box_type: "entity",
 }
 
-data.extend([selectionTool])
+const importPreview = {
+  ...util.table.deepcopy(data.raw.blueprint.blueprint),
+  name: Prototypes.ImportPreview,
+  flags: ["only-in-cursor", "hidden"],
+}
+
+const importPreviewPositionMarker = {
+  type: "simple-entity",
+  name: Prototypes.ImportPreviewPositionMarker,
+  pictures: [
+    {
+      filename: "__core__/graphics/empty.png",
+      width: 1,
+      height: 1,
+      priority: "low",
+    },
+  ],
+  time_before_removed: 1,
+  flags: ["hidden", "player-creation"],
+  collision_mask: [],
+  placeable_by: {
+    item: Prototypes.ImportPreviewPositionMarker,
+    count: 1,
+  },
+}
+
+const ippmItem = {
+  type: "item",
+  name: Prototypes.ImportPreviewPositionMarker,
+  icon: "__core__/graphics/empty.png",
+  icon_size: 1,
+  stack_size: 1,
+  flags: ["hidden"],
+  place_result: Prototypes.ImportPreviewPositionMarker,
+}
+
+data.extend([assemblyCreationTool, importPreview, importPreviewPositionMarker, ippmItem])
 
 const teleportBlackSprite = {
   type: "sprite",

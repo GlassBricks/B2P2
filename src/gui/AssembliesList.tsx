@@ -3,7 +3,7 @@ import { Component, destroy, EmptyProps, FactorioJsx, Spec } from "../lib/factor
 import { Assembly } from "../assembly/Assembly"
 import { GuiConstants, Styles } from "../constants"
 import { L_Gui } from "../locale"
-import { startAssemblyCreation } from "../assembly/creation"
+import { startAssemblyCreation } from "../assembly/assembly-creation"
 import { DraggableSpace, TitleBar } from "./components/TitleBar"
 import { EnumerateSet } from "./components/EnumerateSet"
 import { addWindow } from "./window/Window"

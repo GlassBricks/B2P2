@@ -4,6 +4,8 @@ export const enum Styles {
 
 export const enum Prototypes {
   AssemblyCreationTool = "bbpp:assembly-creation-tool",
+  ImportPreview = "bbpp:import-preview",
+  ImportPreviewPositionMarker = "bbpp:import-preview-position-marker",
 }
 
 export const enum Sprites {

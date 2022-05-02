@@ -1,7 +1,8 @@
 import { getPlayer } from "../lib/test-util/misc"
-import { startAssemblyCreation } from "./creation"
+import { startAssemblyCreation } from "./assembly-creation"
 import { bbox } from "../lib/geometry/bounding-box"
 import { Assembly } from "./Assembly"
+import { Prototypes } from "../constants"
 
 const deleteAssemblies = () => {
   for (const [assembly] of Assembly.getAllAssemblies()) {
@@ -12,10 +13,9 @@ before_all(deleteAssemblies)
 after_all(deleteAssemblies)
 
 test("create", () => {
-  assert.true(Assembly.getAllAssemblies().size() === 0)
-
   const player = getPlayer()
   assert.true(startAssemblyCreation(player))
+  assert.equal(Prototypes.AssemblyCreationTool, player.cursor_stack?.name)
 
   script.get_event_handler(defines.events.on_player_selected_area)!({
     name: defines.events.on_player_selected_area,
@@ -27,6 +27,8 @@ test("create", () => {
     surface: player.surface,
     tick: game.tick,
   })
+
+  assert.is_false(player.cursor_stack?.valid_for_read)
 
   const assembly = Assembly.getAllAssemblies().value().first()!
   assert.not_nil(assembly, "assembly created")

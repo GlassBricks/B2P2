@@ -25,8 +25,14 @@ export declare const enum L_Interaction {
   SelectAreaForAssembly = "bbpp.interaction.select-area-for-assembly",
   /** This area intersects with an existing assembly: __1__ */
   IntersectsExistingAssembly = "bbpp.interaction.intersects-existing-assembly",
-  /** This import location does not intersect with the target assembly. */
+  /** The import does not intersect with the target assembly at this location. */
   ImportDoesNotIntersectAssembly = "bbpp.interaction.import-does-not-intersect-assembly",
+  /** The source or target assembly is no longer valid. */
+  ImportNoLongerValid = "bbpp.interaction.import-no-longer-valid",
+  /** Flipped or rotated imports are currently not supported. */
+  CannotFlipOrRotateImport = "bbpp.interaction.cannot-flip-or-rotate-import",
+  /** An import from "__1__" was created on "__2__". */
+  ImportCreated = "bbpp.interaction.import-created",
   /** Assembly saved\n  [font=default-bold]__1__[/font] entities */
   AssemblySaved = "bbpp.interaction.assembly-saved",
 }
