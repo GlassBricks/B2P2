@@ -3,7 +3,6 @@ import { Component, destroy, FactorioJsx, GuiEvent, renderOpened, Spec, Tracker 
 import { Assembly } from "../../assembly/Assembly"
 import { List } from "../components/List"
 import { L_Gui } from "../../locale"
-import { SimpleTitleBar } from "../components/TitleBar"
 import { startBasicImportCreation } from "../../assembly/imports/import-creation"
 import { AssembliesList } from "../AssembliesList"
 import { AssemblyImport } from "../../assembly/imports/AssemblyImport"
@@ -52,7 +51,7 @@ export class Imports extends Component<{ assembly: Assembly }> {
   @bound
   private addImport(e: GuiEvent): void {
     const player = game.get_player(e.player_index)!
-    AddImportDialogue.tryOpen(player, this.assembly)
+    ChooseImportSourceDialogue.tryOpen(player, this.assembly)
   }
 }
 
@@ -109,17 +108,17 @@ class ImportItem extends Component<ImportItemProps> {
 }
 
 @Classes.register()
-class AddImportDialogue extends Component<{ assembly: Assembly }> {
+class ChooseImportSourceDialogue extends Component<{ assembly: Assembly }> {
   assembly!: Assembly
   element!: BaseGuiElement
 
   static tryOpen(player: LuaPlayer, assembly: Assembly): boolean {
     const allAssemblies = Assembly.getAllAssemblies()
-    if (!AddImportDialogue.anyAssemblyValid(assembly, allAssemblies)) {
+    if (!ChooseImportSourceDialogue.anyAssemblyValid(assembly, allAssemblies)) {
       player.print([L_Gui.NoSourceAssemblies])
       return false
     }
-    renderOpened(player, <AddImportDialogue assembly={assembly} />)
+    renderOpened(player, <ChooseImportSourceDialogue assembly={assembly} />)
     return true
   }
   private static anyAssemblyValid(target: Assembly, assemblies: ObservableSet<Assembly>): boolean {
@@ -136,8 +135,7 @@ class AddImportDialogue extends Component<{ assembly: Assembly }> {
     })
 
     return (
-      <frame direction="vertical" on_gui_closed={reg(this.close)} auto_center>
-        <SimpleTitleBar title={[L_Gui.ChooseImportSource]} />
+      <frame direction="vertical" on_gui_closed={reg(this.close)} auto_center caption={[L_Gui.ChooseImportSource]}>
         <AssembliesList
           filter={funcOn(this.assembly, "canImport")}
           onSelect={reg(this.pickAssembly)}
@@ -146,6 +144,9 @@ class AddImportDialogue extends Component<{ assembly: Assembly }> {
             margin: [5, 0],
           }}
         />
+        <flow style="dialog_buttons_horizontal_flow">
+          <button style="back_button" caption={["gui.cancel"]} on_gui_click={reg(this.close)} />
+        </flow>
       </frame>
     )
   }

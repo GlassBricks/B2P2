@@ -2,7 +2,6 @@ import { bound, Classes, PlayerData, reg } from "../../lib"
 import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
 import { GuiConstants } from "../../constants"
 import { Assembly } from "../../assembly/Assembly"
-import { SaveButtons } from "./SaveButtons"
 import { AMTitleBar } from "./AMTitleBar"
 import { AMSubframeButtons } from "./AMSubframeButtons"
 import { L_Gui } from "../../locale"
@@ -49,14 +48,6 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
             <tab caption="Tab 2" />
             <label caption="Tab 2 content: todo" />
           </tabbed-pane>
-        </frame>
-        <frame
-          style="inside_shallow_frame"
-          styleMod={{
-            horizontally_stretchable: true,
-          }}
-        >
-          <SaveButtons assembly={this.assembly} />
         </frame>
       </frame>
     )

@@ -1,3 +1,14 @@
+## Now
+
+- own content item
+- import reordering
+- Make prints into flying text?
+- Diagnostics window
+
+- Test with real blueprints
+
+- Dependency checking, invalidation
+
 ## v0.1
 
 - create gui

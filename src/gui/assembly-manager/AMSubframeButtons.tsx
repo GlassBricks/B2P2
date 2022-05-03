@@ -5,6 +5,7 @@ import { TeleportButton, TrashButton } from "../components/buttons"
 import { L_Gui } from "../../locale"
 import { showDialogue } from "../window/Dialogue"
 import { HorizontalPusher } from "../components/misc"
+import { ResetButton, SaveButton } from "./SaveButtons"
 
 @Classes.register()
 export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
@@ -22,6 +23,8 @@ export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
           bottom_padding: -5,
         }}
       >
+        <SaveButton assembly={this.assembly} />
+        <ResetButton assembly={this.assembly} />
         <HorizontalPusher />
         <TeleportButton tooltip={[L_Gui.TeleportToAssembly]} onClick={reg(this.teleport)} />
         <TrashButton tooltip={[L_Gui.DeleteAssembly]} onClick={reg(this.confirmDelete)} />

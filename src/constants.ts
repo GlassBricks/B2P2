@@ -25,6 +25,8 @@ export const enum GuiConstants {
   ImportItemHeight = 42,
   ImportListMinHeight = ImportItemHeight * 4,
   ImportListMaxHeight = ImportItemHeight * 8,
+
+  MiniButtonWidth = 70,
 }
 
 export namespace Colors {

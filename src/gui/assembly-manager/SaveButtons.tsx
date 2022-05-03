@@ -4,21 +4,22 @@ import { Assembly } from "../../assembly/Assembly"
 import { L_Gui, L_Interaction } from "../../locale"
 import { showDialogue } from "../window/Dialogue"
 import { isEmpty } from "../../lib/util"
+import { GuiConstants } from "../../constants"
 
 @Classes.register()
-export class SaveButtons extends Component<{ assembly: Assembly }> {
+export class SaveButton extends Component<{ assembly: Assembly }> {
   assembly!: Assembly
   render(props: { assembly: Assembly }): Spec {
     this.assembly = props.assembly
     return (
-      <flow
+      <button
+        caption={[L_Gui.Save]}
+        tooltip={[L_Gui.SaveButtonTooltip]}
+        on_gui_click={reg(this.onSaveClicked)}
         styleMod={{
-          horizontally_stretchable: true,
-          padding: 5,
+          width: GuiConstants.MiniButtonWidth,
         }}
-      >
-        <button caption={[L_Gui.Save]} on_gui_click={reg(this.onSaveClicked)} />
-      </flow>
+      />
     )
   }
 
@@ -38,7 +39,7 @@ export class SaveButtons extends Component<{ assembly: Assembly }> {
     showDialogue(player, {
       title: ["gui.confirmation"],
       content: <label caption={[L_Gui.ConfirmSaveWithPasteConflicts]} />,
-      backCaption: ["gui.back"],
+      backCaption: ["gui.cancel"],
       confirmCaption: ["gui.save"],
       redConfirm: true,
       onConfirm: reg(this.beginSave),
@@ -63,7 +64,7 @@ export class SaveButtons extends Component<{ assembly: Assembly }> {
   private commitSave(player: LuaPlayer) {
     const content = this.assembly.getContent()
     if (!content) return
-    const result = content.commitSave()
+    const result = content.commitAndReset()
     if (result) {
       player.print([L_Interaction.AssemblySaved, result.content.asArray().length])
     }
@@ -73,10 +74,56 @@ export class SaveButtons extends Component<{ assembly: Assembly }> {
     showDialogue(player, {
       title: ["gui.confirmation"],
       content: <label caption={[L_Gui.ConfirmSaveWithDeletions]} />,
-      backCaption: ["gui.back"],
+      backCaption: ["gui.cancel"],
       confirmCaption: ["gui.save"],
       redConfirm: true,
       onConfirm: reg(this.commitSave),
     })
+  }
+}
+
+@Classes.register()
+export class ResetButton extends Component<{ assembly: Assembly }> {
+  assembly!: Assembly
+  render(props: { assembly: Assembly }): Spec {
+    this.assembly = props.assembly
+    return (
+      <button
+        style="red_button"
+        caption={[L_Gui.Reset]}
+        tooltip={[L_Gui.ResetButtonTooltip]}
+        on_gui_click={reg(this.onResetClicked)}
+        styleMod={{
+          width: GuiConstants.MiniButtonWidth,
+        }}
+      />
+    )
+  }
+
+  @bound
+  private onResetClicked(e: OnGuiClickEvent) {
+    const player = game.players[e.player_index]
+    const content = this.assembly.getContent()
+    if (!content) return
+    if (!e.shift) {
+      showDialogue(player, {
+        title: ["gui.confirmation"],
+        content: <label caption={[L_Gui.ConfirmResetAssembly]} />,
+        backCaption: ["gui.cancel"],
+        confirmCaption: [L_Gui.Reset],
+        redConfirm: true,
+        onConfirm: reg(this.resetAssembly),
+      })
+    } else {
+      // skip confirmation
+      this.resetAssembly()
+    }
+  }
+
+  @bound
+  private resetAssembly() {
+    const content = this.assembly.getContent()
+    if (!content) return
+    content.resetInWorld()
   }
 }

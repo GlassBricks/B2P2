@@ -4,7 +4,7 @@ import { Prototypes } from "../../constants"
 import { Events, PlayerData, protectedAction } from "../../lib"
 import { pos } from "../../lib/geometry/position"
 import { BasicImport } from "./BasicImport"
-import { isEmpty, mutableShallowCopy } from "../../lib/util"
+import { isEmpty } from "../../lib/util"
 import { UP } from "../../lib/geometry/rotation"
 import { L_Interaction } from "../../locale"
 
@@ -22,13 +22,14 @@ export function startBasicImportCreation(player: LuaPlayer, target: Assembly, so
   const content = source.getContent()!.resultContent.get()!
   const stack: BlueprintItemStack = player.cursor_stack
   stack.set_stack(Prototypes.ImportPreview)
-  const entities = mutableShallowCopy(content.asArray())
-  entities.push({
+  const entities = content.asArray()
+  const markerEntity = {
     entity_number: isEmpty(entities) ? 1 : entities[entities.length - 1].entity_number + 1,
     name: Prototypes.ImportPreviewPositionMarker,
     position: pos(0, 0),
-  })
-  stack.set_blueprint_entities(entities)
+  }
+  const resultEntities = [markerEntity, ...entities]
+  stack.set_blueprint_entities(resultEntities)
   stack.blueprint_absolute_snapping = true
   PendingImportCreation[player.index] = { source, target }
   return true
@@ -58,14 +59,21 @@ function tryImportCreation(player: LuaPlayer, absolutePosition: MapPositionTable
     return
   }
 
+  const content = target.getContent()!
+
   const relativePosition = pos.sub(absolutePosition, target.area.left_top)
   const newImport = BasicImport.createFor(source, target, relativePosition)
-  target.getContent()!.imports.push(newImport)
+
+  content.prepareSave()
+  content.commitSave()
+  content.imports.push(newImport)
+  content.resetInWorld()
+
   player.print([L_Interaction.ImportCreated, source.displayName.get(), target.displayName.get()])
   player.cursor_stack!.clear()
 }
 
-function destroyEverythingExceptMarker(e: OnBuiltEntityEvent) {
+function onBuiltHandler(e: OnBuiltEntityEvent) {
   const entity = e.created_entity
   const name = entity.name
   if (
@@ -86,7 +94,7 @@ function setDestroyMode(e: OnPreBuildEvent) {
       pending.flipped = e.flip_horizontal || e.flip_vertical
       pending.rotated = e.direction !== undefined && e.direction !== UP
     }
-    script.on_event(defines.events.on_built_entity, destroyEverythingExceptMarker)
+    script.on_event(defines.events.on_built_entity, onBuiltHandler)
     destroyEverythingMode = true
   }
 }

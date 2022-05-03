@@ -43,6 +43,22 @@ export declare const enum L_Gui {
   RenameAssembly = "bbpp.gui.rename-assembly",
   /** Cancel rename */
   CancelRenameAssembly = "bbpp.gui.cancel-rename-assembly",
+  /** Save */
+  Save = "bbpp.gui.save",
+  /** Save the current assembly, and reset the area. */
+  SaveButtonTooltip = "bbpp.gui.save-button-tooltip",
+  /** There are paste conflicts in this assembly. Some entities may not save as expected. Are you sure you want to save? */
+  ConfirmSaveWithPasteConflicts = "bbpp.gui.confirm-save-with-paste-conflicts",
+  /** View conflicts */
+  ViewConflicts = "bbpp.gui.view-conflicts",
+  /** Some entities from imports have been deleted. These will be re-added upon resetting the assembly, and so will not be saved. Are you sure you want to save? */
+  ConfirmSaveWithDeletions = "bbpp.gui.confirm-save-with-deletions",
+  /** Reset */
+  Reset = "bbpp.gui.reset",
+  /** Resets the current assembly. [font=default-bold]Shift-click[/font] to skip confirmation dialog. */
+  ResetButtonTooltip = "bbpp.gui.reset-button-tooltip",
+  /** Are you sure you want to reset this assembly? Any unsaved changes will be lost. */
+  ConfirmResetAssembly = "bbpp.gui.confirm-reset-assembly",
   /** Teleport to assembly */
   TeleportToAssembly = "bbpp.gui.teleport-to-assembly",
   /** Delete assembly */
@@ -63,14 +79,6 @@ export declare const enum L_Gui {
   DeleteImportConfirmation = "bbpp.gui.delete-import-confirmation",
   /** This import no longer exists. */
   ImportNoLongerExists = "bbpp.gui.import-no-longer-exists",
-  /** Save */
-  Save = "bbpp.gui.save",
-  /** There are paste conflicts in this assembly. Some entities may not save as expected. Are you sure you want to save? */
-  ConfirmSaveWithPasteConflicts = "bbpp.gui.confirm-save-with-paste-conflicts",
-  /** View conflicts */
-  ViewConflicts = "bbpp.gui.view-conflicts",
-  /** Some entities from imports have been deleted. These will be re-added upon resetting the assembly, and so will not be saved. Are you sure you want to save? */
-  ConfirmSaveWithDeletions = "bbpp.gui.confirm-save-with-deletions",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
   /** All assemblies [img=info] */

@@ -27,6 +27,10 @@ export interface AssemblyContent {
   readonly pendingSave: State<BlueprintDiff | undefined>
   commitSave(): BlueprintDiff | undefined
 
+  commitAndReset(): BlueprintDiff | undefined
+
+  saveAndAddImport(imp: AssemblyImport): void
+
   // isUpToDate(): boolean
   // above is false when imports have changed
 
@@ -94,6 +98,20 @@ export class DefaultAssemblyContent implements AssemblyContent {
       this.ownContents = diff.content
     }
     return diff
+  }
+
+  commitAndReset(): BlueprintDiff | undefined {
+    const diff = this.commitSave()
+    if (diff) {
+      this.resetInWorld()
+    }
+    return diff
+  }
+
+  saveAndAddImport(imp: AssemblyImport): void {
+    this.prepareSave()
+    this.imports.push(imp)
+    this.commitAndReset()
   }
 
   delete(): void {
