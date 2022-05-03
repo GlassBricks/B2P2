@@ -20,12 +20,8 @@ export abstract class Observable<T> {
 
 @Classes.register()
 export class MappedObservable<T, U> extends Observable<U> {
-  private static mappedObserver(this: Observer<any>, mapper: Mapper<any, any>, value?: unknown, end?: boolean) {
-    if (end) {
-      this(undefined, end)
-    } else {
-      this(mapper(value))
-    }
+  private static mappedObserver(this: Observer<any>, mapper: Mapper<any, any>, value: unknown) {
+    this(mapper(value))
   }
   constructor(protected readonly source: Observable<T>, protected readonly mapper: Mapper<T, U>) {
     super()
@@ -45,8 +41,7 @@ export function isObservable(obj: unknown): obj is Observable<any> {
 export const Unsubscribe: unique symbol = Symbol("EndSubscription")
 
 export interface Observer<T> {
-  (this: unknown, value: T, end?: never): void | typeof Unsubscribe
-  (this: unknown, value: undefined, end: true): void
+  (this: unknown, value: T): void | typeof Unsubscribe
 }
 
 export type MaybeObservable<T> = T | Observable<T>

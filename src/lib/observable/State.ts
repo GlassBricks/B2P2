@@ -15,8 +15,6 @@ export interface MutableState<T> extends State<T> {
   readonly value: T
   set(value: T): void
 
-  end(): void
-
   setValueFn(value: T): Callback
 
   toggleFn(this: MutableState<boolean>): Callback
@@ -44,10 +42,6 @@ class StateImpl<T> extends BroadcastingObservable<T> implements MutableState<T> 
   public set(value: T): void {
     this.value = value
     super.next(value)
-  }
-
-  public end(): void {
-    super.end()
   }
 
   private static setValueFn(this: StateImpl<any>, value: unknown) {

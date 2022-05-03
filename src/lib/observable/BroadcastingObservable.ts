@@ -25,12 +25,4 @@ export class BroadcastingObservable<T> extends Observable<T> {
       }
     }
   }
-
-  protected end(): void {
-    const observers = this.observers
-    for (const [key, observer] of observers) {
-      observer(undefined, true)
-      observers.delete(key)
-    }
-  }
 }

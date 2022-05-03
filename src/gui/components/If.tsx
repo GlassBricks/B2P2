@@ -33,8 +33,7 @@ export class If extends Component<IfProps> {
 
   lastValue: boolean | undefined
   @bound
-  private onChange(value?: boolean, end?: boolean) {
-    if (end) return
+  private onChange(value: boolean) {
     if (value === this.lastValue) return
     this.lastValue = value
     this.element.clear()

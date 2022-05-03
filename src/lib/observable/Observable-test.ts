@@ -62,23 +62,6 @@ describe("Event", () => {
     })
   })
 
-  describe("end", () => {
-    it("calls observer end when ended", () => {
-      const end = spy()
-      event.subscribe(end)
-      event.end()
-      assert.spy(end).called_with(match._, match.nil(), match.true())
-    })
-
-    it("does not notify observers after end", () => {
-      const fn = spy()
-      event.subscribe(fn)
-      event.end()
-      event.raise("hello")
-      assert.spy(fn).not_called_with(match._, "hello", match._)
-    })
-  })
-
   describe("unsubscribe", () => {
     it("returns subscription object", () => {
       const fn = spy()

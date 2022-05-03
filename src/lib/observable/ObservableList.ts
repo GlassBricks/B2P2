@@ -47,8 +47,6 @@ export interface MutableObservableList<T extends AnyNotNil> extends ObservableLi
   push(value: T): void
   pop(): T
   swap(indexA: number, indexB: number): void
-
-  end(): void
 }
 
 @Classes.register()
@@ -131,10 +129,6 @@ class ObservableListImpl<T extends AnyNotNil>
       newValueA: oldValueB,
       newValueB: oldValueA,
     })
-  }
-
-  public end() {
-    super.end()
   }
 }
 

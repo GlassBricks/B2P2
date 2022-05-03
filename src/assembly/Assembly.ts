@@ -110,7 +110,6 @@ export class Assembly {
   }
   delete(): void {
     if (!global.assemblies.has(this)) return
-    this.name.end()
     this.content.delete()
     rendering.destroy(this.boxRenderId)
     rendering.destroy(this.textRenderId)

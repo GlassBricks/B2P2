@@ -22,8 +22,4 @@ export class TestObservable<T> extends Observable<T> {
   fire(value: T): void {
     this.subscriber?.(value)
   }
-
-  end(): void {
-    this.subscriber?.(undefined, true)
-  }
 }

@@ -37,17 +37,7 @@ interface TrackerInternal extends Tracker {
   shiftOnMountCallbacks(): void
 }
 
-function setValueObserver(
-  this: LuaGuiElement | LuaStyle,
-  element: LuaGuiElement,
-  key: string,
-  value: any,
-  end?: boolean,
-) {
-  if (end) {
-    getInstance(element)?.subscriptions.delete(key)
-    return
-  }
+function setValueObserver(this: LuaGuiElement | LuaStyle, element: LuaGuiElement, key: string, value: any) {
   if (!this.valid) {
     destroy(element)
     return Unsubscribe
@@ -55,11 +45,7 @@ function setValueObserver(
   ;(this as any)[key] = value
 }
 
-function callSetterObserver(this: LuaGuiElement, key: string, value: any, end?: boolean) {
-  if (end) {
-    getInstance(this)?.subscriptions.delete(key)
-    return
-  }
+function callSetterObserver(this: LuaGuiElement, key: string, value: any) {
   if (!this.valid) {
     destroy(this)
     return Unsubscribe
@@ -335,6 +321,14 @@ export function render(parent: BaseGuiElement, element: Spec, index?: number): L
     error("cannot render multiple elements at root. Try wrapping them in another element.")
   }
   return result[0]
+}
+
+export function renderOpened(player: LuaPlayer, spec: Spec): LuaGuiElement | undefined {
+  const element = render(player.gui.screen, spec)
+  if (element) {
+    player.opened = element
+  }
+  return element
 }
 
 // -- gui events --

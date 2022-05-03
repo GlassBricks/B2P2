@@ -97,11 +97,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
   }
 
   delete(): void {
-    this.imports.end()
     this.resultContent.set(undefined)
-    this.resultContent.end()
-    this.lastPasteConflicts.end()
-    this.pendingSave.end()
   }
 }
 
