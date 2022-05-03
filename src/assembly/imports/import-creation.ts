@@ -4,7 +4,7 @@ import { Prototypes } from "../../constants"
 import { Events, PlayerData, protectedAction } from "../../lib"
 import { pos } from "../../lib/geometry/position"
 import { BasicImport } from "./BasicImport"
-import { mutableShallowCopy } from "../../lib/util"
+import { isEmpty, mutableShallowCopy } from "../../lib/util"
 import { UP } from "../../lib/geometry/rotation"
 import { L_Interaction } from "../../locale"
 
@@ -24,7 +24,7 @@ export function startBasicImportCreation(player: LuaPlayer, target: Assembly, so
   stack.set_stack(Prototypes.ImportPreview)
   const entities = mutableShallowCopy(content.asArray())
   entities.push({
-    entity_number: entities[entities.length - 1].entity_number + 1,
+    entity_number: isEmpty(entities) ? 1 : entities[entities.length - 1].entity_number + 1,
     name: Prototypes.ImportPreviewPositionMarker,
     position: pos(0, 0),
   })

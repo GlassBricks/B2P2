@@ -1,6 +1,9 @@
 import { Events } from "./lib"
 import "./assembly"
 import "./gui"
+import { Assembly } from "./assembly/Assembly"
+import { bbox } from "./lib/geometry/bounding-box"
+import { openWindow } from "./gui/window/Window"
 
 declare function __getTestFiles(): string[]
 
@@ -28,8 +31,14 @@ if (script.active_mods.testorio) {
       force.enable_all_recipes()
     },
     after_test_run() {
-      game.players[1]?.gui.screen["testorio:test-config"]?.bring_to_front()
-      // openWindow("assemblies-list", getPlayer())
+      const results = remote.call("testorio", "getResults")
+      if (results.status === "passed") {
+        Assembly.create("test", game.surfaces[1], bbox.fromCorners(0, 0, 20, 20))
+        Assembly.create("test2", game.surfaces[1], bbox.fromCorners(20, 0, 40, 20))
+        openWindow("assemblies-list", game.players[1])
+      } else {
+        game.players[1]?.gui.screen["testorio:test-config"]?.bring_to_front()
+      }
     },
     log_passed_tests: false,
   } as Testorio.Config)

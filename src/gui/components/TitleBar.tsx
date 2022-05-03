@@ -1,5 +1,7 @@
-import { FactorioJsx, Spec, SpecChildren } from "../../lib/factoriojsx"
+import { funcRef, Functions } from "../../lib"
+import { destroy, FactorioJsx, Spec, SpecChildren } from "../../lib/factoriojsx"
 import { MaybeObservable } from "../../lib/observable"
+import { CloseButton } from "./buttons"
 
 export function TitleBar(props: { title: MaybeObservable<LocalisedString>; children?: SpecChildren }): Spec {
   return (
@@ -15,7 +17,6 @@ export function TitleBar(props: { title: MaybeObservable<LocalisedString>; child
       name="title_bar"
     >
       <label caption={props.title} style="frame_title" ignored_by_interaction />
-      {/*<DraggableSpace />*/}
       <>{props.children}</>
     </flow>
   )
@@ -31,5 +32,20 @@ export function DraggableSpace(): Spec {
         height: 24,
       }}
     />
+  )
+}
+
+function closeParentParent(e: OnGuiClickEvent): void {
+  const parent = e.element.parent!.parent!
+  if (parent.type === "frame") destroy(parent)
+}
+Functions.registerAll({ closeParentParent })
+
+export function SimpleTitleBar(props: { title: MaybeObservable<LocalisedString> }): Spec {
+  return (
+    <TitleBar title={props.title}>
+      <DraggableSpace />
+      <CloseButton onClick={funcRef(closeParentParent)} />
+    </TitleBar>
   )
 }

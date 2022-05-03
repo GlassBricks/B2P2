@@ -5,6 +5,8 @@ import { Assembly } from "../../assembly/Assembly"
 import { SaveButtons } from "./SaveButtons"
 import { AMTitleBar } from "./AMTitleBar"
 import { AMSubframeButtons } from "./AMSubframeButtons"
+import { L_Gui } from "../../locale"
+import { Imports } from "./Imports"
 
 const openedAssemblies = PlayerData("opened AssembliesManager", () => new LuaMap<Assembly, AssemblyManager>())
 @Classes.register()
@@ -37,15 +39,15 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
         <AMSubframeButtons assembly={this.assembly} />
         <frame style="inside_deep_frame_for_tabs" direction="vertical">
           <tabbed-pane
-            style="tabbed_pane_with_no_side_padding"
+            style="tabbed_pane_with_extra_padding"
             styleMod={{
               horizontally_stretchable: true,
             }}
           >
-            <tab caption="Tab 1" />
-            <label caption="Tab 1 content" />
+            <tab caption={[L_Gui.Imports]} />
+            <Imports assembly={this.assembly} />
             <tab caption="Tab 2" />
-            <label caption="Tab 2 content" />
+            <label caption="Tab 2 content: todo" />
           </tabbed-pane>
         </frame>
         <frame

@@ -27,7 +27,7 @@ export declare const enum L_Interaction {
   IntersectsExistingAssembly = "bbpp.interaction.intersects-existing-assembly",
   /** The import does not intersect with the target assembly at this location. */
   ImportDoesNotIntersectAssembly = "bbpp.interaction.import-does-not-intersect-assembly",
-  /** The source or target assembly is no longer valid. */
+  /** The source or target assembly no longer exists. */
   ImportNoLongerValid = "bbpp.interaction.import-no-longer-valid",
   /** Flipped or rotated imports are currently not supported. */
   CannotFlipOrRotateImport = "bbpp.interaction.cannot-flip-or-rotate-import",
@@ -53,20 +53,30 @@ export declare const enum L_Gui {
   Imports = "bbpp.gui.imports",
   /** Add import */
   AddImport = "bbpp.gui.add-import",
+  /** Choose import source */
+  ChooseImportSource = "bbpp.gui.choose-import-source",
+  /** There are no importable assemblies. */
+  NoSourceAssemblies = "bbpp.gui.no-source-assemblies",
+  /** Delete import */
+  DeleteImport = "bbpp.gui.delete-import",
+  /** Are you sure you want to delete the import from "__1__"? */
+  DeleteImportConfirmation = "bbpp.gui.delete-import-confirmation",
+  /** This import no longer exists. */
+  ImportNoLongerExists = "bbpp.gui.import-no-longer-exists",
   /** Save */
   Save = "bbpp.gui.save",
   /** There are paste conflicts in this assembly. Some entities may not save as expected. Are you sure you want to save? */
   ConfirmSaveWithPasteConflicts = "bbpp.gui.confirm-save-with-paste-conflicts",
   /** View conflicts */
   ViewConflicts = "bbpp.gui.view-conflicts",
-  /** Some entities, from imports, have been deleted. These will be re-added upon resetting the assembly, and so will not be saved. Are you sure you want to save? */
+  /** Some entities from imports have been deleted. These will be re-added upon resetting the assembly, and so will not be saved. Are you sure you want to save? */
   ConfirmSaveWithDeletions = "bbpp.gui.confirm-save-with-deletions",
   /** Assemblies */
-  AssemblyListTitle = "bbpp.gui.assembly-list-title",
+  AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
   /** All assemblies [img=info] */
-  AssemblyListCaption = "bbpp.gui.assembly-list-caption",
+  AssemblyOverviewCaption = "bbpp.gui.assembly-overview-caption",
   /** [font=default-bold]Click[/font] to open details.\n[font=default-bold]Control-click[/font] to teleport to assembly location. */
-  AssemblyListCaptionTooltip = "bbpp.gui.assembly-list-caption-tooltip",
+  AssemblyOverviewCaptionTooltip = "bbpp.gui.assembly-overview-caption-tooltip",
   /** No assemblies */
   NoAssemblies = "bbpp.gui.no-assemblies",
   /** New assembly */

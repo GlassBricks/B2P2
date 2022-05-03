@@ -1,5 +1,7 @@
 export const enum Styles {
   ListBoxButton = "bbpp:listbox-button",
+  ScrollPaneFakeListbox = "bbpp:scrollpane-fake-listbox",
+  BareScrollPane = "bbpp:bare-scrollpane",
 }
 
 export const enum Prototypes {
@@ -15,9 +17,14 @@ export const enum Sprites {
 
 export const enum GuiConstants {
   AssembliesListWidth = 400,
-  AssembliesListMaxHeight = 400,
+  AssembliesListMinHeight = 28 * 4,
+  AssembliesListMaxHeight = 28 * 8,
 
   AssemblyManagerWidth = 500,
+
+  ImportItemHeight = 42,
+  ImportListMinHeight = ImportItemHeight * 4,
+  ImportListMaxHeight = ImportItemHeight * 8,
 }
 
 export namespace Colors {

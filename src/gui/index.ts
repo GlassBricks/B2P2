@@ -1,1 +1,1 @@
-import "./AssembliesList"
+import "./assemblies-overview/AssembliesOverview"

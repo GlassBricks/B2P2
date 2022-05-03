@@ -136,6 +136,10 @@ export class Assembly {
   getCenter(): PositionClass {
     return bbox.center(this.area)
   }
+
+  canImport(assembly: Assembly): boolean {
+    return assembly !== this
+  }
 }
 
 declare const global: {
