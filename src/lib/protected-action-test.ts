@@ -1,4 +1,4 @@
-import { getPlayer } from "../lib/test-util/misc"
+import { getPlayer } from "./test-util/misc"
 import { protectedAction, UserError } from "./protected-action"
 import { L_Interaction } from "../locale"
 

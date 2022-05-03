@@ -9,10 +9,26 @@ export interface UnexpectedError {
   traceback: string
 }
 
-export function protectedAction<T>(player: LuaPlayer, action: () => T): T | undefined {
-  const [success, result] = xpcall(action, getErrorWithStacktrace)
+export function protectedAction<R, T, A extends any[]>(
+  player: PlayerIdentification,
+  action: (this: T, ...args: A) => R,
+  thisArg: T,
+  ...args: A
+): R | undefined
+export function protectedAction<R, A extends any[]>(
+  player: PlayerIdentification,
+  action: (this: void, ...args: A) => R,
+  ...args: A
+): R | undefined
+export function protectedAction<T, A extends any[]>(
+  player: PlayerIdentification,
+  action: (...args: A) => T,
+  ...args: A
+): T | undefined {
+  const [success, result] = xpcall(action, getErrorWithStacktrace, ...args)
   if (success) return result as T
 
+  player = typeof player === "object" ? player : game.get_player(player)!
   const error: UserError | UnexpectedError = result
   if (error instanceof UserError) {
     if (error.reportMethod === "print") {

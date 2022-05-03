@@ -7,7 +7,7 @@ import { bbox } from "../../lib/geometry/bounding-box"
 import { assertBlueprintsEquivalent } from "../../test/blueprint"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { pos } from "../../lib/geometry/position"
-import { UserError } from "../../player-interaction/protected-action"
+import { UserError } from "../../lib"
 
 let blueprint: Blueprint
 let surface: LuaSurface

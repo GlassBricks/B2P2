@@ -16,6 +16,7 @@ import {
   Tracker,
 } from "./spec"
 import { isObservable, MutableState, Observer, Unsubscribe } from "../observable"
+import { protectedAction } from "../protected-action"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 
@@ -361,7 +362,7 @@ for (const [name] of pairs(guiEventNames)) {
     if (!instance) return
     const event = instance.events[name]
     if (event) {
-      event(e)
+      protectedAction(e.player_index, event, undefined, e)
     }
   })
 }

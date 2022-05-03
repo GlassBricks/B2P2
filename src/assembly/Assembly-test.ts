@@ -1,8 +1,7 @@
 import { Assembly } from "./Assembly"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
-import { UserError } from "../player-interaction/protected-action"
-import { Classes } from "../lib"
+import { Classes, UserError } from "../lib"
 import { get_area } from "__testorio__/testUtil/areas"
 
 let area: BoundingBoxClass

@@ -1,10 +1,9 @@
-import { Classes } from "../../lib"
+import { Classes, UserError } from "../../lib"
 import { AssemblyImport } from "./AssemblyImport"
 import { Assembly } from "../Assembly"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { state, State } from "../../lib/observable"
 import { bbox } from "../../lib/geometry/bounding-box"
-import { UserError } from "../../player-interaction/protected-action"
 import { L_Interaction } from "../../locale"
 
 @Classes.register()

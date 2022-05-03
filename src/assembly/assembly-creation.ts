@@ -1,7 +1,6 @@
 import { Prototypes } from "../constants"
-import { Events } from "../lib"
+import { Events, protectedAction } from "../lib"
 import { L_Interaction } from "../locale"
-import { protectedAction } from "../player-interaction/protected-action"
 import { Assembly } from "./Assembly"
 
 export function tryClearCursor(player: LuaPlayer): player is LuaPlayer & { cursor_stack: LuaItemStack } {

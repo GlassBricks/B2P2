@@ -1,7 +1,6 @@
-import { bound, Classes, Events, reg } from "../lib"
+import { bound, Classes, Events, reg, UserError } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
 import { MutableObservableSet, observableSet, ObservableSet } from "../lib/observable/ObservableSet"
-import { UserError } from "../player-interaction/protected-action"
 import { L_Gui, L_Interaction } from "../locale"
 import { Colors } from "../constants"
 import { Event, MutableState, Observable, State, state } from "../lib/observable"
