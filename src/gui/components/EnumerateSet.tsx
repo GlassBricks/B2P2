@@ -1,5 +1,14 @@
 import { bound, Classes, Func, reg } from "../../lib"
-import { Component, destroy, ElemProps, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
+import {
+  Component,
+  destroy,
+  destroyChildren,
+  ElemProps,
+  FactorioJsx,
+  render,
+  Spec,
+  Tracker,
+} from "../../lib/factoriojsx"
 import { ObservableSet, ObservableSetChange } from "../../lib/observable/ObservableSet"
 import { Unsubscribe } from "../../lib/observable"
 
@@ -52,7 +61,7 @@ export class EnumerateSet<T, U extends GuiElementType> extends Component<Enumera
     const { value, added } = change
     if (added) {
       if (ifEmpty && change.set.size() === 1) {
-        element.clear()
+        destroyChildren(element)
       }
       const result = render(element, map(value))
       if (result) {

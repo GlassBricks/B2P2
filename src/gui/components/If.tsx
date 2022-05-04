@@ -1,7 +1,7 @@
 // this could maybe be moved to shared lib in the future
 
 import { bound, Classes } from "../../lib"
-import { Component, ElemProps, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
+import { Component, destroyChildren, ElemProps, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
 import { State } from "../../lib/observable"
 
 export type IfProps = {
@@ -36,7 +36,7 @@ export class If extends Component<IfProps> {
   private onChange(value: boolean) {
     if (value === this.lastValue) return
     this.lastValue = value
-    this.element.clear()
+    destroyChildren(this.element)
     const spec = value ? this.then() : this.else?.()
     if (spec) {
       render(this.element, spec)

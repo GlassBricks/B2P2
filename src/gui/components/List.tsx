@@ -1,5 +1,14 @@
 import { bound, Classes, Func, reg } from "../../lib"
-import { Component, destroy, ElemProps, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
+import {
+  Component,
+  destroy,
+  destroyChildren,
+  ElemProps,
+  FactorioJsx,
+  render,
+  Spec,
+  Tracker,
+} from "../../lib/factoriojsx"
 import { ObservableList, Unsubscribe } from "../../lib/observable"
 import { ObservableListChange } from "../../lib/observable/ObservableList"
 import { assertNever } from "../../lib/util"
@@ -12,18 +21,17 @@ export type ListProps<T, U extends GuiElementType> = {
 } & ElemProps<U>
 @Classes.register()
 export class List<T, U extends GuiElementType> extends Component<ListProps<T, U>> {
-  of!: ObservableList<T>
   map!: Func<(value: T) => Spec>
   ifEmpty?: Func<() => Spec>
 
   element!: BaseGuiElement
+
   render(props: ListProps<T, U>, tracker: Tracker): Spec {
-    this.of = props.of
     this.map = props.map
     this.ifEmpty = props.ifEmpty
     tracker.onMount((element) => {
       this.element = element
-      const { of, map, ifEmpty } = this
+      const { of, map, ifEmpty } = props
       if (of.length() === 0) {
         if (ifEmpty) {
           render(this.element, ifEmpty())
@@ -63,7 +71,7 @@ export class List<T, U extends GuiElementType> extends Component<ListProps<T, U>
     const changeType = change.type
     if (changeType === "add") {
       if (ifEmpty && array.length() === 1) {
-        element.clear()
+        destroyChildren(element)
       }
       this.add(change.value, change.index)
     } else if (changeType === "remove") {

@@ -273,6 +273,34 @@ function renderClassComponent<T>(parent: BaseGuiElement, spec: ClassComponentSpe
   return renderInternal(parent, resultSpec, tracker)
 }
 
+export function render<T extends GuiElementType>(
+  parent: BaseGuiElement,
+  spec: ElementSpec & { type: T },
+  index?: number,
+): Extract<LuaGuiElement, { type: T }>
+export function render(parent: BaseGuiElement, element: Spec, index?: number): LuaGuiElement | undefined
+export function render(parent: BaseGuiElement, element: Spec, index?: number): LuaGuiElement | undefined {
+  const result = renderInternal(parent, element, newTracker(index))
+  if (!result || isLuaGuiElement(result)) return result
+  if (result.length > 1) {
+    error("cannot render multiple elements at root. Try wrapping them in another element.")
+  }
+  return result[0]
+}
+
+export function renderMultiple(parent: BaseGuiElement, elements: Spec): LuaGuiElement[] | undefined {
+  const result = renderInternal(parent, elements, newTracker())
+  return !result || isLuaGuiElement(result) ? [result as LuaGuiElement] : result
+}
+
+export function renderOpened(player: LuaPlayer, spec: Spec): LuaGuiElement | undefined {
+  const element = render(player.gui.screen, spec)
+  if (element) {
+    player.opened = element
+  }
+  return element
+}
+
 function getInstance(element: BaseGuiElement): ElementInstance | undefined {
   if (!element.valid) return undefined
   return Elements[element.player_index][element.index]
@@ -308,27 +336,11 @@ export function destroy(element: BaseGuiElement | undefined, destroyElement = tr
   Elements[playerIndex][index] = undefined!
 }
 
-export function render<T extends GuiElementType>(
-  parent: BaseGuiElement,
-  spec: ElementSpec & { type: T },
-  index?: number,
-): Extract<LuaGuiElement, { type: T }>
-export function render(parent: BaseGuiElement, element: Spec, index?: number): LuaGuiElement | undefined
-export function render(parent: BaseGuiElement, element: Spec, index?: number): LuaGuiElement | undefined {
-  const result = renderInternal(parent, element, newTracker(index))
-  if (!result || isLuaGuiElement(result)) return result
-  if (result.length > 1) {
-    error("cannot render multiple elements at root. Try wrapping them in another element.")
+export function destroyChildren(element: BaseGuiElement): void {
+  for (const child of element.children) {
+    destroy(child, false)
   }
-  return result[0]
-}
-
-export function renderOpened(player: LuaPlayer, spec: Spec): LuaGuiElement | undefined {
-  const element = render(player.gui.screen, spec)
-  if (element) {
-    player.opened = element
-  }
-  return element
+  element.clear()
 }
 
 // -- gui events --
