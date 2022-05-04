@@ -5,15 +5,29 @@ export declare const enum L_Bbpp {
   EntityFromPlace = "bbpp.entity-from-place",
 }
 export declare const enum L_Diagnostic {
-  /** __2__ overlaps with __1__. */
+  /** [color=red]Overlaps:[/color] */
   Overlap = "bbpp.diagnostic.overlap",
-  /** __1__ was upgraded to __2__, which is not pasteable. */
+  /** __1__ overlapped by __2__ */
+  OverlapItem = "bbpp.diagnostic.overlap-item",
+  /** [color=purple]Upgrades:[/color] */
   CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
-  /** A change in item requests (modules, fuel) will have no effect when pasted. */
-  ItemsIgnoredOnPaste = "bbpp.diagnostic.items-ignored-on-paste",
-  /** The property "__1__" is not yet supported. Please report this to the mod author! */
+  /** These entities were upgraded, which cannot be pasted. This may be better supported in the future. */
+  CannotUpgradeDetail = "bbpp.diagnostic.cannot-upgrade-detail",
+  /** __1__ upgraded from __2__ */
+  CannotUpgradeItem = "bbpp.diagnostic.cannot-upgrade-item",
+  /** [color=Yellow]Items ignored:[/color] */
+  ItemsIgnored = "bbpp.diagnostic.items-ignored",
+  /** Changes in item requests will have no effect on paste. */
+  ItemsIgnoredDetail = "bbpp.diagnostic.items-ignored-detail",
+  /** __1__ */
+  ItemsIgnoredItem = "bbpp.diagnostic.items-ignored-item",
+  /** [color=yellow]Unsupported properties:[/color] */
   UnsupportedProp = "bbpp.diagnostic.unsupported-prop",
-  /** The import "__1__" is no longer valid. */
+  /** These properties are not yet checked. Please report this to the mod author! */
+  UnsupportedPropDetail = "bbpp.diagnostic.unsupported-prop-detail",
+  /** __1__: "__2__" not supported */
+  UnsupportedPropItem = "bbpp.diagnostic.unsupported-prop-item",
+  /** [color=red]The import "__1__" is no longer valid.[/color] */
   InvalidImport = "bbpp.diagnostic.invalid-import",
 }
 export declare const enum L_Interaction {
@@ -43,14 +57,14 @@ export declare const enum L_Gui {
   RenameAssembly = "bbpp.gui.rename-assembly",
   /** Cancel rename */
   CancelRenameAssembly = "bbpp.gui.cancel-rename-assembly",
+  /** Teleport to assembly */
+  TeleportToAssembly = "bbpp.gui.teleport-to-assembly",
   /** Save */
   Save = "bbpp.gui.save",
   /** Save the current assembly, and reset the area. */
   SaveButtonTooltip = "bbpp.gui.save-button-tooltip",
   /** There are paste conflicts in this assembly. Some entities may not save as expected. Are you sure you want to save? */
   ConfirmSaveWithPasteConflicts = "bbpp.gui.confirm-save-with-paste-conflicts",
-  /** View conflicts */
-  ViewConflicts = "bbpp.gui.view-conflicts",
   /** Some entities from imports have been deleted. These will be re-added upon resetting the assembly, and so will not be saved. Are you sure you want to save? */
   ConfirmSaveWithDeletions = "bbpp.gui.confirm-save-with-deletions",
   /** Reset */
@@ -59,8 +73,6 @@ export declare const enum L_Gui {
   ResetButtonTooltip = "bbpp.gui.reset-button-tooltip",
   /** Are you sure you want to reset this assembly? Any unsaved changes will be lost. */
   ConfirmResetAssembly = "bbpp.gui.confirm-reset-assembly",
-  /** Teleport to assembly */
-  TeleportToAssembly = "bbpp.gui.teleport-to-assembly",
   /** Delete assembly */
   DeleteAssembly = "bbpp.gui.delete-assembly",
   /** Are you sure you want to delete the assembly "__1__"? */
@@ -79,6 +91,10 @@ export declare const enum L_Gui {
   DeleteImportConfirmation = "bbpp.gui.delete-import-confirmation",
   /** This import no longer exists. */
   ImportNoLongerExists = "bbpp.gui.import-no-longer-exists",
+  /** Diagnostics */
+  Diagnostics = "bbpp.gui.diagnostics",
+  /** Layer: __1__ */
+  LayerLabel = "bbpp.gui.layer-label",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
   /** All assemblies [img=info] */

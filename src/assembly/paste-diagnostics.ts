@@ -1,62 +1,65 @@
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
-import { Diagnostic, DiagnosticFactory } from "../diagnostics/Diagnostic"
+import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
 import { describeEntity, isUnhandledProp, UnhandledProp } from "../entity/entity"
 import { assertNever } from "../lib/util"
 import { L_Diagnostic } from "../locale"
 
-export type PasteDiagnostic =
-  | L_Diagnostic.Overlap
-  | L_Diagnostic.ItemsIgnoredOnPaste
-  | L_Diagnostic.CannotUpgrade
-  | L_Diagnostic.UnsupportedProp
-export type PasteDiagnostics = Diagnostic<PasteDiagnostic>[]
-export const Overlap = DiagnosticFactory(
-  L_Diagnostic.Overlap,
-  "error",
+export type PasteDiagnostic = "overlap" | "items-ignored" | "cannot-upgrade" | "unsupported-prop"
+
+export type PasteDiagnostics = DiagnosticCollection<PasteDiagnostic>
+
+export const Overlap = DiagnosticCategory(
+  "overlap",
+  [L_Diagnostic.Overlap],
+  undefined,
   (below: BlueprintEntityRead, above: BlueprintEntityRead) => ({
-    message: [L_Diagnostic.Overlap, describeEntity(above), describeEntity(below)],
+    message: [L_Diagnostic.OverlapItem, describeEntity(above), describeEntity(below)],
     location: above.position,
   }),
 )
-export const CannotUpgrade = DiagnosticFactory(
-  L_Diagnostic.CannotUpgrade,
-  "error",
+export const CannotUpgrade = DiagnosticCategory(
+  "cannot-upgrade",
+  [L_Diagnostic.CannotUpgrade],
+  [L_Diagnostic.CannotUpgradeDetail],
   (below: BlueprintEntityRead, above: BlueprintEntityRead) => ({
-    message: [L_Diagnostic.CannotUpgrade, describeEntity(above), describeEntity(below)],
+    message: [L_Diagnostic.CannotUpgradeItem, describeEntity(above), describeEntity(below)],
     location: above.position,
   }),
 )
-export const ItemsIgnored = DiagnosticFactory(
-  L_Diagnostic.ItemsIgnoredOnPaste,
-  "warning",
+export const ItemsIgnored = DiagnosticCategory(
+  "items-ignored",
+  [L_Diagnostic.ItemsIgnored],
+  [L_Diagnostic.ItemsIgnoredDetail],
   (entity: BlueprintEntityRead) => ({
-    message: [L_Diagnostic.ItemsIgnoredOnPaste, describeEntity(entity)],
+    message: [L_Diagnostic.ItemsIgnoredItem, describeEntity(entity)],
     location: entity.position,
   }),
 )
-export const UnsupportedProp = DiagnosticFactory(
-  L_Diagnostic.UnsupportedProp,
-  "warning",
+export const UnsupportedProp = DiagnosticCategory(
+  "unsupported-prop",
+  [L_Diagnostic.UnsupportedProp],
+  undefined,
   (entity: BlueprintEntityRead, property: UnhandledProp) => ({
-    message: [L_Diagnostic.UnsupportedProp, describeEntity(entity), property],
+    message: [L_Diagnostic.UnsupportedPropItem, describeEntity(entity), property],
     location: entity.position,
   }),
 )
 
 export function mapPasteConflictsToDiagnostics(conflicts: BlueprintPasteConflicts): PasteDiagnostics {
-  const diagnostics: Diagnostic<PasteDiagnostic>[] = []
-  if (conflicts.overlaps)
+  const diagnostics: PasteDiagnostics = {}
+  if (conflicts.overlaps) {
     for (const { below, above } of conflicts.overlaps) {
-      diagnostics.push(Overlap(below, above))
+      addDiagnostic(diagnostics, Overlap, below, above)
     }
+  }
   if (conflicts.propConflicts)
     for (const { prop, below, above } of conflicts.propConflicts) {
       if (prop === "name") {
-        diagnostics.push(CannotUpgrade(below, above))
+        addDiagnostic(diagnostics, CannotUpgrade, below, above)
       } else if (prop === "items") {
-        diagnostics.push(ItemsIgnored(above))
+        addDiagnostic(diagnostics, ItemsIgnored, above)
       } else if (isUnhandledProp(prop)) {
-        diagnostics.push(UnsupportedProp(above, prop))
+        addDiagnostic(diagnostics, UnsupportedProp, above, prop)
       } else {
         assertNever(prop)
       }

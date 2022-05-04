@@ -19,7 +19,7 @@ export interface AssemblyContent {
   readonly imports: MutableObservableList<AssemblyImport>
 
   resetInWorld(): void
-  readonly lastPasteConflicts: State<BlueprintPasteConflicts[]>
+  readonly lastPasteConflicts: State<readonly BlueprintPasteConflicts[]>
 
   readonly resultContent: State<Blueprint | undefined> // undefined when invalid
 
@@ -45,7 +45,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   private importsContent: Blueprint
 
-  lastPasteConflicts: MutableState<BlueprintPasteConflicts[]> = state([{}])
+  lastPasteConflicts: MutableState<readonly BlueprintPasteConflicts[]> = state([{}])
   pendingSave: MutableState<BlueprintDiff | undefined> = state(undefined)
 
   constructor(private readonly surface: LuaSurface, private readonly area: BoundingBoxRead) {

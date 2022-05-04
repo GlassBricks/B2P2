@@ -6,8 +6,11 @@ import {
   ItemsIgnored,
   mapPasteConflictsToDiagnostics,
   Overlap,
+  PasteDiagnostic,
+  PasteDiagnostics,
   UnsupportedProp,
 } from "./paste-diagnostics"
+import { Diagnostic, DiagnosticCategory } from "./diagnostics/Diagnostic"
 
 let entity1: Entity
 let entity2: Entity
@@ -15,6 +18,16 @@ before_all(() => {
   entity1 = getEntitySample("assembling-machine-1")
   entity2 = getEntitySample("assembling-machine-2")
 })
+
+function assertSingleDiagnostic(
+  map: PasteDiagnostics,
+  expectedCategory: DiagnosticCategory<PasteDiagnostic>,
+  expectedDiagnostic: Diagnostic,
+) {
+  assert.same([expectedCategory.id], Object.keys(map))
+  assert.same(1, map[expectedCategory.id]?.diagnostics.length)
+  assert.same(expectedDiagnostic, map[expectedCategory.id]!.diagnostics[0])
+}
 
 test("overlap", () => {
   const conflict: BlueprintPasteConflicts = {
@@ -26,8 +39,7 @@ test("overlap", () => {
     ],
   }
   const diagnostics = mapPasteConflictsToDiagnostics(conflict)
-  assert.equal(1, diagnostics.length)
-  assert.same(Overlap(entity1, entity2), diagnostics[0])
+  assertSingleDiagnostic(diagnostics, Overlap, Overlap.create(entity1, entity2))
 })
 
 test("upgrade", () => {
@@ -41,8 +53,7 @@ test("upgrade", () => {
     ],
   }
   const diagnostics = mapPasteConflictsToDiagnostics(conflict)
-  assert.equal(1, diagnostics.length)
-  assert.same(CannotUpgrade(entity1, entity2), diagnostics[0])
+  assertSingleDiagnostic(diagnostics, CannotUpgrade, CannotUpgrade.create(entity1, entity2))
 })
 
 test("items", () => {
@@ -56,8 +67,7 @@ test("items", () => {
     ],
   }
   const diagnostics = mapPasteConflictsToDiagnostics(conflict)
-  assert.equal(1, diagnostics.length)
-  assert.same(ItemsIgnored(entity2), diagnostics[0])
+  assertSingleDiagnostic(diagnostics, ItemsIgnored, ItemsIgnored.create(entity2))
 })
 
 test("unsupported prop", () => {
@@ -71,6 +81,5 @@ test("unsupported prop", () => {
     ],
   }
   const diagnostics = mapPasteConflictsToDiagnostics(conflict)
-  assert.equal(1, diagnostics.length)
-  assert.same(UnsupportedProp(entity2, "foo" as any), diagnostics[0])
+  assertSingleDiagnostic(diagnostics, UnsupportedProp, UnsupportedProp.create(entity2, "foo" as any))
 })
