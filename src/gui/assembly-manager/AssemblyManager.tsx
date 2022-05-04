@@ -35,12 +35,19 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
         }}
       >
         <AMTitleBar assembly={this.assembly} onClose={reg(this.closeSelf)} />
-        <AMSubframeButtons assembly={this.assembly} />
-        <frame style="inside_deep_frame_for_tabs" direction="vertical">
+        <frame
+          style="inside_deep_frame_for_tabs"
+          direction="vertical"
+          styleMod={{
+            top_padding: 5,
+          }}
+        >
+          <AMSubframeButtons assembly={this.assembly} />
           <tabbed-pane
             style="tabbed_pane_with_extra_padding"
             styleMod={{
               horizontally_stretchable: true,
+              top_margin: 10,
             }}
           >
             <tab caption={[L_Gui.Imports]} />

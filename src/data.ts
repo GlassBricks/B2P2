@@ -1,5 +1,5 @@
 import { Data } from "typed-factorio/data/types"
-import { Prototypes, Sprites, Styles } from "./constants"
+import { GuiConstants, Prototypes, Sprites, Styles } from "./constants"
 import * as util from "util"
 
 declare const data: Data
@@ -35,7 +35,7 @@ styles[Styles.ScrollPaneFakeListbox] = {
   },
 }
 
-styles[Styles.BareScrollPane] = {
+styles[Styles.AMListScrollPane] = {
   type: "scroll_pane_style",
   parent: "scroll_pane_in_shallow_frame",
   extra_right_padding_when_activated: -12,
@@ -46,6 +46,8 @@ styles[Styles.BareScrollPane] = {
     type: "vertical_flow_style",
     vertical_spacing: 0,
   },
+  minimal_height: GuiConstants.AMListMinHeight,
+  maximal_height: GuiConstants.AMListMaxHeight,
 }
 
 const assemblyCreationTool = {

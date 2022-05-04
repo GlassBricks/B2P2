@@ -20,7 +20,6 @@ export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
         direction="horizontal"
         styleMod={{
           horizontally_stretchable: true,
-          bottom_padding: -5,
         }}
       >
         <SaveButton assembly={this.assembly} />

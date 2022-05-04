@@ -21,13 +21,7 @@ export class Imports extends Component<{ assembly: Assembly }> {
     return (
       <flow direction="vertical">
         <frame style="deep_frame_in_shallow_frame">
-          <scroll-pane
-            style={Styles.BareScrollPane}
-            styleMod={{
-              minimal_height: GuiConstants.ImportListMinHeight,
-              maximal_height: GuiConstants.ImportListMaxHeight,
-            }}
-          >
+          <scroll-pane style={Styles.AMListScrollPane}>
             <List
               uses="flow"
               direction="vertical"
