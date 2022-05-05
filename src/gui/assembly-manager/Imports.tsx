@@ -13,7 +13,7 @@ import { showDialogue } from "../window/Dialogue"
 import { ObservableSet } from "../../lib/observable/ObservableSet"
 
 @Classes.register()
-export class Imports extends Component<{ assembly: Assembly }> {
+export class ImportsTab extends Component<{ assembly: Assembly }> {
   assembly!: Assembly
   render(props: { assembly: Assembly }): Spec {
     assert(props.assembly.isValid())

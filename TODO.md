@@ -1,6 +1,5 @@
 ## Now
 
-- has diagnostics notification
 - diagnostic highlighting/teleporting
 - ethereal ghosts
 - lost references diagnostics

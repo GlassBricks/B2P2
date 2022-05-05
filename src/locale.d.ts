@@ -95,6 +95,8 @@ export declare const enum L_Gui {
   ImportNoLongerExists = "bbpp.gui.import-no-longer-exists",
   /** Diagnostics */
   Diagnostics = "bbpp.gui.diagnostics",
+  /** Diagnostics [img=warning-white] */
+  DiagnosticsWithConflicts = "bbpp.gui.diagnostics-with-conflicts",
   /** Layer: __1__ */
   LayerLabel = "bbpp.gui.layer-label",
   /** <Own contents> */

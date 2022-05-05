@@ -1,4 +1,4 @@
-import { Classes } from "../lib"
+import { Classes, funcRef } from "../lib"
 import {
   BlueprintDiff,
   BlueprintPasteConflicts,
@@ -22,7 +22,7 @@ export interface AssemblyContent {
   resetInWorld(): void
   readonly lastPasteConflicts: State<readonly LayerPasteConflicts[]>
 
-  hasConflicts(): boolean
+  hasConflicts(): State<boolean>
 
   readonly resultContent: State<Blueprint | undefined> // undefined when invalid
 
@@ -105,8 +105,16 @@ export class DefaultAssemblyContent implements AssemblyContent {
     }
   }
 
-  hasConflicts(): boolean {
-    return this.lastPasteConflicts.get().some(({ bpConflicts }) => !isEmpty(bpConflicts))
+  hasConflicts(): State<boolean> {
+    return this.lastPasteConflicts.map(funcRef(DefaultAssemblyContent.hasAnyConflicts))
+  }
+  private static hasAnyConflicts(this: void, conflicts: LayerPasteConflicts[]): boolean {
+    for (const conflict of conflicts) {
+      if (!isEmpty(conflict.bpConflicts)) {
+        return true
+      }
+    }
+    return false
   }
 
   prepareSave(): BlueprintDiff {

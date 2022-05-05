@@ -68,7 +68,7 @@ export class SaveButton extends Component<{ assembly: Assembly }> {
     if (result) {
       player.print([L_Interaction.AssemblySaved, result.content.asArray().length])
     }
-    if (content.hasConflicts()) {
+    if (content.hasConflicts().get()) {
       player.print([L_Interaction.FoundPasteConflicts])
     }
   }
