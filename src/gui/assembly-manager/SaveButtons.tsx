@@ -28,7 +28,7 @@ export class SaveButton extends Component<{ assembly: Assembly }> {
     const player = game.players[e.player_index]
     const content = this.assembly.getContent()
     if (!content) return
-    if (content.lastPasteConflicts.get().some((x) => !isEmpty(x))) {
+    if (content.lastPasteConflicts.get().some((x) => !isEmpty(x.bpConflicts))) {
       this.warnAboutPasteConflicts(player)
     } else {
       this.beginSave(player)
@@ -67,6 +67,9 @@ export class SaveButton extends Component<{ assembly: Assembly }> {
     const result = content.commitAndReset()
     if (result) {
       player.print([L_Interaction.AssemblySaved, result.content.asArray().length])
+    }
+    if (content.hasConflicts()) {
+      player.print([L_Interaction.FoundPasteConflicts])
     }
   }
 

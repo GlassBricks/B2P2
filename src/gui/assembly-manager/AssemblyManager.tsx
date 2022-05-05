@@ -6,6 +6,7 @@ import { AMTitleBar } from "./AMTitleBar"
 import { AMSubframeButtons } from "./AMSubframeButtons"
 import { L_Gui } from "../../locale"
 import { Imports } from "./Imports"
+import { DiagnosticsTab } from "./Diagnostics"
 
 const openedAssemblies = PlayerData("opened AssembliesManager", () => new LuaMap<Assembly, AssemblyManager>())
 @Classes.register()
@@ -52,8 +53,8 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
           >
             <tab caption={[L_Gui.Imports]} />
             <Imports assembly={this.assembly} />
-            <tab caption="Tab 2" />
-            <label caption="Tab 2 content: todo" />
+            <tab caption={[L_Gui.Diagnostics]} />
+            <DiagnosticsTab assembly={this.assembly} />
           </tabbed-pane>
         </frame>
       </frame>

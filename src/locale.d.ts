@@ -11,11 +11,11 @@ export declare const enum L_Diagnostic {
   OverlapItem = "bbpp.diagnostic.overlap-item",
   /** [color=purple]Upgrades:[/color] */
   CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
-  /** These entities were upgraded, which cannot be pasted. This may be better supported in the future. */
+  /** These entities were upgraded/fast-replaced, which cannot be pasted. This may be better supported in the future. */
   CannotUpgradeDetail = "bbpp.diagnostic.cannot-upgrade-detail",
-  /** __1__ upgraded from __2__ */
+  /** __1__ changed from __2__ */
   CannotUpgradeItem = "bbpp.diagnostic.cannot-upgrade-item",
-  /** [color=Yellow]Items ignored:[/color] */
+  /** [color=yellow]Item requests ignored:[/color] */
   ItemsIgnored = "bbpp.diagnostic.items-ignored",
   /** Changes in item requests will have no effect on paste. */
   ItemsIgnoredDetail = "bbpp.diagnostic.items-ignored-detail",
@@ -49,6 +49,8 @@ export declare const enum L_Interaction {
   ImportCreated = "bbpp.interaction.import-created",
   /** Assembly saved\n  [font=default-bold]__1__[/font] entities */
   AssemblySaved = "bbpp.interaction.assembly-saved",
+  /** Paste conflicts found after reset! */
+  FoundPasteConflicts = "bbpp.interaction.found-paste-conflicts",
 }
 export declare const enum L_Gui {
   /** <Unnamed assembly> */
@@ -95,6 +97,10 @@ export declare const enum L_Gui {
   Diagnostics = "bbpp.gui.diagnostics",
   /** Layer: __1__ */
   LayerLabel = "bbpp.gui.layer-label",
+  /** <Own contents> */
+  OwnContents = "bbpp.gui.own-contents",
+  /** No diagnostics */
+  NoDiagnostics = "bbpp.gui.no-diagnostics",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
   /** All assemblies [img=info] */

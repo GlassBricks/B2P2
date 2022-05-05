@@ -162,7 +162,10 @@ describe("paste conflicts", () => {
   it("has no conflicts for simple paste", () => {
     pasteBlueprint(surface, area.left_top, originalBlueprintSample.entities)
     const content = createAssemblyContent()
-    assert.same([{}], content.lastPasteConflicts.get())
+    assert.same(
+      [{}],
+      content.lastPasteConflicts.get().map((x) => x.bpConflicts),
+    )
   })
 
   interface ExpectedConflict {
@@ -263,8 +266,8 @@ describe("paste conflicts", () => {
 
     const expected = expectedConflicts[sampleName]
     if (!expected) {
-      assert.same({}, contents.lastPasteConflicts.get()[0])
-      assert.same({}, contents.lastPasteConflicts.get()[1])
+      assert.same({}, contents.lastPasteConflicts.get()[0].bpConflicts)
+      assert.same({}, contents.lastPasteConflicts.get()[1].bpConflicts)
       return
     }
     const aboveEntity = above.find((x) => x.name === expected.aboveEntity)!
@@ -285,8 +288,8 @@ describe("paste conflicts", () => {
     } else {
       assertNever(expected.type)
     }
-    assert.same([], contents.lastPasteConflicts.get()[0])
-    assertConflictEquivalent(expectedConflict, contents.lastPasteConflicts.get()[1])
+    assert.same([], contents.lastPasteConflicts.get()[0].bpConflicts)
+    assertConflictEquivalent(expectedConflict, contents.lastPasteConflicts.get()[1].bpConflicts)
   })
 })
 describe("saveChanges", () => {

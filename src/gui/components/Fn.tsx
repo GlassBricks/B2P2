@@ -1,6 +1,14 @@
 import { Observable } from "../../lib/observable"
 import { bound, Classes, Func, reg } from "../../lib"
-import { Component, destroyChildren, ElemProps, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
+import {
+  Component,
+  destroyChildren,
+  ElemProps,
+  FactorioJsx,
+  renderMultiple,
+  Spec,
+  Tracker,
+} from "../../lib/factoriojsx"
 
 export type FuncProps<T, U extends GuiElementType> = {
   uses: U
@@ -30,6 +38,6 @@ export class Fn<T, U extends GuiElementType> extends Component<FuncProps<T, U>> 
   onChange(value: T): void {
     const spec = this.map(value)
     destroyChildren(this.element)
-    render(this.element, spec)
+    renderMultiple(this.element, spec)
   }
 }

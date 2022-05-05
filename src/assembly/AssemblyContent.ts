@@ -12,6 +12,7 @@ import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blu
 import { MutableObservableList, observableList } from "../lib/observable/ObservableList"
 import { pos } from "../lib/geometry/position"
 import { MutableState, state, State } from "../lib/observable"
+import { isEmpty } from "../lib/util"
 
 export interface AssemblyContent {
   readonly ownContents: PasteBlueprint
@@ -19,7 +20,9 @@ export interface AssemblyContent {
   readonly imports: MutableObservableList<AssemblyImport>
 
   resetInWorld(): void
-  readonly lastPasteConflicts: State<readonly BlueprintPasteConflicts[]>
+  readonly lastPasteConflicts: State<readonly LayerPasteConflicts[]>
+
+  hasConflicts(): boolean
 
   readonly resultContent: State<Blueprint | undefined> // undefined when invalid
 
@@ -37,6 +40,11 @@ export interface AssemblyContent {
   delete(): void
 }
 
+export interface LayerPasteConflicts {
+  readonly name: State<LocalisedString> | undefined
+  readonly bpConflicts: BlueprintPasteConflicts
+}
+
 @Classes.register()
 export class DefaultAssemblyContent implements AssemblyContent {
   ownContents: PasteBlueprint
@@ -45,7 +53,12 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   private importsContent: Blueprint
 
-  lastPasteConflicts: MutableState<readonly BlueprintPasteConflicts[]> = state([{}])
+  lastPasteConflicts: MutableState<LayerPasteConflicts[]> = state([
+    {
+      name: undefined,
+      bpConflicts: {},
+    },
+  ])
   pendingSave: MutableState<BlueprintDiff | undefined> = state(undefined)
 
   constructor(private readonly surface: LuaSurface, private readonly area: BoundingBoxRead) {
@@ -58,7 +71,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
   resetInWorld(): void {
     clearBuildableEntities(this.surface, this.area)
 
-    const pasteConflicts: BlueprintPasteConflicts[] = []
+    const pasteConflicts: LayerPasteConflicts[] = []
     for (const imp of this.imports.value()) {
       pasteConflicts.push(this.pasteImport(imp))
     }
@@ -70,19 +83,30 @@ export class DefaultAssemblyContent implements AssemblyContent {
     this.resultContent.set(Blueprint.take(this.surface, this.area))
   }
 
-  private pasteImport(imp: AssemblyImport) {
+  private pasteImport(imp: AssemblyImport): LayerPasteConflicts {
     const content = imp.getContent().get()
-    if (!content) return {}
+    if (!content)
+      return {
+        name: imp.getName(),
+        bpConflicts: {},
+      }
 
     const resultLocation = pos.add(this.area.left_top, imp.getRelativePosition())
-    const diagnostics = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, resultLocation)
+    const conflicts = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, resultLocation)
     pasteBlueprint(this.surface, resultLocation, content.entities, this.area)
-    return diagnostics
+    return { name: imp.getName(), bpConflicts: conflicts }
   }
-  private pasteOwnContents(importsContent: Blueprint): BlueprintPasteConflicts {
+  private pasteOwnContents(importsContent: Blueprint): LayerPasteConflicts {
     const conflicts = findBlueprintPasteConflictsAndUpdate(importsContent, this.ownContents)
     pasteBlueprint(this.surface, this.area.left_top, this.ownContents.entities)
-    return conflicts
+    return {
+      name: undefined,
+      bpConflicts: conflicts,
+    }
+  }
+
+  hasConflicts(): boolean {
+    return this.lastPasteConflicts.get().some(({ bpConflicts }) => !isEmpty(bpConflicts))
   }
 
   prepareSave(): BlueprintDiff {

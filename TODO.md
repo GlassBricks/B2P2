@@ -1,11 +1,16 @@
 ## Now
 
-- own content item
+- has diagnostics notification
+- diagnostic highlighting/teleporting
+- ethereal ghosts
+- lost references diagnostics
 - import reordering
 - Make prints into flying text?
-- Diagnostics window
 
 - Test with real blueprints
+
+
+- diagnostic actions
 
 - Dependency checking, invalidation
 
