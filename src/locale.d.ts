@@ -51,7 +51,7 @@ export declare const enum L_Interaction {
   AssemblySaved = "bbpp.interaction.assembly-saved",
   /** Paste conflicts found after reset! */
   FoundPasteConflicts = "bbpp.interaction.found-paste-conflicts",
-  /** Cannot open map view on a different surface */
+  /** Cannot open map view on a different surface. Try going into editor mode. */
   CannotOpenMapOnDifferentSurface = "bbpp.interaction.cannot-open-map-on-different-surface",
 }
 export declare const enum L_Gui {
@@ -99,17 +99,19 @@ export declare const enum L_Gui {
   Diagnostics = "bbpp.gui.diagnostics",
   /** Diagnostics [img=warning-white] */
   DiagnosticsWithConflicts = "bbpp.gui.diagnostics-with-conflicts",
-  /** Layer: __1__ */
-  LayerLabel = "bbpp.gui.layer-label",
+  /** Import: __1__ */
+  ImportLabel = "bbpp.gui.import-label",
   /** <Own contents> */
   OwnContents = "bbpp.gui.own-contents",
   /** No diagnostics */
   NoDiagnostics = "bbpp.gui.no-diagnostics",
+  /**  */
+  DiagnosticTooltip = "bbpp.gui.diagnostic-tooltip",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
   /** All assemblies [img=info] */
   AssemblyOverviewCaption = "bbpp.gui.assembly-overview-caption",
-  /** [font=default-bold]Click[/font] to open details.\n[font=default-bold]Control-click[/font] to teleport to assembly location. */
+  /** [font=default-bold]Click[/font] to open.\n[font=default-bold]Control-click[/font] to teleport to assembly. */
   AssemblyOverviewCaptionTooltip = "bbpp.gui.assembly-overview-caption-tooltip",
   /** No assemblies */
   NoAssemblies = "bbpp.gui.no-assemblies",

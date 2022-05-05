@@ -40,7 +40,7 @@ export class DiagnosticsTab extends Component<{
   }
 
   private diagnosticsForLayer(conflicts: LayerPasteConflicts): Spec {
-    const layerName: MaybeState<LocalisedString> = conflicts.name?.map(funcRef(DiagnosticsTab.layerLabel)) ?? [
+    const layerName: MaybeState<LocalisedString> = conflicts.name?.map(funcRef(DiagnosticsTab.importLabel)) ?? [
       L_Gui.OwnContents,
     ]
     const allDiagnostics = mapPasteConflictsToDiagnostics(conflicts.bpConflicts)
@@ -67,8 +67,8 @@ export class DiagnosticsTab extends Component<{
     )
   }
 
-  private static layerLabel(this: void, name: LocalisedString): LocalisedString {
-    return [L_Gui.LayerLabel, name]
+  private static importLabel(this: void, name: LocalisedString): LocalisedString {
+    return [L_Gui.ImportLabel, name]
   }
 
   private diagnosticsForCategory(group: DiagnosticsForCategory<PasteDiagnostic>) {

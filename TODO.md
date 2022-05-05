@@ -1,17 +1,15 @@
 ## Now
 
-- diagnostic highlighting/teleporting
 - ethereal ghosts
 - lost references diagnostics
+- diagnostic actions
+- More advanced diagnostic teleporting
 - import reordering
 - Make prints into flying text?
 
-- Test with real blueprints
-
-
-- diagnostic actions
-
 - Dependency checking, invalidation
+
+- Test with real blueprints
 
 ## v0.1
 
