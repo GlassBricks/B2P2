@@ -6,7 +6,7 @@ export interface DiagnosticCategory<Id extends string> {
 
 export interface Diagnostic {
   readonly message?: LocalisedString
-  readonly location?: MapPositionTable
+  readonly location?: BoundingBoxRead
 }
 
 export interface DiagnosticsForCategory<Id extends string> {

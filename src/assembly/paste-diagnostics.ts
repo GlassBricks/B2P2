@@ -1,6 +1,6 @@
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
 import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
-import { describeEntity, isUnhandledProp, UnhandledProp } from "../entity/entity"
+import { describeEntity, getTileBox, isUnhandledProp, UnhandledProp } from "../entity/entity"
 import { assertNever } from "../lib/util"
 import { L_Diagnostic } from "../locale"
 
@@ -14,7 +14,7 @@ export const Overlap = DiagnosticCategory(
   undefined,
   (below: BlueprintEntityRead, above: BlueprintEntityRead) => ({
     message: [L_Diagnostic.OverlapItem, describeEntity(above), describeEntity(below)],
-    location: above.position,
+    location: getTileBox(above),
   }),
 )
 export const CannotUpgrade = DiagnosticCategory(
@@ -23,7 +23,7 @@ export const CannotUpgrade = DiagnosticCategory(
   [L_Diagnostic.CannotUpgradeDetail],
   (below: BlueprintEntityRead, above: BlueprintEntityRead) => ({
     message: [L_Diagnostic.CannotUpgradeItem, describeEntity(above), describeEntity(below)],
-    location: above.position,
+    location: getTileBox(above),
   }),
 )
 export const ItemsIgnored = DiagnosticCategory(
@@ -32,7 +32,7 @@ export const ItemsIgnored = DiagnosticCategory(
   [L_Diagnostic.ItemsIgnoredDetail],
   (entity: BlueprintEntityRead) => ({
     message: [L_Diagnostic.ItemsIgnoredItem, describeEntity(entity)],
-    location: entity.position,
+    location: getTileBox(entity),
   }),
 )
 export const UnsupportedProp = DiagnosticCategory(
@@ -41,7 +41,7 @@ export const UnsupportedProp = DiagnosticCategory(
   undefined,
   (entity: BlueprintEntityRead, property: UnhandledProp) => ({
     message: [L_Diagnostic.UnsupportedPropItem, describeEntity(entity), property],
-    location: entity.position,
+    location: getTileBox(entity),
   }),
 )
 

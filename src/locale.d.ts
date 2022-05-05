@@ -51,6 +51,8 @@ export declare const enum L_Interaction {
   AssemblySaved = "bbpp.interaction.assembly-saved",
   /** Paste conflicts found after reset! */
   FoundPasteConflicts = "bbpp.interaction.found-paste-conflicts",
+  /** Cannot open map view on a different surface */
+  CannotOpenMapOnDifferentSurface = "bbpp.interaction.cannot-open-map-on-different-surface",
 }
 export declare const enum L_Gui {
   /** <Unnamed assembly> */
