@@ -1,52 +1,74 @@
 import Events from "./Events"
-import { checkCanModifyGameState, checkIsBeforeLoad } from "./setup"
+import { checkIsBeforeLoad } from "./setup"
+import { PRecord } from "./util-types"
 
-export interface PlayerData<T> {
+/**
+ * Called when player is initialized (both during on_init and on_player_created).
+ * @param action
+ */
+export function onPlayerInit(action: (index: PlayerIndex, player: LuaPlayer) => void): void {
+  Events.onAll({
+    on_init() {
+      for (const [index, player] of game.players) {
+        action(index, player)
+      }
+    },
+    on_player_created(e): void {
+      const index = e.player_index
+      const player = game.get_player(index)!
+      action(index, player)
+    },
+  })
+}
+
+export interface PlayerData<T> extends LuaPairsIterable<PlayerIndex, T> {
   readonly name: string
-  readonly table: Record<PlayerIndex, T>
+  clearAll<T>(this: PRecord<PlayerIndex, T | undefined>): void
   [playerIndex: PlayerIndex]: T
 }
 
 declare const global: {
-  __playerData: Record<string, Record<number, unknown>>
+  __playerData: Record<PlayerIndex, PRecord<string, unknown>>
 }
-const usedPlayerData: Record<string, true> = {}
 
-Events.on_init(() => {
-  global.__playerData = {}
+let data: typeof global["__playerData"] | undefined
+
+Events.onAll({
+  on_init(): void {
+    data = global.__playerData = {}
+  },
+  on_load(): void {
+    data = global.__playerData
+  },
+  on_player_removed(e): void {
+    delete data![e.player_index]
+  },
+})
+onPlayerInit((index) => {
+  data![index] = {}
 })
 
-const notLoadedMetatable: LuaMetatable<PlayerData<any>, (this: PlayerData<any>, key: any) => any> = {
-  __index(key) {
-    let table = global.__playerData[this.name]
-    if (!table) {
-      if (game) {
-        table = global.__playerData[this.name] = {}
-      } else {
-        // read during on_load: table not yet present, keep not loaded metatable
-        // should be handled by migrations?
-        return undefined
-      }
-    }
-    rawset(this, "table", table)
-    setmetatable(this, {
-      __index: table,
-      __newindex: table,
-    })
-    return this[key]
+function playerDataIt(name: string, index: PlayerIndex | undefined) {
+  const [nextIndex, value] = next(data!, index)
+  if (nextIndex !== undefined) {
+    return $multi(nextIndex, value[name])
+  }
+}
+const playerDataMetatable: LuaMetatable<PlayerData<any>> = {
+  __index(key: PlayerIndex) {
+    const tbl = data![key]
+    return tbl && tbl[this.name]
   },
-  __newindex(key: number, value) {
-    checkCanModifyGameState()
-    const table = global.__playerData[this.name] ?? (global.__playerData[this.name] = {})
-    rawset(this, "table", table)
-    setmetatable(this, {
-      __index: table,
-      __newindex: table,
-    })
-    this.table[key as PlayerIndex] = value
+  __newindex(key: PlayerIndex, value: any) {
+    data![key][this.name] = value
   },
+  __pairs: function (this: PlayerData<any>) {
+    if (!data) error("Game not yet loaded, cannot access player data")
+    return $multi(playerDataIt, this.name, undefined)
+  } as any,
 }
 
+const usedPlayerData = new LuaSet<string>()
 export function PlayerData<T>(name: string, init: (player: LuaPlayer) => T): PlayerData<T>
 export function PlayerData<T>(name: string, init?: (player: LuaPlayer) => T): PlayerData<T | undefined>
 export function PlayerData<T>(name: string, init?: (player: LuaPlayer) => T): PlayerData<T | undefined> {
@@ -55,26 +77,24 @@ export function PlayerData<T>(name: string, init?: (player: LuaPlayer) => T): Pl
   if (name in usedPlayerData) {
     error(`Player data with name "${name}" already in use`)
   }
-  const data: PlayerData<T> = setmetatable({ name, table: undefined! }, notLoadedMetatable)
-  function on_init() {
-    notLoadedMetatable.__index!.call(data, 1)
-    if (init) {
-      for (const [index, player] of game.players) {
-        data[index] = init(player)
-      }
-    }
-  }
-  // todo: migrations
-  Events.onAll({
-    on_init,
-    on_player_removed({ player_index }) {
-      delete data[player_index]
-    },
-  })
-  if (init)
-    Events.on_player_created(({ player_index }) => {
-      data[player_index] = init(game.players[player_index])
-    })
+  usedPlayerData.add(name)
 
-  return data
+  const result: PlayerData<T> = setmetatable(
+    {
+      name,
+      clearAll() {
+        for (const [, pData] of pairs(data!)) {
+          delete pData[name]
+        }
+      },
+    } as PlayerData<T>,
+    playerDataMetatable,
+  )
+  if (init) {
+    onPlayerInit((index, player) => {
+      result[index] = init(player)
+    })
+  }
+
+  return result
 }

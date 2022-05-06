@@ -375,7 +375,7 @@ for (const [name] of pairs(guiEventNames)) {
 
 export function cleanGuiInstances(): number {
   let count = 0
-  for (const [, byPlayer] of pairs(Elements.table)) {
+  for (const [, byPlayer] of Elements) {
     for (const [, instance] of pairs(byPlayer)) {
       const element = instance.element
       if (element.valid) {
