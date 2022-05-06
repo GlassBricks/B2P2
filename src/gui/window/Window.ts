@@ -4,23 +4,17 @@ import { PostLoadAction } from "../../lib/test-util/load-action"
 export interface Window {
   readonly name: string
 
-  isOpen(player: PlayerIdentification): boolean
+  isOpen(player: LuaPlayer): boolean
 
-  open(player: PlayerIdentification): void
-  close(player: PlayerIdentification): void
+  open(player: LuaPlayer): void
+  close(player: LuaPlayer): void
 
-  toggle(player: PlayerIdentification): void
+  toggle(player: LuaPlayer): void
 
-  openOrRefresh(player: PlayerIdentification): void
-  refreshIfOpen(player: PlayerIdentification): void
-}
-
-function getPlayer(id: PlayerIdentification): LuaPlayer {
-  return typeof id === "object" ? id : game.get_player(id) ?? error("Invalid player id: " + id)
+  refreshIfOpen(player: LuaPlayer): void
 }
 
 const windows: Record<string, Window> = {}
-
 export function addWindow(rawName: string, spec: Spec): Window {
   const name = `${script.mod_name}:window:${rawName}`
   function create(screen: LuaGuiElement): void {
@@ -29,20 +23,20 @@ export function addWindow(rawName: string, spec: Spec): Window {
   }
   const window: Window = {
     name,
-    isOpen(id: PlayerIdentification): boolean {
-      return name in getPlayer(id).gui.screen
+    isOpen(id: LuaPlayer): boolean {
+      return name in id.gui.screen
     },
-    open(id: PlayerIdentification): void {
-      const screen = getPlayer(id).gui.screen
+    open(id: LuaPlayer): void {
+      const screen = id.gui.screen
       destroy(screen[name])
       create(screen)
     },
-    close(id: PlayerIdentification): void {
-      const screen = getPlayer(id).gui.screen
+    close(id: LuaPlayer): void {
+      const screen = id.gui.screen
       destroy(screen[name])
     },
-    toggle(id: PlayerIdentification): void {
-      const screen = getPlayer(id).gui.screen
+    toggle(id: LuaPlayer): void {
+      const screen = id.gui.screen
       const gui = screen[name]
       if (gui) {
         destroy(gui)
@@ -50,16 +44,8 @@ export function addWindow(rawName: string, spec: Spec): Window {
         create(screen)
       }
     },
-    openOrRefresh(id: PlayerIdentification): void {
-      const screen = getPlayer(id).gui.screen
-      const gui = screen[name]
-      if (gui) {
-        destroy(gui)
-      }
-      create(screen)
-    },
-    refreshIfOpen(id: PlayerIdentification): void {
-      const screen = getPlayer(id).gui.screen
+    refreshIfOpen(id: LuaPlayer): void {
+      const screen = id.gui.screen
       const gui = screen[name]
       if (gui) {
         destroy(gui)
@@ -77,7 +63,7 @@ if (script.active_mods.debugadapter) {
       player.print("No such window: " + name)
       return
     }
-    const actualAction = action ?? "openOrRefresh"
+    const actualAction = action ?? "open"
     if (!(actualAction in windows[name]) || action === "name") {
       player.print("No such action: " + actualAction)
       return

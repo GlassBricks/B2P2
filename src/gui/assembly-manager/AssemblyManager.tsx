@@ -8,7 +8,6 @@ import { L_Gui } from "../../locale"
 import { ImportsTab } from "./Imports"
 import { DiagnosticsTab } from "./Diagnostics"
 
-const openedAssemblies = PlayerData("opened AssembliesManager", () => new LuaMap<Assembly, AssemblyManager>())
 @Classes.register()
 class AssemblyManager extends Component<{ assembly: Assembly }> {
   assembly!: Assembly
@@ -35,7 +34,7 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
           width: GuiConstants.AssemblyManagerWidth,
         }}
       >
-        <AMTitleBar assembly={this.assembly} onClose={reg(this.closeSelf)} />
+        <AMTitleBar assembly={this.assembly} onClose={funcRef(closeParentParent)} />
         <frame
           style="inside_deep_frame_for_tabs"
           direction="vertical"
@@ -77,16 +76,16 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
   }
 }
 
+const openedAssemblies = PlayerData("opened AssembliesManager", () => new LuaMap<Assembly, AssemblyManager>())
 export function openAssemblyManager(player: LuaPlayer, assembly: Assembly): void {
   const existingWindow = openedAssemblies[player.index].get(assembly)
   if (existingWindow) {
-    if (!existingWindow.element.valid) {
-      // should not happen...
-      openedAssemblies[player.index].delete(assembly)
-    } else {
+    if (existingWindow.element.valid) {
       existingWindow.element.bring_to_front()
       return
     }
+    // should not happen...
+    openedAssemblies[player.index].delete(assembly)
   }
   render(player.gui.screen, <AssemblyManager assembly={assembly} />)
 }

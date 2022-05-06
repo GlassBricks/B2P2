@@ -36,6 +36,15 @@ test("open", () => {
   assert.true(window.isOpen(player))
 })
 
+test("open: refresh", () => {
+  window.open(player)
+  const oldGui = findTestWindow()!
+  window.open(player)
+  assert.is_false(oldGui.valid)
+  const newGui = findTestWindow()!
+  assert.is_true(newGui.valid)
+})
+
 test("close when not open", () => {
   window.close(player)
 })
@@ -58,21 +67,6 @@ test("toggle to close", () => {
   window.toggle(player)
   assert.false(testWindowFound())
   assert.false(window.isOpen(player))
-})
-
-test("openOrRefresh: open", () => {
-  window.openOrRefresh(player)
-  assert.true(testWindowFound())
-  assert.true(window.isOpen(player))
-})
-
-test("openOrRefresh: refresh", () => {
-  window.open(player)
-  const oldGui = findTestWindow()!
-  window.openOrRefresh(player)
-  assert.is_false(oldGui.valid)
-  const newGui = findTestWindow()!
-  assert.is_true(newGui.valid)
 })
 
 test("refreshIfOpen", () => {
