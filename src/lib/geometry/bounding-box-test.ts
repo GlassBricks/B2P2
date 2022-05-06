@@ -68,6 +68,13 @@ test("scale", () => {
   assert.same({ x: 6, y: 8 }, box2.right_bottom)
 })
 
+test("scaleAroundCenter", () => {
+  const box = bbox({ x: 1, y: 1 }, { x: 3, y: 3 })
+  const box2 = box.scaleAroundCenter(2)
+  assert.same({ x: 0, y: 0 }, box2.left_top)
+  assert.same({ x: 4, y: 4 }, box2.right_bottom)
+})
+
 test("center", () => {
   const box = bbox({ x: 1, y: 2 }, { x: 3, y: 4 })
   const box2 = box.center()

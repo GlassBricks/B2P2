@@ -13,7 +13,12 @@ import { MutableObservableList, observableList } from "../lib/observable/Observa
 import { pos } from "../lib/geometry/position"
 import { MutableState, state, State } from "../lib/observable"
 import { isEmpty } from "../lib/util"
+import { mapPasteConflictsToDiagnostics, PasteDiagnostics } from "./paste-diagnostics"
+import { createDiagnosticHighlight } from "./diagnostics/Diagnostic"
 
+/**
+ * Manages in-world contents of an assembly.
+ */
 export interface AssemblyContent {
   readonly ownContents: PasteBlueprint
 
@@ -43,6 +48,7 @@ export interface AssemblyContent {
 export interface LayerPasteConflicts {
   readonly name: State<LocalisedString> | undefined
   readonly bpConflicts: BlueprintPasteConflicts
+  readonly diagnostics: PasteDiagnostics
 }
 
 @Classes.register()
@@ -50,13 +56,13 @@ export class DefaultAssemblyContent implements AssemblyContent {
   ownContents: PasteBlueprint
   readonly imports: MutableObservableList<AssemblyImport> = observableList()
   readonly resultContent: MutableState<Blueprint | undefined>
-
-  private importsContent: Blueprint
+  private importsContent: Blueprint = Blueprint.of()
 
   lastPasteConflicts: MutableState<LayerPasteConflicts[]> = state([
     {
       name: undefined,
       bpConflicts: {},
+      diagnostics: {},
     },
   ])
   pendingSave: MutableState<BlueprintDiff | undefined> = state(undefined)
@@ -64,7 +70,6 @@ export class DefaultAssemblyContent implements AssemblyContent {
   constructor(private readonly surface: LuaSurface, private readonly area: BoundingBoxRead) {
     const content = Blueprint.take(surface, area, area.left_top)
     this.ownContents = content
-    this.importsContent = Blueprint.of()
     this.resultContent = state(content)
   }
 
@@ -89,19 +94,37 @@ export class DefaultAssemblyContent implements AssemblyContent {
       return {
         name: imp.getName(),
         bpConflicts: {},
+        diagnostics: {},
       }
 
-    const resultLocation = pos.add(this.area.left_top, imp.getRelativePosition())
-    const conflicts = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, resultLocation)
-    pasteBlueprint(this.surface, resultLocation, content.entities, this.area)
-    return { name: imp.getName(), bpConflicts: conflicts }
+    const relativePosition = imp.getRelativePosition()
+    const conflicts = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, relativePosition)
+    return this.pasteContent(relativePosition, content, conflicts, imp.getName())
   }
+
   private pasteOwnContents(importsContent: Blueprint): LayerPasteConflicts {
     const conflicts = findBlueprintPasteConflictsAndUpdate(importsContent, this.ownContents)
-    pasteBlueprint(this.surface, this.area.left_top, this.ownContents.entities)
-    return {
-      name: undefined,
-      bpConflicts: conflicts,
+    return this.pasteContent(pos(0, 0), this.ownContents, conflicts, undefined)
+  }
+
+  private pasteContent(
+    relativePosition: MapPositionTable,
+    content: PasteBlueprint,
+    conflicts: BlueprintPasteConflicts,
+    name: State<LocalisedString> | undefined,
+  ) {
+    const resultPosition = pos.add(this.area.left_top, relativePosition)
+    pasteBlueprint(this.surface, resultPosition, content.entities, this.area)
+    const diagnostics = mapPasteConflictsToDiagnostics(conflicts, relativePosition)
+    this.renderDiagnostics(diagnostics)
+    return { name, bpConflicts: conflicts, diagnostics }
+  }
+
+  private renderDiagnostics(collection: PasteDiagnostics): void {
+    for (const [, diagnostics] of pairs(collection)) {
+      for (const diagnostic of diagnostics) {
+        createDiagnosticHighlight(diagnostic, this.surface, this.area.left_top)
+      }
     }
   }
 

@@ -28,7 +28,7 @@ export function startBasicImportCreation(player: LuaPlayer, target: Assembly, so
     name: Prototypes.ImportPreviewPositionMarker,
     position: pos(0, 0),
   }
-  const resultEntities = [markerEntity, ...entities]
+  const resultEntities = [...entities, markerEntity]
   stack.set_blueprint_entities(resultEntities)
   stack.blueprint_absolute_snapping = true
   PendingImportCreation[player.index] = { source, target }
@@ -64,10 +64,7 @@ function tryImportCreation(player: LuaPlayer, absolutePosition: MapPositionTable
   const relativePosition = pos.sub(absolutePosition, target.area.left_top)
   const newImport = BasicImport.createFor(source, target, relativePosition)
 
-  content.prepareSave()
-  content.commitSave()
-  content.imports.push(newImport)
-  content.resetInWorld()
+  content.saveAndAddImport(newImport)
 
   player.print([L_Interaction.ImportCreated, source.displayName.get(), target.displayName.get()])
   player.cursor_stack!.clear()
@@ -76,10 +73,8 @@ function tryImportCreation(player: LuaPlayer, absolutePosition: MapPositionTable
 function onBuiltHandler(e: OnBuiltEntityEvent) {
   const entity = e.created_entity
   const name = entity.name
-  if (
-    name === Prototypes.ImportPreviewPositionMarker ||
-    (name === "ghost" && entity.ghost_name === Prototypes.ImportPreviewPositionMarker)
-  ) {
+  const realName = name === "ghost-entity" ? entity.ghost_name : name
+  if (realName === Prototypes.ImportPreviewPositionMarker) {
     const player = game.get_player(e.player_index)!
     protectedAction(player, () => tryImportCreation(player, entity.position))
   }

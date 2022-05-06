@@ -3,13 +3,12 @@ import { bind, bound, Classes, funcRef, reg } from "../../lib"
 import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { Styles } from "../../constants"
 import { Fn } from "../components/Fn"
-import { mapPasteConflictsToDiagnostics, PasteDiagnostic } from "../../assembly/paste-diagnostics"
-import { DiagnosticsForCategory } from "../../assembly/diagnostics/Diagnostic"
+import { PasteDiagnosticId } from "../../assembly/paste-diagnostics"
+import { createDiagnosticHighlight, Diagnostic, getDiagnosticCategory } from "../../assembly/diagnostics/Diagnostic"
 import { LayerPasteConflicts } from "../../assembly/AssemblyContent"
 import { L_Gui } from "../../locale"
 import { MaybeState } from "../../lib/observable"
 import { isEmpty } from "../../lib/util"
-import { bbox } from "../../lib/geometry/bounding-box"
 
 @Classes.register()
 export class DiagnosticsTab extends Component<{
@@ -43,8 +42,8 @@ export class DiagnosticsTab extends Component<{
     const layerName: MaybeState<LocalisedString> = conflicts.name?.map(funcRef(DiagnosticsTab.importLabel)) ?? [
       L_Gui.OwnContents,
     ]
-    const allDiagnostics = mapPasteConflictsToDiagnostics(conflicts.bpConflicts)
-    const categories = Object.keys(allDiagnostics) as PasteDiagnostic[]
+    const allDiagnostics = conflicts.diagnostics
+    const categories = Object.keys(allDiagnostics) as PasteDiagnosticId[]
     const hasDiagnostics = !isEmpty(categories)
     if (!hasDiagnostics) {
       return <></>
@@ -61,7 +60,7 @@ export class DiagnosticsTab extends Component<{
             padding: 5,
           }}
         >
-          {categories.map((name) => this.diagnosticsForCategory(allDiagnostics[name]!))}
+          {categories.map((name) => this.diagnosticsForCategory(name, allDiagnostics[name]!))}
         </frame>
       </>
     )
@@ -71,8 +70,8 @@ export class DiagnosticsTab extends Component<{
     return [L_Gui.ImportLabel, name]
   }
 
-  private diagnosticsForCategory(group: DiagnosticsForCategory<PasteDiagnostic>) {
-    const { category, diagnostics } = group
+  private diagnosticsForCategory(categoryName: string, diagnostics: Diagnostic[]): Spec {
+    const category = getDiagnosticCategory(categoryName)!
     return (
       <flow direction="vertical">
         <label
@@ -90,7 +89,8 @@ export class DiagnosticsTab extends Component<{
             <button
               style="list_box_item"
               caption={diagnostic.message}
-              on_gui_click={diagnostic.location && bind(this.teleportTo, this, diagnostic.location)}
+              enabled={diagnostic.relativePosition !== undefined}
+              on_gui_click={diagnostic.relativePosition && bind(this.teleportTo, this, diagnostic)}
             />
           ))}
         </flow>
@@ -99,21 +99,25 @@ export class DiagnosticsTab extends Component<{
   }
 
   @bound
-  private teleportTo(location: BoundingBoxRead, event: OnGuiClickEvent) {
-    const player = game.get_player(event.player_index)!
-    const actualLocation = bbox.shift(location, this.assembly.area.left_top)
+  private teleportTo(diagnostic: Diagnostic, event: OnGuiClickEvent) {
     const surface = this.assembly.surface
-    const position = bbox.center(actualLocation)
+    const leftTop = this.assembly.area.left_top
 
-    surface.create_entity({
-      name: "highlight-box",
-      position,
-      bounding_box: actualLocation,
-      box_type: "not-allowed",
-      render_player_index: event.player_index,
-      blink_interval: 20,
-      time_to_live: 300,
-    })
+    const highlight = createDiagnosticHighlight(
+      diagnostic,
+      surface,
+      leftTop,
+      {
+        blink_interval: 20,
+        time_to_live: 300,
+        box_type: "entity",
+        render_player_index: event.player_index,
+      },
+      1.1,
+    )!
+
+    const position = highlight.position
+    const player = game.get_player(event.player_index)!
 
     if (player.character && player.surface === surface) {
       player.zoom_to_world(position, 1)

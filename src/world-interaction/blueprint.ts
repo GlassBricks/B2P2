@@ -127,7 +127,8 @@ export function clearBuildableEntities(surface: SurfaceIdentification, area: Bou
     if (entity.type !== "character") entity.destroy()
   }
   const otherEntities = actualSurface.find_entities_filtered({
-    type: "item-request-proxy",
+    area,
+    type: ["item-request-proxy", "highlight-box"],
   })
   for (const entity of otherEntities) {
     entity.destroy()

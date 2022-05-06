@@ -6,11 +6,12 @@ import {
   ItemsIgnored,
   mapPasteConflictsToDiagnostics,
   Overlap,
-  PasteDiagnostic,
+  PasteDiagnosticId,
   PasteDiagnostics,
   UnsupportedProp,
 } from "./paste-diagnostics"
 import { Diagnostic, DiagnosticCategory } from "./diagnostics/Diagnostic"
+import { pos } from "../lib/geometry/position"
 
 let entity1: Entity
 let entity2: Entity
@@ -21,13 +22,15 @@ before_all(() => {
 
 function assertSingleDiagnostic(
   map: PasteDiagnostics,
-  expectedCategory: DiagnosticCategory<PasteDiagnostic>,
+  expectedCategory: DiagnosticCategory<PasteDiagnosticId>,
   expectedDiagnostic: Diagnostic,
 ) {
   assert.same([expectedCategory.id], Object.keys(map))
-  assert.same(1, map[expectedCategory.id]?.diagnostics.length)
-  assert.same(expectedDiagnostic, map[expectedCategory.id]!.diagnostics[0])
+  assert.same(1, map[expectedCategory.id]?.length)
+  assert.same(expectedDiagnostic, map[expectedCategory.id]![0])
 }
+
+const zero = pos(0, 0)
 
 test("overlap", () => {
   const conflict: BlueprintPasteConflicts = {
@@ -38,8 +41,8 @@ test("overlap", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict)
-  assertSingleDiagnostic(diagnostics, Overlap, Overlap.create(entity1, entity2))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, zero)
+  assertSingleDiagnostic(diagnostics, Overlap, Overlap.create(entity1, entity2, zero))
 })
 
 test("upgrade", () => {
@@ -52,8 +55,8 @@ test("upgrade", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict)
-  assertSingleDiagnostic(diagnostics, CannotUpgrade, CannotUpgrade.create(entity1, entity2))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, zero)
+  assertSingleDiagnostic(diagnostics, CannotUpgrade, CannotUpgrade.create(entity1, entity2, zero))
 })
 
 test("items", () => {
@@ -66,8 +69,8 @@ test("items", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict)
-  assertSingleDiagnostic(diagnostics, ItemsIgnored, ItemsIgnored.create(entity2))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, zero)
+  assertSingleDiagnostic(diagnostics, ItemsIgnored, ItemsIgnored.create(entity2, zero))
 })
 
 test("unsupported prop", () => {
@@ -80,6 +83,6 @@ test("unsupported prop", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict)
-  assertSingleDiagnostic(diagnostics, UnsupportedProp, UnsupportedProp.create(entity2, "foo" as any))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, zero)
+  assertSingleDiagnostic(diagnostics, UnsupportedProp, UnsupportedProp.create(entity2, zero, "foo" as any))
 })

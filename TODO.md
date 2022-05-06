@@ -1,16 +1,20 @@
 ## Now
 
+- fix notice label
 - ethereal ghosts
 - lost references diagnostics
 - diagnostic actions
 - More advanced diagnostic teleporting
 - import reordering
+- ability to toggle imports temporarily
+- autoreset
 - Make prints into flying text?
 
 - Dependency checking, invalidation
 
 - Test with real blueprints
 
+- refactor blueprint conflict checking
 ## v0.1
 
 - create gui

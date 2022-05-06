@@ -27,6 +27,7 @@ export class AssembliesList extends Component<AssembliesListProps> {
           styleMod={{
             minimal_height: GuiConstants.AssembliesListMinHeight,
             maximal_height: GuiConstants.AssembliesListMaxHeight,
+            width: GuiConstants.AssembliesListWidth,
           }}
         />
       </frame>

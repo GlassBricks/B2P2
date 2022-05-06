@@ -1,7 +1,6 @@
 import { bound, Classes, reg } from "../../lib"
 import { Component, destroy, EmptyProps, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { Assembly } from "../../assembly/Assembly"
-import { GuiConstants } from "../../constants"
 import { L_Gui } from "../../locale"
 import { startAssemblyCreation } from "../../assembly/assembly-creation"
 import { DraggableSpace, TitleBar } from "../components/TitleBar"
@@ -14,13 +13,7 @@ import { AssembliesList } from "../AssembliesList"
 export class AssembliesOverview extends Component<EmptyProps> {
   render(): Spec {
     return (
-      <frame
-        auto_center
-        direction="vertical"
-        styleMod={{
-          width: GuiConstants.AssembliesListWidth,
-        }}
-      >
+      <frame auto_center direction="vertical">
         <TitleBar title={[L_Gui.AssemblyOverviewTitle]}>
           <DraggableSpace />
           <CloseButton onClick={reg(this.close)} />
