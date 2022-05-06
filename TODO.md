@@ -2,7 +2,6 @@
 
 - ability to toggle imports temporarily
 - autoreset
-- Make prints into flying text?
 - rename properties
 
 

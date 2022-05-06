@@ -49,13 +49,13 @@ function tryImportCreation(player: LuaPlayer, absolutePosition: MapPositionTable
 
   const { source, target, flipped, rotated } = pending!
   if (!target.isValid() || !source.isValid()) {
-    player.print([L_Interaction.ImportNoLongerValid])
+    player.create_local_flying_text({ text: [L_Interaction.ImportNoLongerValid], create_at_cursor: true })
     player.cursor_stack!.clear()
     return
   }
 
   if (flipped || rotated) {
-    player.print([L_Interaction.CannotFlipOrRotateImport])
+    player.create_local_flying_text({ text: [L_Interaction.CannotFlipOrRotateImport], create_at_cursor: true })
     return
   }
 
@@ -66,7 +66,6 @@ function tryImportCreation(player: LuaPlayer, absolutePosition: MapPositionTable
 
   content.saveAndAddImport(newImport)
 
-  player.print([L_Interaction.ImportCreated, source.displayName.get(), target.displayName.get()])
   player.cursor_stack!.clear()
 }
 

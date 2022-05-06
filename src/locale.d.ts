@@ -33,8 +33,6 @@ export declare const enum L_Diagnostic {
 export declare const enum L_Interaction {
   /** An unexpected error occurred: __1__. Additional details outputted to log. Please report this to the mod author! */
   UnexpectedError = "bbpp.interaction.unexpected-error",
-  /** Could not clear cursor */
-  CannotClearCursor = "bbpp.interaction.cannot-clear-cursor",
   /** Select an area for the new assembly */
   SelectAreaForAssembly = "bbpp.interaction.select-area-for-assembly",
   /** This area intersects with an existing assembly: __1__ */
@@ -91,7 +89,7 @@ export declare const enum L_Gui {
   ChooseImportSource = "bbpp.gui.choose-import-source",
   /** There are no importable assemblies. */
   NoSourceAssemblies = "bbpp.gui.no-source-assemblies",
-  /** [font=default-bold]Control-click[/font] to move up. [font=default-bold]Control-shift-click[/font] to move down. */
+  /** [font=default-bold]Left-click[/font] to highlight the import.\n[font=default-bold]Control left-click[/font] to move up.\n[font=default-bold]Shift left-click[/font] to move down. */
   ImportItemTooltip = "bbpp.gui.import-item-tooltip",
   /** Delete import */
   DeleteImport = "bbpp.gui.delete-import",

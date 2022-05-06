@@ -121,11 +121,11 @@ class ImportItem extends Component<ImportItemProps> {
   }
 
   @bound
-  private deleteImport(player: LuaPlayer): void {
+  private deleteImport(): void {
     const imports = this.props.assembly.getContent()!.imports
     const index = imports.value().indexOf(this.props.import)
     if (index === -1) {
-      player.print([L_Gui.ImportNoLongerExists])
+      // should not happen
       return
     }
     imports.remove(index)
@@ -140,7 +140,7 @@ class ChooseImportSourceDialogue extends Component<{ assembly: Assembly }> {
   static tryOpen(player: LuaPlayer, assembly: Assembly): boolean {
     const allAssemblies = Assembly.getAllAssemblies()
     if (!ChooseImportSourceDialogue.anyAssemblyValid(assembly, allAssemblies)) {
-      player.print([L_Gui.NoSourceAssemblies])
+      player.create_local_flying_text({ text: [L_Gui.NoSourceAssemblies], create_at_cursor: true })
       return false
     }
     renderOpened(player, <ChooseImportSourceDialogue assembly={assembly} />)
