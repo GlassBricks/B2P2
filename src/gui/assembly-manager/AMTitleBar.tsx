@@ -1,4 +1,4 @@
-import { bound, Callback, Classes, reg, returns } from "../../lib"
+import { bound, Classes, reg, returns } from "../../lib"
 import { ClickEventHandler, Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { Assembly } from "../../assembly/Assembly"
 import { Observable, state } from "../../lib/observable"
@@ -7,9 +7,9 @@ import { If } from "../components/If"
 import { DraggableSpace, TitleBar } from "../components/TitleBar"
 import { CloseButton } from "../components/buttons"
 
-type AMTitleParProps = { assembly: Assembly; onClose: Callback }
+type AMTitleParProps = { assembly: Assembly; onClose: ClickEventHandler }
 @Classes.register()
-export class AMTitleBar extends Component<{ assembly: Assembly; onClose: Callback }> {
+export class AMTitleBar extends Component<{ assembly: Assembly; onClose: ClickEventHandler }> {
   assembly!: Assembly
   isEditingName = state(false)
 

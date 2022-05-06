@@ -35,7 +35,7 @@ export function DraggableSpace(): Spec {
   )
 }
 
-function closeParentParent(e: OnGuiClickEvent): void {
+export function closeParentParent(e: OnGuiClickEvent): void {
   const parent = e.element.parent!.parent!
   if (parent.type === "frame") destroy(parent)
 }

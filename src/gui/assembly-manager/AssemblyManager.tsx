@@ -1,4 +1,4 @@
-import { bound, Classes, PlayerData, reg } from "../../lib"
+import { bound, Classes, funcRef, PlayerData, reg } from "../../lib"
 import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
 import { GuiConstants } from "../../constants"
 import { Assembly } from "../../assembly/Assembly"
@@ -7,6 +7,7 @@ import { AMSubframeButtons } from "./AMSubframeButtons"
 import { L_Gui } from "../../locale"
 import { ImportsTab } from "./Imports"
 import { DiagnosticsTab } from "./Diagnostics"
+import { closeParentParent } from "../components/TitleBar"
 
 @Classes.register()
 class AssemblyManager extends Component<{ assembly: Assembly }> {
