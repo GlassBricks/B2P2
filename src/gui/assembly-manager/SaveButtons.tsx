@@ -38,7 +38,7 @@ export class SaveButton extends Component<{ assembly: Assembly }> {
   private warnAboutPasteConflicts(player: LuaPlayer) {
     showDialogue(player, {
       title: ["gui.confirmation"],
-      content: <label caption={[L_Gui.ConfirmSaveWithPasteConflicts]} />,
+      message: [L_Gui.ConfirmSaveWithPasteConflicts],
       backCaption: ["gui.cancel"],
       confirmCaption: ["gui.save"],
       redConfirm: true,
@@ -76,7 +76,7 @@ export class SaveButton extends Component<{ assembly: Assembly }> {
   private warnAboutDeletions(player: LuaPlayer) {
     showDialogue(player, {
       title: ["gui.confirmation"],
-      content: <label caption={[L_Gui.ConfirmSaveWithDeletions]} />,
+      message: [L_Gui.ConfirmSaveWithDeletions],
       backCaption: ["gui.cancel"],
       confirmCaption: ["gui.save"],
       redConfirm: true,
@@ -111,7 +111,7 @@ export class ResetButton extends Component<{ assembly: Assembly }> {
     if (!e.shift) {
       showDialogue(player, {
         title: ["gui.confirmation"],
-        content: <label caption={[L_Gui.ConfirmResetAssembly]} />,
+        message: [L_Gui.ConfirmResetAssembly],
         backCaption: ["gui.cancel"],
         confirmCaption: [L_Gui.Reset],
         redConfirm: true,

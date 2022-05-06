@@ -81,7 +81,7 @@ class ImportItem extends Component<ImportItemProps> {
     const player = game.get_player(e.player_index)!
     showDialogue(player, {
       title: ["gui.confirmation"],
-      content: <label caption={[L_Gui.DeleteImportConfirmation, this.props.import.getName().get()]} />,
+      message: [L_Gui.DeleteImportConfirmation, this.props.import.getName().get()],
       backCaption: ["gui.cancel"],
       confirmCaption: ["gui.delete"],
       redConfirm: true,

@@ -53,6 +53,8 @@ export declare const enum L_Interaction {
   FoundPasteConflicts = "bbpp.interaction.found-paste-conflicts",
   /** Cannot open map view on a different surface. Try going into editor mode. */
   CannotOpenMapOnDifferentSurface = "bbpp.interaction.cannot-open-map-on-different-surface",
+  /** __1__ */
+  TranslateDialogueMessage = "bbpp.interaction.translate-dialogue-message",
 }
 export declare const enum L_Gui {
   /** <Unnamed assembly> */
@@ -67,9 +69,9 @@ export declare const enum L_Gui {
   Save = "bbpp.gui.save",
   /** Save the current assembly, and reset the area. */
   SaveButtonTooltip = "bbpp.gui.save-button-tooltip",
-  /** There are paste conflicts in this assembly. Some entities may not save as expected. Are you sure you want to save? */
+  /** There are paste conflicts in this assembly.\nSome entities may not save as expected.\nAre you sure you want to save? */
   ConfirmSaveWithPasteConflicts = "bbpp.gui.confirm-save-with-paste-conflicts",
-  /** Some entities from imports have been deleted. These will be re-added upon resetting the assembly, and so will not be saved. Are you sure you want to save? */
+  /** Some entities from imports have been deleted.\nThese will be re-added when resetting the assembly.\nAre you sure you want to save? */
   ConfirmSaveWithDeletions = "bbpp.gui.confirm-save-with-deletions",
   /** Reset */
   Reset = "bbpp.gui.reset",
@@ -105,8 +107,6 @@ export declare const enum L_Gui {
   OwnContents = "bbpp.gui.own-contents",
   /** No diagnostics */
   NoDiagnostics = "bbpp.gui.no-diagnostics",
-  /**  */
-  DiagnosticTooltip = "bbpp.gui.diagnostic-tooltip",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
   /** All assemblies [img=info] */

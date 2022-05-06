@@ -1,7 +1,5 @@
 ## Now
 
-- fix notice label
-- ethereal ghosts
 - lost references diagnostics
 - diagnostic actions
 - More advanced diagnostic teleporting
@@ -15,13 +13,10 @@
 - Test with real blueprints
 
 - refactor blueprint conflict checking
-## v0.1
 
-- create gui
-    - protected actions (error boundary)
 - handle rails and locomotives
 - handle other off-grid stuff
-- create reference entities for circuit connections
+- ethereal ghosts
 
 ## v0.2
 

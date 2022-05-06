@@ -41,7 +41,7 @@ export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
     const player = game.get_player(e.player_index)!
     showDialogue(player, {
       title: ["gui.confirmation"],
-      content: <label caption={[L_Gui.DeleteAssemblyConfirmation, this.assembly.displayName.get()]} />,
+      message: [L_Gui.DeleteAssemblyConfirmation, this.assembly.displayName.get()],
       backCaption: ["gui.cancel"],
       confirmCaption: ["gui.delete"],
       redConfirm: true,

@@ -1,9 +1,10 @@
 import { Component, destroy, FactorioJsx, GuiEvent, render, Spec } from "../../lib/factoriojsx"
-import { bound, Classes, Func, reg } from "../../lib"
+import { bound, Classes, Events, Func, PlayerData, reg } from "../../lib"
+import { L_Interaction } from "../../locale"
 
 export interface DialogueProps {
   title: LocalisedString
-  content: Spec
+  message: LocalisedString
 
   backCaption?: LocalisedString
   onBack?: Func<(player: LuaPlayer) => void>
@@ -18,14 +19,18 @@ export interface DialogueProps {
 }
 
 @Classes.register()
-class Dialogue extends Component<DialogueProps> {
+class Dialogue extends Component<
+  DialogueProps & {
+    translated: string
+  }
+> {
   private element!: FrameGuiElementMembers
 
   private onBackFn?: (data: any) => void
   private onConfirmFn?: (data: any) => void
   private redConfirm?: boolean
 
-  render(props: DialogueProps): Spec {
+  render(props: DialogueProps & { translated: string }): Spec {
     assert(props.backCaption || props.confirmCaption, "Dialogue requires at least one button")
 
     this.onBackFn = props.onBack
@@ -43,7 +48,7 @@ class Dialogue extends Component<DialogueProps> {
         onCreate={(e) => (this.element = e)}
         on_gui_closed={reg(this.onClose)}
       >
-        {props.content}
+        <text-box text={props.translated} style="notice_textbox" ignored_by_interaction />
         <flow style="dialog_buttons_horizontal_flow">
           {props.backCaption !== undefined && (
             <button style="back_button" caption={props.backCaption} on_gui_click={reg(this.onBack)} />
@@ -89,6 +94,19 @@ class Dialogue extends Component<DialogueProps> {
   }
 }
 
+const pendingDialogue = PlayerData<DialogueProps>("pendingDialogue")
+
 export function showDialogue(player: LuaPlayer, props: DialogueProps): void {
-  player.opened = render(player.gui.screen, <Dialogue {...props} />)
+  pendingDialogue[player.index] = props
+  player.request_translation([L_Interaction.TranslateDialogueMessage, props.message])
 }
+Events.on_string_translated((e) => {
+  const string = e.localised_string
+  if (typeof string !== "object" || string[0] !== L_Interaction.TranslateDialogueMessage) return
+  const playerIndex = e.player_index
+  const props = pendingDialogue[playerIndex]
+  if (!props) return
+  delete pendingDialogue[playerIndex]
+  const player = game.players[playerIndex]
+  player.opened = render(player.gui.screen, <Dialogue {...props} translated={e.result} />)
+})
