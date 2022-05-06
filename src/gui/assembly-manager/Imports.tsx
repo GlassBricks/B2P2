@@ -5,7 +5,7 @@ import { List } from "../components/List"
 import { L_Gui } from "../../locale"
 import { startBasicImportCreation } from "../../assembly/imports/import-creation"
 import { AssembliesList } from "../AssembliesList"
-import { AssemblyImport } from "../../assembly/imports/AssemblyImport"
+import { AssemblyImport, highlightImport } from "../../assembly/imports/AssemblyImport"
 import { GuiConstants, Styles } from "../../constants"
 import { HorizontalPusher } from "../components/misc"
 import { TrashButton } from "../components/buttons"
@@ -69,13 +69,44 @@ class ImportItem extends Component<ImportItemProps> {
         }}
         direction="horizontal"
       >
-        <label caption={props.import.getName()} />
+        <button
+          style="list_box_item"
+          caption={props.import.getName()}
+          tooltip={[L_Gui.ImportItemTooltip]}
+          on_gui_click={reg(this.nameClicked)}
+        />
         <HorizontalPusher />
         <TrashButton tooltip={[L_Gui.DeleteImport]} onClick={reg(this.confirmDeleteImport)} />
       </frame>
     )
   }
 
+  @bound
+  private nameClicked(e: OnGuiClickEvent): void {
+    // control click: move up
+    // shift click: move down
+    // no modifiers: highlight
+    if (e.button !== defines.mouse_button_type.left) return
+    if (e.control) {
+      const { imports, index } = this.getIndex()
+      if (index <= 0) return
+      imports.swap(index, index - 1)
+    } else if (e.shift) {
+      const { imports, index } = this.getIndex()
+      if (index === -1 || index === imports.length() - 1) return
+      imports.swap(index, index + 1)
+    } else {
+      const { assembly, import: imp } = this.props
+      const player = game.get_player(e.player_index)!
+      highlightImport(assembly.surface, assembly.area, imp, player)
+    }
+  }
+
+  private getIndex() {
+    const imports = this.props.assembly.getContent()!.imports
+    const index = imports.value().indexOf(this.props.import)
+    return { imports, index }
+  }
   @bound
   private confirmDeleteImport(e: GuiEvent): void {
     const player = game.get_player(e.player_index)!

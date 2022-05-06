@@ -36,4 +36,7 @@ export namespace Colors {
 
   // light red
   export const AssemblyError: ColorArray = [1, 0.3, 0.3, 0.5]
+
+  // light blue
+  export const ImportHighlight: ColorArray = [0.5, 0.6, 1, 0.5]
 }

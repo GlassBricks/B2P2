@@ -10,7 +10,7 @@ import { L_Interaction } from "../../locale"
 export class BasicImport implements AssemblyImport {
   private readonly name: State<LocalisedString>
   private readonly content: State<Blueprint | undefined>
-  private constructor(source: Assembly, readonly relativePosition: MapPositionTable) {
+  private constructor(source: Assembly, readonly relativeBoundingBox: BoundingBoxRead) {
     this.name = source.displayName
     this.content = source.getContent()?.resultContent ?? state(undefined)
   }
@@ -21,7 +21,10 @@ export class BasicImport implements AssemblyImport {
     return this.content
   }
   getRelativePosition(): MapPositionTable {
-    return this.relativePosition
+    return this.relativeBoundingBox.left_top
+  }
+  getRelativeBoundingBox(): BoundingBoxRead {
+    return this.relativeBoundingBox
   }
 
   static createFor(source: Assembly, target: Assembly, relativePosition: MapPositionTable): BasicImport {
@@ -29,10 +32,11 @@ export class BasicImport implements AssemblyImport {
     const targetRelative = bbox.shiftToOrigin(target.area).shift(relativePosition)
     if (!bbox.intersectsNonZeroArea(sourceRelative, targetRelative))
       throw new UserError([L_Interaction.ImportDoesNotIntersectAssembly], "flying-text")
-    return new BasicImport(source, relativePosition)
+    return new BasicImport(source, targetRelative)
   }
 
   static _createUnchecked(source: Assembly, relativePosition: MapPositionTable): AssemblyImport {
-    return new BasicImport(source, relativePosition)
+    const boundingBox = bbox.shiftToOrigin(source.area).shift(relativePosition)
+    return new BasicImport(source, boundingBox)
   }
 }

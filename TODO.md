@@ -1,12 +1,10 @@
 ## Now
 
-- More advanced diagnostic teleporting
-- import reordering
 - ability to toggle imports temporarily
 - autoreset
 - Make prints into flying text?
+- rename properties
 
-- Dependency checking, invalidation
 
 - Test with real blueprints
 
@@ -16,11 +14,16 @@
 
 ## v0.2
 
+- Dependency checking, invalidation
+
 - refactor blueprint conflict checking
+    - More advanced diagnostic teleporting
 - ethereal ghosts
 
 - lost references diagnostics
 - diagnostic actions
+
+## v0.3
 
 - Filters
     - by entity

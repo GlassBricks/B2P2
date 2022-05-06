@@ -91,6 +91,8 @@ export declare const enum L_Gui {
   ChooseImportSource = "bbpp.gui.choose-import-source",
   /** There are no importable assemblies. */
   NoSourceAssemblies = "bbpp.gui.no-source-assemblies",
+  /** [font=default-bold]Control-click[/font] to move up. [font=default-bold]Control-shift-click[/font] to move down. */
+  ImportItemTooltip = "bbpp.gui.import-item-tooltip",
   /** Delete import */
   DeleteImport = "bbpp.gui.delete-import",
   /** Are you sure you want to delete the import from "__1__"? */
