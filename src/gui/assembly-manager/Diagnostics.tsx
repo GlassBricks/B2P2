@@ -89,8 +89,8 @@ export class DiagnosticsTab extends Component<{
             <button
               style="list_box_item"
               caption={diagnostic.message}
-              enabled={diagnostic.relativePosition !== undefined}
-              on_gui_click={diagnostic.relativePosition && bind(this.teleportTo, this, diagnostic)}
+              enabled={diagnostic.location !== undefined}
+              on_gui_click={diagnostic.location && bind(this.teleportTo, this, diagnostic)}
             />
           ))}
         </flow>
@@ -101,12 +101,9 @@ export class DiagnosticsTab extends Component<{
   @bound
   private teleportTo(diagnostic: Diagnostic, event: OnGuiClickEvent) {
     const surface = this.assembly.surface
-    const leftTop = this.assembly.area.left_top
 
     const highlight = createDiagnosticHighlight(
       diagnostic,
-      surface,
-      leftTop,
       {
         blink_interval: 20,
         time_to_live: 300,

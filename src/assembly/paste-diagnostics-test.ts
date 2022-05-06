@@ -30,7 +30,7 @@ function assertSingleDiagnostic(
   assert.same(expectedDiagnostic, map[expectedCategory.id]![0])
 }
 
-const zero = pos(0, 0)
+const origin = pos(0, 0)
 
 test("overlap", () => {
   const conflict: BlueprintPasteConflicts = {
@@ -41,8 +41,8 @@ test("overlap", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, zero)
-  assertSingleDiagnostic(diagnostics, Overlap, Overlap.create(entity1, entity2, zero))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, game.surfaces[1], origin)
+  assertSingleDiagnostic(diagnostics, Overlap, Overlap.create(entity1, entity2, game.surfaces[1], origin))
 })
 
 test("upgrade", () => {
@@ -55,8 +55,8 @@ test("upgrade", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, zero)
-  assertSingleDiagnostic(diagnostics, CannotUpgrade, CannotUpgrade.create(entity1, entity2, zero))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, game.surfaces[1], origin)
+  assertSingleDiagnostic(diagnostics, CannotUpgrade, CannotUpgrade.create(entity1, entity2, game.surfaces[1], origin))
 })
 
 test("items", () => {
@@ -69,8 +69,8 @@ test("items", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, zero)
-  assertSingleDiagnostic(diagnostics, ItemsIgnored, ItemsIgnored.create(entity2, zero))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, game.surfaces[1], origin)
+  assertSingleDiagnostic(diagnostics, ItemsIgnored, ItemsIgnored.create(entity2, game.surfaces[1], origin))
 })
 
 test("unsupported prop", () => {
@@ -83,6 +83,10 @@ test("unsupported prop", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, zero)
-  assertSingleDiagnostic(diagnostics, UnsupportedProp, UnsupportedProp.create(entity2, zero, "foo" as any))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, game.surfaces[1], origin)
+  assertSingleDiagnostic(
+    diagnostics,
+    UnsupportedProp,
+    UnsupportedProp.create(entity2, game.surfaces[1], origin, "foo" as any),
+  )
 })

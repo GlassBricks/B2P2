@@ -47,15 +47,8 @@ export class Assembly {
     this.name.subscribe(reg(this.setName))
   }
 
-  @bound
-  private setName(name?: string): void {
-    if (!name) return
-    rendering.set_text(this.textRenderId, name)
-  }
-
-  @bound
-  private unnamedIfEmpty(name: string): LocalisedString {
-    return name === "" ? [L_Gui.UnnamedAssembly] : name
+  static mock(area: BoundingBoxRead, surface: LuaSurface = game.surfaces[1]): Assembly {
+    return new Assembly("mocked", surface, area, undefined!)
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
@@ -63,10 +56,10 @@ export class Assembly {
     assert(surface.valid)
     Assembly.checkDoesNotIntersectExistingArea(surface, area)
 
-    return Assembly._createUnchecked(name, surface, area)
+    return Assembly.createUnchecked(name, surface, area)
   }
 
-  static _createUnchecked(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
+  private static createUnchecked(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
     const content = createAssemblyContent(surface, area)
     const assembly = new Assembly(name, surface, area, content)
     global.assemblies.add(assembly)
@@ -103,6 +96,17 @@ export class Assembly {
       filled: false,
       time_to_live: 60,
     })
+  }
+
+  @bound
+  private setName(name?: string): void {
+    if (!name) return
+    rendering.set_text(this.textRenderId, name)
+  }
+
+  @bound
+  private unnamedIfEmpty(name: string): LocalisedString {
+    return name === "" ? [L_Gui.UnnamedAssembly] : name
   }
 
   isValid(): boolean {

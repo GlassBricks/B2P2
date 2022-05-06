@@ -6,13 +6,14 @@ import { invalidMockImport, mockImport } from "./imports/import-mock"
 import { pos } from "../lib/geometry/position"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { BlueprintPasteConflicts, Overlap } from "../blueprint/blueprint-paste"
-import { Entity, getTileBox, withEntityNumber } from "../entity/entity"
+import { Entity, withEntityNumber } from "../entity/entity"
 import { Mutable } from "../lib/util-types"
 import { assertNever } from "../lib/util"
 import { Classes } from "../lib"
 import { AssemblyContent, DefaultAssemblyContent } from "./AssemblyContent"
 import { get_area } from "__testorio__/testUtil/areas"
 import { mapPasteConflictsToDiagnostics } from "./paste-diagnostics"
+import { getActualLocation } from "./diagnostics/Diagnostic"
 
 test("registered", () => {
   Classes.nameOf(DefaultAssemblyContent)
@@ -249,14 +250,13 @@ describe("paste conflicts", () => {
     assert.same(expected.lostReferences, actual.lostReferences, "lostReferences")
   }
   function assertHasHighlightBox(expected: BlueprintPasteConflicts) {
-    const diagnostics = mapPasteConflictsToDiagnostics(expected, pos(0, 0))
+    const diagnostics = mapPasteConflictsToDiagnostics(expected, surface, area.left_top)
     for (const diagnostic of Object.values(diagnostics).flat()) {
-      const leftTop = area.left_top
-      const resultPos = pos.add(leftTop, diagnostic.entity!.position)
-      const bbox1 = bbox.shift(getTileBox(diagnostic.entity!), leftTop)
-      const highlightBox = surface.find_entity("highlight-box", resultPos)!
+      if (!diagnostic.location) continue
+      const box = getActualLocation(diagnostic.location)
+      const highlightBox = surface.find_entity("highlight-box", bbox.center(box))!
       assert.not_nil(highlightBox, "highlight box found")
-      assert.same(bbox1, highlightBox.bounding_box, "highlight box matches")
+      assert.same(box, highlightBox.bounding_box, "highlight box matches")
     }
   }
 
@@ -270,11 +270,7 @@ describe("paste conflicts", () => {
     pasteBlueprint(surface, area.left_top, above)
     const contents = createAssemblyContent()
     const aboveBlueprint = Blueprint.fromArray(below)
-    // assembly.addImport(mockImport(aboveBlueprint), pos(0, 0))
-    contents.imports.push(mockImport(aboveBlueprint))
-    contents.prepareSave()
-    contents.commitSave()
-    contents.resetInWorld()
+    contents.saveAndAddImport(mockImport(aboveBlueprint))
 
     const expected = expectedConflicts[sampleName]
     if (!expected) {

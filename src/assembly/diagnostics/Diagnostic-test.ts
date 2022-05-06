@@ -5,9 +5,11 @@ import {
   Diagnostic,
   DiagnosticCategory,
   DiagnosticCollection,
+  getActualLocation,
+  Location,
 } from "./Diagnostic"
 import { pos } from "../../lib/geometry/position"
-import { Entity } from "../../entity/entity"
+import { bbox } from "../../lib/geometry/bounding-box"
 
 const category = DiagnosticCategory(
   {
@@ -48,25 +50,34 @@ test("addDiagnostic", () => {
 describe("highlight", () => {
   test("undefined for no entity", () => {
     const diagnostic = category.create(1)
-    const result = createDiagnosticHighlight(diagnostic, game.surfaces[1], pos(0, 0))
+    const result = createDiagnosticHighlight(diagnostic)
     assert.is_nil(result)
   })
 
-  test("with entity", () => {
-    const mockEntity: Entity = {
-      name: "iron-chest",
-      position: pos(0, 0),
-      entity_number: 1,
+  test("getActualLocation", () => {
+    const location: Location = {
+      surface: game.surfaces[1],
+      worldTopLeft: pos(1, 1),
+      boundingBox: bbox.fromCorners(0, 0, 1, 1),
     }
+    const actualLocation = getActualLocation(location)
+    assert.same(bbox.fromCorners(1, 1, 2, 2), actualLocation)
+  })
+
+  test("with location", () => {
     const diagnostic: Diagnostic = {
       id: category.id,
       message: [L_Diagnostic.Overlap, 1],
-      entity: mockEntity,
-      relativePosition: pos(0.5, 0.5),
+      location: {
+        surface: game.surfaces[1],
+        worldTopLeft: pos(0, 0),
+        boundingBox: bbox.fromCorners(0, 0, 1, 1),
+      },
     }
-    const result = createDiagnosticHighlight(diagnostic, game.surfaces[1], pos(0, 0))!
+    const result = createDiagnosticHighlight(diagnostic)!
     assert.not_nil(result)
     assert.same(pos(0.5, 0.5), result.position)
+    assert.same(bbox.fromCorners(0, 0, 1, 1), result.bounding_box)
     assert.equal("highlight-box", result.name)
   })
 })

@@ -19,7 +19,7 @@ function getDialogue(): ElementWrapper {
   return new ElementWrapper(opened as LuaGuiElement)
 }
 
-test.only("title and content", () => {
+test("title and content", () => {
   showDialogue(player, {
     title: "title",
     message: "content",
@@ -29,7 +29,7 @@ test.only("title and content", () => {
   after_ticks(2, () => {
     const dialogue = getDialogue()
     assert.equal("title", dialogue.native.caption)
-    dialogue.findSatisfying((x) => x.caption === "content")
+    dialogue.find("text-box", (x) => x.text === "content")
     done()
   })
 })
@@ -45,9 +45,7 @@ test("back button", () => {
   async()
   after_ticks(2, () => {
     const dialogue = getDialogue()
-    dialogue
-      .findSatisfying((x) => x.type === "button" && x.style.name === "back_button" && x.caption === "back")
-      .simulateClick()
+    dialogue.find("button", (x) => x.style.name === "back_button" && x.caption === "back").simulateClick()
     assert.spy(onBack).called()
     done()
   })
@@ -64,9 +62,7 @@ test("confirm button", () => {
   async()
   after_ticks(2, () => {
     const dialogue = getDialogue()
-    dialogue
-      .findSatisfying((x) => x.type === "button" && x.style.name === "confirm_button" && x.caption === "confirm")
-      .simulateClick()
+    dialogue.find("button", (x) => x.style.name === "confirm_button" && x.caption === "confirm").simulateClick()
     assert.spy(onConfirm).called()
     done()
   })

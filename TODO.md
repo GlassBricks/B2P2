@@ -1,7 +1,5 @@
 ## Now
 
-- lost references diagnostics
-- diagnostic actions
 - More advanced diagnostic teleporting
 - import reordering
 - ability to toggle imports temporarily
@@ -12,13 +10,17 @@
 
 - Test with real blueprints
 
-- refactor blueprint conflict checking
 
 - handle rails and locomotives
 - handle other off-grid stuff
-- ethereal ghosts
 
 ## v0.2
+
+- refactor blueprint conflict checking
+- ethereal ghosts
+
+- lost references diagnostics
+- diagnostic actions
 
 - Filters
     - by entity

@@ -1,7 +1,5 @@
-import { bbox } from "../../lib/geometry/bounding-box"
-import { Entity, getTileBox } from "../../entity/entity"
+import { bbox, BoundingBoxClass } from "../../lib/geometry/bounding-box"
 import { Mutable } from "../../lib/util-types"
-import { pos } from "../../lib/geometry/position"
 
 export interface DiagnosticCategory<Id extends string> {
   readonly id: Id
@@ -10,19 +8,17 @@ export interface DiagnosticCategory<Id extends string> {
   readonly highlightType?: CursorBoxRenderType
 }
 
+export interface Location {
+  readonly surface: LuaSurface
+  readonly worldTopLeft: MapPositionTable
+  readonly boundingBox: BoundingBoxRead
+}
+
 export type Diagnostic = {
   readonly id: string
   readonly message?: LocalisedString
-} & (
-  | {
-      readonly entity: Entity
-      readonly relativePosition: MapPositionTable
-    }
-  | {
-      readonly entity?: never
-      readonly relativePosition?: never
-    }
-)
+  readonly location?: Location
+}
 
 export type DiagnosticCollection<Id extends string = string> = {
   [K in Id]?: Diagnostic[]
@@ -68,25 +64,26 @@ export function addDiagnostic<Id extends string, A extends any[]>(
   return diagnostic
 }
 
+export function getActualLocation(location: Location): BoundingBoxClass {
+  const { worldTopLeft, boundingBox } = location
+  return bbox.shift(boundingBox, worldTopLeft)
+}
+
 const defaultType: CursorBoxRenderType = "entity"
 export function createDiagnosticHighlight(
   diagnostic: Diagnostic,
-  surface: LuaSurface,
-  absolutePosition: MapPositionTable,
   additionalParams: Partial<HighlightBoxSurfaceCreateEntity> = {},
   scale: number = 1,
 ): HighlightBoxEntity | undefined {
-  const { id, entity, relativePosition } = diagnostic
-  if (!relativePosition) return
-  const actualAbsolutePosition = pos.add(absolutePosition, relativePosition)
+  const { id, location } = diagnostic
+  if (!location) return
+  const box = getActualLocation(location)
+  const center = bbox.center(box)
   const highlightType = categories.get(id)!.highlightType ?? defaultType
-  const position = pos.add(entity.position, actualAbsolutePosition)
-  const box = bbox.shift(getTileBox(entity), actualAbsolutePosition).scaleAroundCenter(scale)
-
-  return surface.create_entity({
+  return location.surface.create_entity({
     name: "highlight-box",
-    position,
-    bounding_box: box,
+    position: center,
+    bounding_box: box.scaleAroundCenter(scale),
     box_type: highlightType,
     ...additionalParams,
   })

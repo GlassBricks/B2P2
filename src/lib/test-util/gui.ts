@@ -39,20 +39,20 @@ export function getDescription(element: LuaGuiElement): string {
   return path.reverse().join(".")
 }
 
-export function findElement(
+export function findElementSatisfying(
   element: LuaGuiElement,
   predicate: (element: LuaGuiElement) => boolean,
 ): LuaGuiElement | undefined {
   if (predicate(element)) return element
   for (const child of element.children) {
-    const found = findElement(child, predicate)
+    const found = findElementSatisfying(child, predicate)
     if (found) {
       return found
     }
   }
 }
 
-export function findAllElements(
+export function findAllElementsSatisfying(
   element: LuaGuiElement,
   predicate: (element: LuaGuiElement) => boolean,
   result: LuaGuiElement[] = [],
@@ -61,7 +61,7 @@ export function findAllElements(
     result.push(element)
   }
   for (const child of element.children) {
-    findAllElements(child, predicate, result)
+    findAllElementsSatisfying(child, predicate, result)
   }
   return result
 }
@@ -69,9 +69,11 @@ export function findAllElements(
 export function findWithType<T extends GuiElementType>(
   parent: LuaGuiElement,
   type: T,
+  predicate?: (element: Extract<LuaGuiElement, { type: T }>) => boolean,
 ): Extract<LuaGuiElement, { type: T }> {
+  const actualPredicate = predicate ?? (() => true)
   return (
-    (findElement(parent, (element) => element.type === type) as any) ??
+    (findElementSatisfying(parent, (element) => element.type === type && actualPredicate(element as any)) as any) ??
     error(`Could not find element of type "${type}" in ${getDescription(parent)}`)
   )
 }
@@ -79,8 +81,10 @@ export function findWithType<T extends GuiElementType>(
 export function findAllWithType<T extends GuiElementType>(
   parent: LuaGuiElement,
   type: T,
+  predicate?: (element: Extract<LuaGuiElement, { type: T }>) => boolean,
 ): Extract<LuaGuiElement, { type: T }>[] {
-  return findAllElements(parent, (element) => element.type === type) as any
+  const actualPredicate = predicate ?? (() => true)
+  return findAllElementsSatisfying(parent, (element) => element.type === type && actualPredicate(element as any)) as any
 }
 
 export function simulateEvent<T extends GuiEvent>(
@@ -120,22 +124,28 @@ export class ElementWrapper<T extends GuiElementType = GuiElementType> {
     })
   }
 
-  find<T extends GuiElementType>(type: T): ElementWrapper<T> {
-    return new ElementWrapper(findWithType(this.native, type))
+  find<T extends GuiElementType>(
+    type: T,
+    predicate?: (element: Extract<LuaGuiElement, { type: T }>) => boolean,
+  ): ElementWrapper<T> {
+    return new ElementWrapper(findWithType(this.native, type, predicate))
   }
 
-  findAll<T extends GuiElementType>(type: T): ElementWrapper<T>[] {
-    return findAllWithType(this.native, type).map((element) => new ElementWrapper(element))
+  findAll<T extends GuiElementType>(
+    type: T,
+    predicate?: (element: Extract<LuaGuiElement, { type: T }>) => boolean,
+  ): ElementWrapper<T>[] {
+    return findAllWithType(this.native, type, predicate).map((element) => new ElementWrapper(element))
   }
 
   findSatisfying(predicate: (element: LuaGuiElement) => boolean): ElementWrapper {
     return new ElementWrapper(
-      findElement(this.native, predicate) ?? error(`Could not find element satisfying predicate`),
+      findElementSatisfying(this.native, predicate) ?? error(`Could not find element satisfying predicate`),
     )
   }
 
   findAllSatisfying(predicate: (element: LuaGuiElement) => boolean): ElementWrapper[] {
-    return findAllElements(this.native, predicate).map((element) => new ElementWrapper(element))
+    return findAllElementsSatisfying(this.native, predicate).map((element) => new ElementWrapper(element))
   }
 
   isRoot(): boolean {

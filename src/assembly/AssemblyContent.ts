@@ -99,31 +99,33 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
     const relativePosition = imp.getRelativePosition()
     const conflicts = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, relativePosition)
-    return this.pasteContent(relativePosition, content, conflicts, imp.getName())
+    return this.pasteContentAndRenderDiagnostics(relativePosition, content, conflicts, imp.getName())
   }
 
   private pasteOwnContents(importsContent: Blueprint): LayerPasteConflicts {
     const conflicts = findBlueprintPasteConflictsAndUpdate(importsContent, this.ownContents)
-    return this.pasteContent(pos(0, 0), this.ownContents, conflicts, undefined)
+    return this.pasteContentAndRenderDiagnostics(undefined, this.ownContents, conflicts, undefined)
   }
 
-  private pasteContent(
-    relativePosition: MapPositionTable,
+  private pasteContentAndRenderDiagnostics(
+    relativePosition: MapPositionTable | undefined,
     content: PasteBlueprint,
     conflicts: BlueprintPasteConflicts,
     name: State<LocalisedString> | undefined,
   ) {
-    const resultPosition = pos.add(this.area.left_top, relativePosition)
-    pasteBlueprint(this.surface, resultPosition, content.entities, this.area)
-    const diagnostics = mapPasteConflictsToDiagnostics(conflicts, relativePosition)
-    this.renderDiagnostics(diagnostics)
+    const leftTop = this.area.left_top
+    const worldLeftTop = relativePosition ? pos.add(leftTop, relativePosition) : leftTop
+    pasteBlueprint(this.surface, worldLeftTop, content.entities, this.area)
+
+    const diagnostics = mapPasteConflictsToDiagnostics(conflicts, this.surface, worldLeftTop)
+    DefaultAssemblyContent.renderDiagnostics(diagnostics)
     return { name, bpConflicts: conflicts, diagnostics }
   }
 
-  private renderDiagnostics(collection: PasteDiagnostics): void {
+  private static renderDiagnostics(collection: PasteDiagnostics): void {
     for (const [, diagnostics] of pairs(collection)) {
       for (const diagnostic of diagnostics) {
-        createDiagnosticHighlight(diagnostic, this.surface, this.area.left_top)
+        createDiagnosticHighlight(diagnostic)
       }
     }
   }
