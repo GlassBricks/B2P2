@@ -20,7 +20,7 @@ import { createDiagnosticHighlight } from "./diagnostics/Diagnostic"
  * Manages in-world contents of an assembly.
  */
 export interface AssemblyContent {
-  readonly ownContents: PasteBlueprint
+  readonly ownContents: State<PasteBlueprint>
 
   readonly imports: MutableObservableList<AssemblyImport>
 
@@ -53,7 +53,7 @@ export interface LayerPasteConflicts {
 
 @Classes.register()
 export class DefaultAssemblyContent implements AssemblyContent {
-  ownContents: PasteBlueprint
+  ownContents: MutableState<PasteBlueprint>
   readonly imports: MutableObservableList<AssemblyImport> = observableList()
   readonly resultContent: MutableState<Blueprint | undefined>
   private importsContent: Blueprint = Blueprint.of()
@@ -69,7 +69,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   constructor(private readonly surface: LuaSurface, private readonly area: BoundingBoxRead) {
     const content = Blueprint.take(surface, area, area.left_top)
-    this.ownContents = content
+    this.ownContents = state(content)
     this.resultContent = state(content)
   }
 
@@ -89,22 +89,23 @@ export class DefaultAssemblyContent implements AssemblyContent {
   }
 
   private pasteImport(imp: AssemblyImport): LayerPasteConflicts {
-    const content = imp.getContent().get()
+    const content = imp.content().get()
     if (!content)
       return {
-        name: imp.getName(),
+        name: imp.name(),
         bpConflicts: {},
         diagnostics: {},
       }
 
     const relativePosition = imp.getRelativePosition()
     const conflicts = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, relativePosition)
-    return this.pasteContentAndRenderDiagnostics(relativePosition, content, conflicts, imp.getName())
+    return this.pasteContentAndRenderDiagnostics(relativePosition, content, conflicts, imp.name())
   }
 
   private pasteOwnContents(importsContent: Blueprint): LayerPasteConflicts {
-    const conflicts = findBlueprintPasteConflictsAndUpdate(importsContent, this.ownContents)
-    return this.pasteContentAndRenderDiagnostics(undefined, this.ownContents, conflicts, undefined)
+    const ownContents = this.ownContents.get()
+    const conflicts = findBlueprintPasteConflictsAndUpdate(importsContent, ownContents)
+    return this.pasteContentAndRenderDiagnostics(undefined, ownContents, conflicts, undefined)
   }
 
   private pasteContentAndRenderDiagnostics(
@@ -152,7 +153,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
     const diff = this.pendingSave.get()
     if (diff) {
       this.pendingSave.set(undefined)
-      this.ownContents = diff.content
+      this.ownContents.set(diff.content)
     }
     return diff
   }

@@ -29,8 +29,8 @@ test("creation", () => {
   const assembly = Assembly.create("test", surface, area)
 
   const im = BasicImport._createUnchecked(assembly, pos(0, 0))
-  assert.same("test", im.getName().get())
-  const content = im.getContent().get()!
+  assert.same("test", im.name().get())
+  const content = im.content().get()!
   assertBlueprintsEquivalent(blueprint, content)
   assert.same(pos(0, 0), im.getRelativePosition())
 })
@@ -47,5 +47,5 @@ test("create for", () => {
 
   const value = assert.no_error(() => BasicImport.createFor(assembly2, assembly1, pos(5, 5)))
   assert.true(value instanceof BasicImport)
-  assert.same("test2", (value as BasicImport).getName().get())
+  assert.same("test2", (value as BasicImport).name().get())
 })

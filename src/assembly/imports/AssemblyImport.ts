@@ -4,9 +4,9 @@ import { bbox } from "../../lib/geometry/bounding-box"
 import { Colors } from "../../constants"
 
 export interface AssemblyImport {
-  getName(): State<LocalisedString>
+  name(): State<LocalisedString>
   // undefined means is not valid
-  getContent(): State<Blueprint | undefined>
+  content(): State<Blueprint | undefined>
 
   getRelativePosition(): MapPositionTable
   getRelativeBoundingBox(): BoundingBoxRead

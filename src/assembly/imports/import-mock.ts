@@ -8,8 +8,8 @@ export function mockImport(content: Blueprint, relativePosition: MapPositionTabl
   const c = state(content)
   const name = state("")
   return {
-    getContent: () => c,
-    getName: () => name,
+    content: () => c,
+    name: () => name,
     getRelativePosition: () => relativePosition,
     getRelativeBoundingBox: () => content.computeBoundingBox().shift(relativePosition),
   }
@@ -19,8 +19,8 @@ export function invalidMockImport(relativePosition: MapPositionTable = pos(0, 0)
   const c = state(undefined)
   const name = state("")
   return {
-    getContent: () => c,
-    getName: () => name,
+    content: () => c,
+    name: () => name,
     getRelativePosition: () => relativePosition,
     getRelativeBoundingBox: () => bbox.fromCorners(0, 0, 0, 0),
   }

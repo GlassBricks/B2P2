@@ -71,7 +71,7 @@ class ImportItem extends Component<ImportItemProps> {
       >
         <button
           style="list_box_item"
-          caption={props.import.getName()}
+          caption={props.import.name()}
           tooltip={[L_Gui.ImportItemTooltip]}
           on_gui_click={reg(this.nameClicked)}
         />
@@ -112,7 +112,7 @@ class ImportItem extends Component<ImportItemProps> {
     const player = game.get_player(e.player_index)!
     showDialogue(player, {
       title: ["gui.confirmation"],
-      message: [L_Gui.DeleteImportConfirmation, this.props.import.getName().get()],
+      message: [L_Gui.DeleteImportConfirmation, this.props.import.name().get()],
       backCaption: ["gui.cancel"],
       confirmCaption: ["gui.delete"],
       redConfirm: true,

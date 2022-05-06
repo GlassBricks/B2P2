@@ -6,7 +6,7 @@ import { invalidMockImport, mockImport } from "./imports/import-mock"
 import { pos } from "../lib/geometry/position"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { BlueprintPasteConflicts, Overlap } from "../blueprint/blueprint-paste"
-import { Entity, withEntityNumber } from "../entity/entity"
+import { Entity, FullEntity, withEntityNumber } from "../entity/entity"
 import { Mutable } from "../lib/util-types"
 import { assertNever } from "../lib/util"
 import { Classes } from "../lib"
@@ -57,13 +57,13 @@ describe("initializing contents", () => {
   })
   test("in an empty area yields empty ownContents ", () => {
     const content = createAssemblyContent()
-    assert.same({}, content.ownContents.entities)
+    assert.same({}, content.ownContents.get().entities)
   })
 
   test("in an area with entities sets ownContents", () => {
     pasteBlueprint(surface, area.left_top, originalBlueprintSample.entities)
     const content = createAssemblyContent()
-    assertBlueprintsEquivalent(originalBlueprintSample, content.ownContents)
+    assertBlueprintsEquivalent(originalBlueprintSample, content.ownContents.get())
     assertBlueprintsEquivalent(originalBlueprintSample, content.resultContent.get()!)
   })
 })
@@ -104,7 +104,7 @@ describe("import", () => {
   test("adding import to blueprint adds to in world", () => {
     const content = createAssemblyContent()
     content.imports.push(mockImport(originalBlueprintSample))
-    assert.same({}, content.ownContents.entities)
+    assert.same({}, content.ownContents.get().entities)
     content.resetInWorld()
     const bp = Blueprint.take(surface, area)
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
@@ -114,7 +114,7 @@ describe("import", () => {
   test("adding import to blueprint adds to in world at specified location", () => {
     const content = createAssemblyContent()
     content.imports.push(mockImport(originalBlueprintSample, pos(1, 2)))
-    assert.same({}, content.ownContents.entities)
+    assert.same({}, content.ownContents.get().entities)
     content.resetInWorld()
     const bp = Blueprint.take(surface, bbox.shift(area, pos(1, 2)))
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
@@ -224,7 +224,7 @@ describe("paste conflicts", () => {
   }
   function assertConflictEquivalent(expected: BlueprintPasteConflicts, actual: BlueprintPasteConflicts): void {
     function normalizeEntity(entity: Entity) {
-      const result = withEntityNumber(entity, 1) as Mutable<Entity>
+      const result = withEntityNumber(entity, 1) as Mutable<FullEntity>
       delete result.connections
       return result
     }
@@ -318,7 +318,7 @@ describe("saveChanges", () => {
     pasteBlueprint(surface, area.left_top, originalBlueprintSample.entities)
     contents.prepareSave()
     contents.commitSave()
-    assertBlueprintsEquivalent(originalBlueprintSample, contents.ownContents)
+    assertBlueprintsEquivalent(originalBlueprintSample, contents.ownContents.get())
     assertNoGhosts()
   })
 
@@ -328,7 +328,7 @@ describe("saveChanges", () => {
     contents.resetInWorld()
     contents.prepareSave()
     contents.commitSave()
-    assert.same({}, contents.ownContents.entities)
+    assert.same({}, contents.ownContents.get().entities)
     assertNoGhosts()
   })
 })

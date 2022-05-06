@@ -2,7 +2,6 @@
 
 - ability to toggle imports temporarily
 - autoreset
-- rename properties
 
 
 - Test with real blueprints

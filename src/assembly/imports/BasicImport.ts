@@ -8,17 +8,17 @@ import { L_Interaction } from "../../locale"
 
 @Classes.register()
 export class BasicImport implements AssemblyImport {
-  private readonly name: State<LocalisedString>
-  private readonly content: State<Blueprint | undefined>
+  private readonly _name: State<LocalisedString>
+  private readonly _content: State<Blueprint | undefined>
   private constructor(source: Assembly, readonly relativeBoundingBox: BoundingBoxRead) {
-    this.name = source.displayName
-    this.content = source.getContent()?.resultContent ?? state(undefined)
+    this._name = source.displayName
+    this._content = source.getContent()?.resultContent ?? state(undefined)
   }
-  getName(): State<LocalisedString> {
-    return this.name
+  name(): State<LocalisedString> {
+    return this._name
   }
-  getContent(): State<Blueprint | undefined> {
-    return this.content
+  content(): State<Blueprint | undefined> {
+    return this._content
   }
   getRelativePosition(): MapPositionTable {
     return this.relativeBoundingBox.left_top
