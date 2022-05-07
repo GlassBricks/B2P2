@@ -51,6 +51,12 @@ describe("lifecycle", () => {
   })
 
   test("becomes invalid when surface deleted", () => {
+    try {
+      game.delete_surface("test")
+    } catch {
+      // ignore
+    }
+
     const surface = game.create_surface("test")
     const assembly = Assembly.create("test", surface, area)
     game.delete_surface(surface)

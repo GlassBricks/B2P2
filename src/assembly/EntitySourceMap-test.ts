@@ -1,26 +1,19 @@
-import { BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { getWorkingArea1 } from "../test/misc"
-import { EntitySourceMapBuilder, getSourceOfEntity } from "./EntitySourceMap"
+import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
+import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
+import { EntitySourceMapBuilder, getEntitySourceLocation } from "./EntitySourceMap"
 import { clearBuildableEntities } from "../world-interaction/blueprint"
 import { Entity } from "../entity/entity"
 import { pos } from "../lib/geometry/position"
 
 let surface: LuaSurface
 let area: BoundingBoxClass
+let area2: BoundingBoxClass
 before_all(() => {
   ;[surface, area] = getWorkingArea1()
+  ;[, area2] = getWorkingArea2()
 })
 before_each(() => {
   clearBuildableEntities(surface, area)
-})
-
-test("add manually", () => {
-  const entity: Entity = {
-    name: "iron-chest",
-    position: pos(0.5, 0.5),
-  }
-  const map = new EntitySourceMapBuilder().add(entity, "ownContent", undefined).build()
-  assert.same("ownContent", getSourceOfEntity(map, entity) ?? "nil")
 })
 
 test("add from in-world", () => {
@@ -31,13 +24,15 @@ test("add from in-world", () => {
   })!
   assert(entity)
 
-  const builder = new EntitySourceMapBuilder()
-  builder.add(entity, "ownContent", area.left_top)
-  const map = builder.build()
+  const map = new EntitySourceMapBuilder().addAll([entity], { surface, area: area2 }, area.left_top).build()
 
   const lookupEntity: Entity = {
     name: "small-electric-pole",
     position: relativePos,
   }
-  assert.same("ownContent", getSourceOfEntity(map, lookupEntity) ?? "nil")
+  __DebugAdapter?.breakpoint()
+  assert.same(
+    bbox.fromCorners(2, 2, 3, 3).shift(area2.left_top),
+    getEntitySourceLocation(map, lookupEntity, area.left_top)?.area,
+  )
 })

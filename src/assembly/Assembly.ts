@@ -6,9 +6,10 @@ import { Colors } from "../constants"
 import { Event, MutableState, Observable, State, state } from "../lib/observable"
 import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 import { PositionClass } from "../lib/geometry/position"
+import { AreaIdentification } from "./AreaIdentification"
 
 @Classes.register()
-export class Assembly {
+export class Assembly implements AreaIdentification {
   readonly name: MutableState<string>
   readonly displayName: State<LocalisedString>
   readonly onDelete: Event<void> = new Event()

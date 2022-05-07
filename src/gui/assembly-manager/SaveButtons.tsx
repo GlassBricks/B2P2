@@ -3,7 +3,6 @@ import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { Assembly } from "../../assembly/Assembly"
 import { L_Gui, L_Interaction } from "../../locale"
 import { showDialogue } from "../window/Dialogue"
-import { isEmpty } from "../../lib/util"
 import { GuiConstants } from "../../constants"
 
 @Classes.register()
@@ -28,7 +27,7 @@ export class SaveButton extends Component<{ assembly: Assembly }> {
     const player = game.players[e.player_index]
     const content = this.assembly.getContent()
     if (!content) return
-    if (content.lastPasteConflicts.get().some((x) => !isEmpty(x.bpConflicts))) {
+    if (content.hasConflicts()) {
       this.warnAboutPasteConflicts(player)
     } else {
       this.beginSave(player)

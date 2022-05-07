@@ -18,6 +18,14 @@ export function takeBlueprint(
   area: BoundingBoxRead,
   worldTopLeft: MapPositionTable = area.left_top,
 ): FullEntity[] {
+  const [entities] = takeBlueprintWithIndex(surface, area, worldTopLeft)
+  return entities
+}
+export function takeBlueprintWithIndex(
+  surface: SurfaceIdentification,
+  area: BoundingBoxRead,
+  worldTopLeft: MapPositionTable = area.left_top,
+): LuaMultiReturn<[FullEntity[], Record<number, LuaEntity>]> {
   const item = getTempItemStack()
   const index = item.create_blueprint({
     surface,
@@ -26,7 +34,7 @@ export function takeBlueprint(
     include_station_names: true,
     include_trains: true,
   })
-  if (isEmpty(index)) return []
+  if (isEmpty(index)) return $multi([], {})
   const entities = item.get_blueprint_entities()! as Mutable<FullEntity>[]
   const targetPos = pos.sub(index[1].position, worldTopLeft)
   const actualPos = item.get_blueprint_entities()![0].position
@@ -38,7 +46,7 @@ export function takeBlueprint(
       position.y += offset.y
     }
   }
-  return entities
+  return $multi(entities, index)
 }
 
 function reviveGhost(ghost: GhostEntity): LuaEntity | undefined {

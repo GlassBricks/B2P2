@@ -1,5 +1,5 @@
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
-import { FullEntity } from "../entity/entity"
+import { FullEntity, getTileBox } from "../entity/entity"
 import { getEntitySample } from "../test/entity-sample"
 import {
   CannotUpgrade,
@@ -10,27 +10,43 @@ import {
   PasteDiagnostics,
   UnsupportedProp,
 } from "./paste-diagnostics"
-import { Diagnostic, DiagnosticCategory } from "./diagnostics/Diagnostic"
-import { pos } from "../lib/geometry/position"
+import { Diagnostic } from "./diagnostics/Diagnostic"
+import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
+import { AreaIdentification } from "./AreaIdentification"
+import { EntitySourceMap, EntitySourceMapBuilder } from "./EntitySourceMap"
+import { bbox } from "../lib/geometry/bounding-box"
 
 let entity1: FullEntity
 let entity2: FullEntity
+let surface: LuaSurface
+let area1: AreaIdentification
+let area2: AreaIdentification
+let sourceMap: EntitySourceMap
+
+let entity1Location: AreaIdentification
+let entity2Location: AreaIdentification
+
 before_all(() => {
   entity1 = getEntitySample("assembling-machine-1")
   entity2 = getEntitySample("assembling-machine-2")
+  const [surface1, box1] = getWorkingArea1()
+  area1 = { surface: surface1, area: box1 }
+  const [surface2, box2] = getWorkingArea2()
+  area2 = { surface: surface2, area: box2 }
+  surface = surface1
+
+  sourceMap = new EntitySourceMapBuilder().addMock(entity1, area1, area2.area.left_top).build()
+
+  entity1Location = { surface, area: bbox.load(getTileBox(entity1)).shift(area1.area.left_top) }
+  entity2Location = { surface, area: bbox.load(getTileBox(entity2)).shift(area2.area.left_top) }
 })
 
-function assertSingleDiagnostic(
-  map: PasteDiagnostics,
-  expectedCategory: DiagnosticCategory<PasteDiagnosticId>,
-  expectedDiagnostic: Diagnostic,
-) {
-  assert.same([expectedCategory.id], Object.keys(map))
-  assert.same(1, map[expectedCategory.id]?.length)
-  assert.same(expectedDiagnostic, map[expectedCategory.id]![0])
+function assertSingleDiagnostic(map: PasteDiagnostics, expectedDiagnostic: Diagnostic) {
+  const id = expectedDiagnostic.id as PasteDiagnosticId
+  assert.same([id], Object.keys(map))
+  assert.same(1, map[id]?.length)
+  assert.same(expectedDiagnostic, map[id]![0])
 }
-
-const origin = pos(0, 0)
 
 test("overlap", () => {
   const conflict: BlueprintPasteConflicts = {
@@ -41,8 +57,9 @@ test("overlap", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, game.surfaces[1], origin)
-  assertSingleDiagnostic(diagnostics, Overlap, Overlap.create(entity1, entity2, game.surfaces[1], origin))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
+  const expected = Overlap.create(entity1, entity1Location, entity2, entity2Location)
+  assertSingleDiagnostic(diagnostics, expected)
 })
 
 test("upgrade", () => {
@@ -55,8 +72,9 @@ test("upgrade", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, game.surfaces[1], origin)
-  assertSingleDiagnostic(diagnostics, CannotUpgrade, CannotUpgrade.create(entity1, entity2, game.surfaces[1], origin))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
+  const expected = CannotUpgrade.create(entity1, entity1Location, entity2, entity2Location)
+  assertSingleDiagnostic(diagnostics, expected)
 })
 
 test("items", () => {
@@ -69,8 +87,9 @@ test("items", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, game.surfaces[1], origin)
-  assertSingleDiagnostic(diagnostics, ItemsIgnored, ItemsIgnored.create(entity2, game.surfaces[1], origin))
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
+  const expected = ItemsIgnored.create(entity1, entity1Location, entity2, entity2Location)
+  assertSingleDiagnostic(diagnostics, expected)
 })
 
 test("unsupported prop", () => {
@@ -83,10 +102,7 @@ test("unsupported prop", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, game.surfaces[1], origin)
-  assertSingleDiagnostic(
-    diagnostics,
-    UnsupportedProp,
-    UnsupportedProp.create(entity2, game.surfaces[1], origin, "foo" as any),
-  )
+  const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
+  const expected = UnsupportedProp.create(entity1, entity1Location, entity2, entity2Location, "foo")
+  assertSingleDiagnostic(diagnostics, expected)
 })

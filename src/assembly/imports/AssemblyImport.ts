@@ -2,6 +2,7 @@ import { Blueprint } from "../../blueprint/Blueprint"
 import { State } from "../../lib/observable"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { Colors } from "../../constants"
+import { AreaIdentification } from "../AreaIdentification"
 
 export interface AssemblyImport {
   name(): State<LocalisedString>
@@ -10,6 +11,7 @@ export interface AssemblyImport {
 
   getRelativePosition(): MapPositionTable
   getRelativeBoundingBox(): BoundingBoxRead
+  getSourceArea(): AreaIdentification | undefined
 }
 
 export function highlightImport(

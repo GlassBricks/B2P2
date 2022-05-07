@@ -48,7 +48,7 @@ export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
   }
 
   getOrComputeByPosition(): PRRecord<NumberPair, LuaSet<E>> {
-    return (this.byPosition ??= this.doComputeByPosition())
+    return this.byPosition || (this.byPosition = this.doComputeByPosition())
   }
 
   computeByPosition(): asserts this is { readonly byPosition: PRRecord<NumberPair, LuaSet<E>> } {

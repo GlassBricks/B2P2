@@ -32,6 +32,15 @@ describe("isCompatibleEntity", () => {
     assert.is_false(isCompatibleEntity(entity, entity2))
   })
 
+  test("manual override position", () => {
+    const entity = getEntitySample("chest")
+    const entity2 = {
+      ...entity,
+      position: { x: 100.5, y: 100.5 },
+    }
+    assert.is_true(isCompatibleEntity(entity, entity2, entity.position))
+  })
+
   test("entities in same fast replace group is compatible", () => {
     const entity = getEntitySample("assembling-machine-1")
     const entity2 = {

@@ -5,15 +5,15 @@ import { BlueprintSampleName, BlueprintSampleNames, getBlueprintSample } from ".
 import { invalidMockImport, mockImport } from "./imports/import-mock"
 import { pos } from "../lib/geometry/position"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { BlueprintPasteConflicts, Overlap } from "../blueprint/blueprint-paste"
-import { FullEntity, withEntityNumber } from "../entity/entity"
-import { Mutable } from "../lib/util-types"
+import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
+import { getTileBox } from "../entity/entity"
 import { assertNever } from "../lib/util"
 import { Classes } from "../lib"
 import { AssemblyContent, DefaultAssemblyContent } from "./AssemblyContent"
 import { mapPasteConflictsToDiagnostics } from "./paste-diagnostics"
-import { getActualLocation } from "./diagnostics/Diagnostic"
-import { getWorkingArea1 } from "../test/misc"
+import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
+import { getEntitySourceLocation } from "./EntitySourceMap"
+import shift = bbox.shift
 
 test("registered", () => {
   Classes.nameOf(DefaultAssemblyContent)
@@ -164,7 +164,7 @@ describe("paste conflicts", () => {
     const content = createAssemblyContent()
     assert.same(
       [{}],
-      content.lastPasteConflicts.get().map((x) => x.bpConflicts),
+      content.pasteDiagnostics.get().map((x) => x.diagnostics),
     )
   })
 
@@ -220,38 +220,19 @@ describe("paste conflicts", () => {
     original: undefined,
     "pole circuit add": undefined,
   }
-  function assertConflictEquivalent(expected: BlueprintPasteConflicts, actual: BlueprintPasteConflicts): void {
-    function normalizeEntity(entity: FullEntity) {
-      const result = withEntityNumber(entity, 1) as Mutable<FullEntity>
-      delete result.connections
-      return result
-    }
+  function assertConflictEquivalent(expected: BlueprintPasteConflicts, contents: AssemblyContent): void {
+    const diagnostics = mapPasteConflictsToDiagnostics(
+      expected,
+      surface,
+      area.left_top,
+      contents.entitySourceMap.get()!,
+    )
+    assert.same(diagnostics, contents.pasteDiagnostics.get()[1].diagnostics)
 
-    function normalizeConflict(this: unknown, overlap: Overlap) {
-      return {
-        ...overlap,
-        below: normalizeEntity(overlap.below),
-        above: normalizeEntity(overlap.above),
-      }
-    }
-    function normalize(conflict: BlueprintPasteConflicts) {
-      return {
-        overlaps: conflict.overlaps?.map(normalizeConflict),
-        propConflicts: conflict.propConflicts?.map(normalizeConflict),
-        lostReferences: conflict.lostReferences?.map((x) => withEntityNumber(x, 1)),
-      } as BlueprintPasteConflicts
-    }
-    expected = normalize(expected)
-    actual = normalize(actual)
-    assert.same(expected.overlaps, actual.overlaps, "overlaps")
-    assert.same(expected.propConflicts, actual.propConflicts, "propConflicts")
-    assert.same(expected.lostReferences, actual.lostReferences, "lostReferences")
-  }
-  function assertHasHighlightBox(expected: BlueprintPasteConflicts) {
-    const diagnostics = mapPasteConflictsToDiagnostics(expected, surface, area.left_top)
+    // assert has highlight box
     for (const diagnostic of Object.values(diagnostics).flat()) {
       if (!diagnostic.location) continue
-      const box = getActualLocation(diagnostic.location)
+      const box = diagnostic.location.area
       const highlightBox = surface.find_entity("highlight-box", bbox.center(box))!
       assert.not_nil(highlightBox, "highlight box found")
       assert.same(box, highlightBox.bounding_box, "highlight box matches")
@@ -272,8 +253,8 @@ describe("paste conflicts", () => {
 
     const expected = expectedConflicts[sampleName]
     if (!expected) {
-      assert.same({}, contents.lastPasteConflicts.get()[0].bpConflicts)
-      assert.same({}, contents.lastPasteConflicts.get()[1].bpConflicts)
+      assert.same({}, contents.pasteDiagnostics.get()[0].diagnostics)
+      assert.same({}, contents.pasteDiagnostics.get()[1].diagnostics)
       return
     }
     const aboveEntity = above.find((x) => x.name === expected.aboveEntity)!
@@ -294,9 +275,50 @@ describe("paste conflicts", () => {
     } else {
       assertNever(expected.type)
     }
-    assert.same([], contents.lastPasteConflicts.get()[0].bpConflicts)
-    assertConflictEquivalent(expectedConflict, contents.lastPasteConflicts.get()[1].bpConflicts)
-    assertHasHighlightBox(expectedConflict)
+    assert.same({}, contents.pasteDiagnostics.get()[0].diagnostics)
+    assertConflictEquivalent(expectedConflict, contents)
+  })
+})
+
+describe("sourceMap", () => {
+  before_each(() => {
+    clearBuildableEntities(surface, area)
+  })
+
+  it("gives own location for own contents", () => {
+    const blueprintSample = getBlueprintSample("original")
+    pasteBlueprint(surface, area.left_top, blueprintSample)
+    const contents = createAssemblyContent()
+    const map = contents.entitySourceMap.get()!
+    assert.not_nil(map)
+    __DebugAdapter?.breakpoint()
+    for (const entity of blueprintSample) {
+      const box = getEntitySourceLocation(map, entity, area.left_top)?.area
+      assert.same(shift(getTileBox(entity), area.left_top), box)
+    }
+  })
+
+  it("gives imported location for imported contents", () => {
+    const ownContent = getBlueprintSample("add chest")
+    pasteBlueprint(surface, area.left_top, ownContent)
+    const contents = createAssemblyContent()
+    const importContent = getBlueprintSample("original")
+    const [, area2] = getWorkingArea2()
+    const imp = mockImport(Blueprint.fromArray(importContent), undefined, { surface, area: area2 })
+    contents.saveAndAddImport(imp)
+
+    const map = contents.entitySourceMap.get()!
+    assert.not_nil(map)
+    for (const entity of importContent) {
+      const box = getEntitySourceLocation(map, entity, area.left_top)?.area
+      assert.same(shift(getTileBox(entity), area2.left_top), box, "imported entity maps to source location")
+    }
+    for (const entity of ownContent) {
+      if (entity.name === "iron-chest") {
+        const box = getEntitySourceLocation(map, entity, area.left_top)?.area
+        assert.same(shift(getTileBox(entity), area.left_top), box, "own chest maps to own location")
+      }
+    }
   })
 })
 describe("saveChanges", () => {

@@ -35,3 +35,7 @@ export function computeTileBox(entity: Entity): BoundingBoxClass {
     .shift(entity.position)
     .roundTileConservative()
 }
+
+export function computeTileBoxOfLuaEntity(entity: LuaEntity): BoundingBoxClass {
+  return bbox.roundTileConservative(entity.bounding_box)
+}

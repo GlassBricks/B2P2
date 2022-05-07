@@ -32,7 +32,7 @@ if (script.active_mods.testorio) {
     },
     after_test_run() {
       const results = remote.call("testorio", "getResults")
-      if (results.status === "passed") {
+      if (results.status === "passed" && results.skipped === 0) {
         Assembly.create("test", game.surfaces[1], bbox.fromCorners(0, 0, 20, 20))
         Assembly.create("test2", game.surfaces[1], bbox.fromCorners(20, 0, 40, 20))
         openWindow("assemblies-list", game.players[1])

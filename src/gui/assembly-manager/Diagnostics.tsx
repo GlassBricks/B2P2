@@ -5,7 +5,7 @@ import { Styles } from "../../constants"
 import { Fn } from "../components/Fn"
 import { PasteDiagnosticId } from "../../assembly/paste-diagnostics"
 import { createDiagnosticHighlight, Diagnostic, getDiagnosticCategory } from "../../assembly/diagnostics/Diagnostic"
-import { LayerPasteConflicts } from "../../assembly/AssemblyContent"
+import { LayerPasteDiagnostics } from "../../assembly/AssemblyContent"
 import { L_Gui } from "../../locale"
 import { MaybeState } from "../../lib/observable"
 import { isEmpty } from "../../lib/util"
@@ -22,27 +22,27 @@ export class DiagnosticsTab extends Component<{
         <Fn
           uses="flow"
           direction="vertical"
-          from={props.assembly.getContent()!.lastPasteConflicts}
-          map={reg(this.mapConflictsToListItems)}
+          from={props.assembly.getContent()!.pasteDiagnostics}
+          map={reg(this.mapDiagnosticsToListItem)}
         />
       </scroll-pane>
     )
   }
 
   @bound
-  private mapConflictsToListItems(conflicts: readonly LayerPasteConflicts[]): Spec {
-    if (!conflicts.some((x) => !isEmpty(x.bpConflicts))) {
+  private mapDiagnosticsToListItem(diagnostics: readonly LayerPasteDiagnostics[]): Spec {
+    if (!diagnostics.some((x) => !isEmpty(x.diagnostics))) {
       return <label style="bold_label" caption={[L_Gui.NoDiagnostics]} />
     }
 
-    return <>{conflicts.map((conflict) => this.diagnosticsForLayer(conflict))}</>
+    return <>{diagnostics.map((conflict) => this.diagnosticsForLayer(conflict))}</>
   }
 
-  private diagnosticsForLayer(conflicts: LayerPasteConflicts): Spec {
-    const layerName: MaybeState<LocalisedString> = conflicts.name?.map(funcRef(DiagnosticsTab.importLabel)) ?? [
+  private diagnosticsForLayer(layerDiagnostics: LayerPasteDiagnostics): Spec {
+    const layerName: MaybeState<LocalisedString> = layerDiagnostics.name?.map(funcRef(DiagnosticsTab.importLabel)) ?? [
       L_Gui.OwnContents,
     ]
-    const allDiagnostics = conflicts.diagnostics
+    const allDiagnostics = layerDiagnostics.diagnostics
     const categories = Object.keys(allDiagnostics) as PasteDiagnosticId[]
     const hasDiagnostics = !isEmpty(categories)
     if (!hasDiagnostics) {

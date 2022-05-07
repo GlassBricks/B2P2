@@ -1,28 +1,32 @@
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
-import { addDiagnostic, DiagnosticCategory, DiagnosticCollection, Location } from "./diagnostics/Diagnostic"
-import { describeEntity, Entity, getTileBox, isUnhandledProp, UnhandledProp } from "../entity/entity"
+import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
+import { describeEntity, Entity, getTileBox, isUnhandledProp } from "../entity/entity"
 import { assertNever } from "../lib/util"
 import { L_Diagnostic } from "../locale"
+import { AreaIdentification } from "./AreaIdentification"
+import { EntitySourceMap, getEntitySourceLocation } from "./EntitySourceMap"
+import { bbox } from "../lib/geometry/bounding-box"
+import shift = bbox.shift
 
 export type PasteDiagnosticId = "overlap" | "items-ignored" | "cannot-upgrade" | "unsupported-prop"
 
 export type PasteDiagnostics = DiagnosticCollection<PasteDiagnosticId>
-function makeLocation(worldTopLeft: MapPositionTable, surface: LuaSurface, entity: Entity): Location {
-  return {
-    surface,
-    worldTopLeft,
-    boundingBox: getTileBox(entity),
-  }
-}
+
 export const Overlap = DiagnosticCategory(
   {
     id: "overlap",
     shortDescription: [L_Diagnostic.Overlap],
     highlightType: "not-allowed",
   },
-  (below: Entity, above: Entity, surface: LuaSurface, relativePosition: MapPositionTable) => ({
+  (
+    below: Entity,
+    belowLocation: AreaIdentification | undefined,
+    above: Entity,
+    aboveLocation: AreaIdentification | undefined,
+  ) => ({
     message: [L_Diagnostic.OverlapItem, describeEntity(above), describeEntity(below)],
-    location: makeLocation(relativePosition, surface, above),
+    location: belowLocation,
+    altLocation: aboveLocation,
   }),
 )
 export const CannotUpgrade = DiagnosticCategory(
@@ -32,9 +36,15 @@ export const CannotUpgrade = DiagnosticCategory(
     longDescription: [L_Diagnostic.CannotUpgradeDetail],
     highlightType: "copy",
   },
-  (below: Entity, above: Entity, surface: LuaSurface, relativePosition: MapPositionTable) => ({
+  (
+    below: Entity,
+    belowLocation: AreaIdentification | undefined,
+    above: Entity,
+    aboveLocation: AreaIdentification | undefined,
+  ) => ({
     message: [L_Diagnostic.CannotUpgradeItem, describeEntity(above), describeEntity(below)],
-    location: makeLocation(relativePosition, surface, above),
+    location: belowLocation,
+    altLocation: aboveLocation,
   }),
 )
 export const ItemsIgnored = DiagnosticCategory(
@@ -44,9 +54,15 @@ export const ItemsIgnored = DiagnosticCategory(
     longDescription: [L_Diagnostic.ItemsIgnoredDetail],
     highlightType: "pair",
   },
-  (entity: Entity, surface: LuaSurface, relativePosition: MapPositionTable) => ({
-    message: [L_Diagnostic.ItemsIgnoredItem, describeEntity(entity)],
-    location: makeLocation(relativePosition, surface, entity),
+  (
+    below: Entity,
+    belowLocation: AreaIdentification | undefined,
+    above: Entity,
+    aboveLocation: AreaIdentification | undefined,
+  ) => ({
+    message: [L_Diagnostic.ItemsIgnoredItem, describeEntity(above)],
+    location: belowLocation,
+    altLocation: aboveLocation,
   }),
 )
 
@@ -56,31 +72,52 @@ export const UnsupportedProp = DiagnosticCategory(
     shortDescription: [L_Diagnostic.UnsupportedProp],
     highlightType: "not-allowed",
   },
-  (entity: Entity, surface: LuaSurface, relativePosition: MapPositionTable, property: UnhandledProp) => ({
-    message: [L_Diagnostic.UnsupportedPropItem, describeEntity(entity), property],
-    location: makeLocation(relativePosition, surface, entity),
+  (
+    below: Entity,
+    belowLocation: AreaIdentification | undefined,
+    above: Entity,
+    aboveLocation: AreaIdentification | undefined,
+    prop: string,
+  ) => ({
+    message: [L_Diagnostic.UnsupportedPropItem, describeEntity(above), prop],
+    location: belowLocation,
+    altLocation: aboveLocation,
   }),
 )
 
 export function mapPasteConflictsToDiagnostics(
   conflicts: BlueprintPasteConflicts,
   surface: LuaSurface,
-  worldTopLeft: MapPositionTable,
+  pastedLeftTop: MapPositionTable,
+  sourceMap: EntitySourceMap,
 ): PasteDiagnostics {
   const diagnostics: PasteDiagnostics = {}
+
+  function getBelowArea(entity: Entity): AreaIdentification | undefined {
+    return getEntitySourceLocation(sourceMap, entity, pastedLeftTop)
+  }
+  function getAboveArea(entity: Entity): AreaIdentification | undefined {
+    return {
+      surface,
+      area: shift(getTileBox(entity), pastedLeftTop),
+    }
+  }
+
   if (conflicts.overlaps) {
     for (const { below, above } of conflicts.overlaps) {
-      addDiagnostic(diagnostics, Overlap, below, above, surface, worldTopLeft)
+      addDiagnostic(diagnostics, Overlap, below, getBelowArea(below), above, getAboveArea(above))
     }
   }
   if (conflicts.propConflicts)
     for (const { prop, below, above } of conflicts.propConflicts) {
+      const belowArea = getBelowArea(below)
+      const aboveArea = getAboveArea(above)
       if (prop === "name") {
-        addDiagnostic(diagnostics, CannotUpgrade, below, above, surface, worldTopLeft)
+        addDiagnostic(diagnostics, CannotUpgrade, below, belowArea, above, aboveArea)
       } else if (prop === "items") {
-        addDiagnostic(diagnostics, ItemsIgnored, above, surface, worldTopLeft)
+        addDiagnostic(diagnostics, ItemsIgnored, below, belowArea, above, aboveArea)
       } else if (isUnhandledProp(prop)) {
-        addDiagnostic(diagnostics, UnsupportedProp, above, surface, worldTopLeft, prop)
+        addDiagnostic(diagnostics, UnsupportedProp, below, belowArea, above, aboveArea, prop)
       } else {
         assertNever(prop)
       }

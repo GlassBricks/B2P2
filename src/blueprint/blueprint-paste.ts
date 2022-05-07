@@ -18,11 +18,15 @@ import {
 import { bbox } from "../lib/geometry/bounding-box"
 import { nilIfEmpty } from "../lib/util"
 
-export function findCompatibleEntity<T extends Entity>(blueprint: Blueprint<T>, entity: Entity): T | undefined {
-  const entities = blueprint.getAt(entity.position)
+export function findCompatibleEntity<T extends Entity>(
+  blueprint: Blueprint<T>,
+  entity: Entity,
+  position: MapPositionTable = entity.position,
+): T | undefined {
+  const entities = blueprint.getAt(position)
   if (entities === undefined) return undefined
   for (const [e] of entities) {
-    if (isCompatibleEntity(e, entity)) return e
+    if (isCompatibleEntity(e, entity, position)) return e
   }
   return undefined
 }

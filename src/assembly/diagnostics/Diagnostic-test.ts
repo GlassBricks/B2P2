@@ -5,8 +5,6 @@ import {
   Diagnostic,
   DiagnosticCategory,
   DiagnosticCollection,
-  getActualLocation,
-  Location,
 } from "./Diagnostic"
 import { pos } from "../../lib/geometry/position"
 import { bbox } from "../../lib/geometry/bounding-box"
@@ -54,24 +52,13 @@ describe("highlight", () => {
     assert.is_nil(result)
   })
 
-  test("getActualLocation", () => {
-    const location: Location = {
-      surface: game.surfaces[1],
-      worldTopLeft: pos(1, 1),
-      boundingBox: bbox.fromCorners(0, 0, 1, 1),
-    }
-    const actualLocation = getActualLocation(location)
-    assert.same(bbox.fromCorners(1, 1, 2, 2), actualLocation)
-  })
-
   test("with location", () => {
     const diagnostic: Diagnostic = {
       id: category.id,
       message: [L_Diagnostic.Overlap, 1],
       location: {
         surface: game.surfaces[1],
-        worldTopLeft: pos(0, 0),
-        boundingBox: bbox.fromCorners(0, 0, 1, 1),
+        area: bbox.fromCorners(0, 0, 1, 1),
       },
     }
     const result = createDiagnosticHighlight(diagnostic)!

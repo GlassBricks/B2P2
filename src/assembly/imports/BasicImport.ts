@@ -2,20 +2,19 @@ import { Classes, UserError } from "../../lib"
 import { AssemblyImport } from "./AssemblyImport"
 import { Assembly } from "../Assembly"
 import { Blueprint } from "../../blueprint/Blueprint"
-import { state, State } from "../../lib/observable"
+import { State } from "../../lib/observable"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { L_Interaction } from "../../locale"
+import { AreaIdentification } from "../AreaIdentification"
 
 @Classes.register()
 export class BasicImport implements AssemblyImport {
-  private readonly _name: State<LocalisedString>
   private readonly _content: State<Blueprint | undefined>
-  private constructor(source: Assembly, readonly relativeBoundingBox: BoundingBoxRead) {
-    this._name = source.displayName
-    this._content = source.getContent()?.resultContent ?? state(undefined)
+  private constructor(private readonly source: Assembly, readonly relativeBoundingBox: BoundingBoxRead) {
+    this._content = source.getContent()!.resultContent
   }
   name(): State<LocalisedString> {
-    return this._name
+    return this.source.name
   }
   content(): State<Blueprint | undefined> {
     return this._content
@@ -25,6 +24,9 @@ export class BasicImport implements AssemblyImport {
   }
   getRelativeBoundingBox(): BoundingBoxRead {
     return this.relativeBoundingBox
+  }
+  getSourceArea(): AreaIdentification | undefined {
+    return this.source
   }
 
   static createFor(source: Assembly, target: Assembly, relativePosition: MapPositionTable): BasicImport {

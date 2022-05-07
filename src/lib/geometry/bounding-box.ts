@@ -27,6 +27,9 @@ namespace bbox {
       meta,
     )
   }
+  export function load(data: BoundingBoxRead): BoundingBoxClass {
+    return setmetatable(data, meta)
+  }
 
   export function fromCorners(lx: number, ly: number, rx: number, ry: number): BoundingBoxClass {
     return bbox({ x: lx, y: ly }, { x: rx, y: ry })

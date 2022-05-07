@@ -1,40 +1,52 @@
 import { Blueprint } from "../blueprint/Blueprint"
-import { Entity } from "../entity/entity"
-import { AssemblyImport } from "./imports/AssemblyImport"
+import { Entity, getTileBox } from "../entity/entity"
 import { findCompatibleEntity } from "../blueprint/blueprint-paste"
 import { pos } from "../lib/geometry/position"
-import sub = pos.sub
+import { AreaIdentification } from "./AreaIdentification"
+import { bbox } from "../lib/geometry/bounding-box"
+import { computeTileBoxOfLuaEntity } from "../entity/entity-info"
+import shift = bbox.shift
 
-export type EntitySource = AssemblyImport | "ownContent"
 export interface SourceMapEntity extends Entity {
-  source: EntitySource
+  actualLocation: AreaIdentification
 }
 
 export type EntitySourceMap = Blueprint<SourceMapEntity>
 
-/** Not serializable! */
+/**
+ * Not serializable!
+ *
+ * Both input and output coordinates are absolute, not relative.
+ */
 export class EntitySourceMapBuilder {
   private entities: SourceMapEntity[] = []
 
-  add(entity: Entity, source: AssemblyImport | "ownContent", worldTopLeft: MapPositionTable | undefined): this {
-    const relativePosition = worldTopLeft ? sub(entity.position, worldTopLeft) : entity.position
-    this.entities.push({
-      name: entity.name,
-      direction: entity.direction,
-      position: relativePosition,
-      source,
-    })
+  addAll(entities: readonly LuaEntity[], sourceArea: AreaIdentification, pastedLeftTop: MapPositionTable): this {
+    // actualArea = location - (pastedLeftTop - sourceLeftTop)
+    const offset = pos.sub(sourceArea.area.left_top, pastedLeftTop)
+    const surface = sourceArea.surface
+    for (const entity of entities) {
+      const area = shift(computeTileBoxOfLuaEntity(entity), offset)
+      this.entities.push({
+        name: entity.name,
+        direction: entity.direction,
+        position: entity.position,
+        actualLocation: { surface, area },
+      })
+    }
     return this
   }
 
-  addAll(
-    entities: readonly Entity[],
-    source: AssemblyImport | "ownContent",
-    worldTopLeft: MapPositionTable | undefined,
-  ): this {
-    for (const entity of entities) {
-      this.add(entity, source, worldTopLeft)
-    }
+  addMock(entity: Entity, sourceArea: AreaIdentification, pastedLeftTop: MapPositionTable): this {
+    const surface = sourceArea.surface
+    const entitySourceArea = shift(getTileBox(entity), sourceArea.area.left_top)
+    const pastedPosition = pos.add(entity.position, pastedLeftTop)
+    this.entities.push({
+      name: entity.name,
+      direction: entity.direction,
+      position: pastedPosition,
+      actualLocation: { surface, area: entitySourceArea },
+    })
     return this
   }
 
@@ -43,9 +55,12 @@ export class EntitySourceMapBuilder {
   }
 }
 
-export function getSourceOfEntity(map: EntitySourceMap, entity: Entity): EntitySource | undefined {
-  const mapEntity = findCompatibleEntity(map, entity)
-  if (mapEntity) {
-    return mapEntity.source
-  }
+export function getEntitySourceLocation(
+  map: EntitySourceMap,
+  entity: Entity,
+  relativeOffset: MapPositionTable,
+): AreaIdentification | undefined {
+  const actualPosition = pos.add(entity.position, relativeOffset)
+  const mapEntity = findCompatibleEntity(map, entity, actualPosition)
+  if (mapEntity) return mapEntity.actualLocation
 }

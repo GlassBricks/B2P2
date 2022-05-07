@@ -18,8 +18,8 @@ import { pos } from "../lib/geometry/position"
 import { getEntityInfo } from "./entity-info"
 import { UP } from "../lib/geometry/rotation"
 
-export function isCompatibleEntity(a: Entity, b: Entity): boolean {
-  if (!pos.equals(a.position, b.position)) return false
+export function isCompatibleEntity(a: Entity, b: Entity, bPosition: MapPositionTable = b.position): boolean {
+  if (!pos.equals(a.position, bPosition)) return false
 
   const aInfo = getEntityInfo(a.name)
   const bInfo = getEntityInfo(b.name)

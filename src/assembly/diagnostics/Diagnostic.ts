@@ -1,5 +1,8 @@
-import { bbox, BoundingBoxClass } from "../../lib/geometry/bounding-box"
+import { bbox } from "../../lib/geometry/bounding-box"
 import { Mutable } from "../../lib/util-types"
+import { AreaIdentification } from "../AreaIdentification"
+import scaleAroundCenter = bbox.scaleAroundCenter
+import center = bbox.center
 
 export interface DiagnosticCategory<Id extends string> {
   readonly id: Id
@@ -8,16 +11,11 @@ export interface DiagnosticCategory<Id extends string> {
   readonly highlightType?: CursorBoxRenderType
 }
 
-export interface Location {
-  readonly surface: LuaSurface
-  readonly worldTopLeft: MapPositionTable
-  readonly boundingBox: BoundingBoxRead
-}
-
 export type Diagnostic = {
   readonly id: string
   readonly message?: LocalisedString
-  readonly location?: Location
+  readonly location?: AreaIdentification
+  readonly altLocation?: AreaIdentification
 }
 
 export type DiagnosticCollection<Id extends string = string> = {
@@ -64,11 +62,6 @@ export function addDiagnostic<Id extends string, A extends any[]>(
   return diagnostic
 }
 
-export function getActualLocation(location: Location): BoundingBoxClass {
-  const { worldTopLeft, boundingBox } = location
-  return bbox.shift(boundingBox, worldTopLeft)
-}
-
 const defaultType: CursorBoxRenderType = "entity"
 export function createDiagnosticHighlight(
   diagnostic: Diagnostic,
@@ -77,13 +70,12 @@ export function createDiagnosticHighlight(
 ): HighlightBoxEntity | undefined {
   const { id, location } = diagnostic
   if (!location) return
-  const box = getActualLocation(location)
-  const center = bbox.center(box)
+  const box = location.area
   const highlightType = categories.get(id)!.highlightType ?? defaultType
   return location.surface.create_entity({
     name: "highlight-box",
-    position: center,
-    bounding_box: box.scaleAroundCenter(scale),
+    position: center(box),
+    bounding_box: scaleAroundCenter(box, scale),
     box_type: highlightType,
     ...additionalParams,
   })

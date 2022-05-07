@@ -8,28 +8,31 @@ import {
 } from "../blueprint/blueprint-paste"
 import { AssemblyImport } from "./imports/AssemblyImport"
 import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
-import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
+import { clearBuildableEntities, pasteBlueprint, takeBlueprintWithIndex } from "../world-interaction/blueprint"
 import { MutableObservableList, observableList } from "../lib/observable/ObservableList"
 import { pos } from "../lib/geometry/position"
 import { MutableState, state, State } from "../lib/observable"
 import { isEmpty } from "../lib/util"
 import { mapPasteConflictsToDiagnostics, PasteDiagnostics } from "./paste-diagnostics"
 import { createDiagnosticHighlight } from "./diagnostics/Diagnostic"
+import { EntitySourceMap, EntitySourceMapBuilder } from "./EntitySourceMap"
+import { AreaIdentification } from "./AreaIdentification"
 
 /**
  * Manages in-world contents of an assembly.
  */
-export interface AssemblyContent {
+export interface AssemblyContent extends AreaIdentification {
   readonly ownContents: State<PasteBlueprint>
 
   readonly imports: MutableObservableList<AssemblyImport>
 
   resetInWorld(): void
-  readonly lastPasteConflicts: State<readonly LayerPasteConflicts[]>
+  readonly pasteDiagnostics: State<readonly LayerPasteDiagnostics[]>
 
   hasConflicts(): State<boolean>
 
   readonly resultContent: State<Blueprint | undefined> // undefined when invalid
+  readonly entitySourceMap: State<EntitySourceMap | undefined>
 
   prepareSave(): BlueprintDiff
   readonly pendingSave: State<BlueprintDiff | undefined>
@@ -45,9 +48,8 @@ export interface AssemblyContent {
   delete(): void
 }
 
-export interface LayerPasteConflicts {
+export interface LayerPasteDiagnostics {
   readonly name: State<LocalisedString> | undefined
-  readonly bpConflicts: BlueprintPasteConflicts
   readonly diagnostics: PasteDiagnostics
 }
 
@@ -56,71 +58,105 @@ export class DefaultAssemblyContent implements AssemblyContent {
   ownContents: MutableState<PasteBlueprint>
   readonly imports: MutableObservableList<AssemblyImport> = observableList()
   readonly resultContent: MutableState<Blueprint | undefined>
+  readonly entitySourceMap: MutableState<EntitySourceMap | undefined>
   private importsContent: Blueprint = Blueprint.of()
 
-  lastPasteConflicts: MutableState<LayerPasteConflicts[]> = state([
+  pasteDiagnostics: MutableState<LayerPasteDiagnostics[]> = state([
     {
       name: undefined,
-      bpConflicts: {},
       diagnostics: {},
     },
   ])
   pendingSave: MutableState<BlueprintDiff | undefined> = state(undefined)
 
-  constructor(private readonly surface: LuaSurface, private readonly area: BoundingBoxRead) {
-    const content = Blueprint.take(surface, area, area.left_top)
+  constructor(readonly surface: LuaSurface, readonly area: BoundingBoxRead) {
+    const [entities, index] = takeBlueprintWithIndex(surface, area)
+    const content = Blueprint._new(entities)
     this.ownContents = state(content)
     this.resultContent = state(content)
+    const luaEntities = Object.values(index)
+    this.entitySourceMap = state(new EntitySourceMapBuilder().addAll(luaEntities, this, this.area.left_top).build())
   }
 
   resetInWorld(): void {
     clearBuildableEntities(this.surface, this.area)
 
-    const pasteConflicts: LayerPasteConflicts[] = []
-    for (const imp of this.imports.value()) {
-      pasteConflicts.push(this.pasteImport(imp))
-    }
-    this.importsContent = Blueprint.take(this.surface, this.area)
+    const bpConflicts: BlueprintPasteConflicts[] = []
+    const sourceMapBuilder = new EntitySourceMapBuilder()
 
-    pasteConflicts.push(this.pasteOwnContents(this.importsContent))
-    this.lastPasteConflicts.set(pasteConflicts)
+    const assemblyImports = this.imports.value()
+    for (const imp of assemblyImports) {
+      bpConflicts.push(this.pasteImport(imp, sourceMapBuilder))
+    }
+
+    this.importsContent = Blueprint.take(this.surface, this.area)
+    bpConflicts.push(this.pasteOwnContents(this.importsContent, sourceMapBuilder))
+
+    const sourceMap = sourceMapBuilder.build()
+    this.entitySourceMap.set(sourceMap)
+
+    const diagnostics = bpConflicts.map((conflict, index) => {
+      const imp = assemblyImports[index]
+      return {
+        name: imp?.name(),
+        diagnostics: this.computeAndRenderDiagnostics(conflict, imp?.getRelativePosition(), sourceMap),
+      }
+    })
+
+    this.pasteDiagnostics.set(diagnostics)
 
     this.resultContent.set(Blueprint.take(this.surface, this.area))
   }
 
-  private pasteImport(imp: AssemblyImport): LayerPasteConflicts {
+  private pasteImport(imp: AssemblyImport, sourceMap: EntitySourceMapBuilder): BlueprintPasteConflicts {
     const content = imp.content().get()
-    if (!content)
-      return {
-        name: imp.name(),
-        bpConflicts: {},
-        diagnostics: {},
-      }
+    if (!content) return {}
 
     const relativePosition = imp.getRelativePosition()
-    const conflicts = findBlueprintPasteConflictsInWorld(this.surface, this.area, content, relativePosition)
-    return this.pasteContentAndRenderDiagnostics(relativePosition, content, conflicts, imp.name())
+
+    const topLeft = this.getAbsolutePosition(relativePosition)
+    this.pasteBlueprintWithSourceMap(content, topLeft, sourceMap, imp.getSourceArea())
+
+    return findBlueprintPasteConflictsInWorld(this.surface, this.area, content, relativePosition)
   }
 
-  private pasteOwnContents(importsContent: Blueprint): LayerPasteConflicts {
+  private pasteOwnContents(importsContent: Blueprint, sourceMap: EntitySourceMapBuilder): BlueprintPasteConflicts {
     const ownContents = this.ownContents.get()
-    const conflicts = findBlueprintPasteConflictsAndUpdate(importsContent, ownContents)
-    return this.pasteContentAndRenderDiagnostics(undefined, ownContents, conflicts, undefined)
+
+    const topLeft = this.area.left_top
+    this.pasteBlueprintWithSourceMap(ownContents, topLeft, sourceMap, this)
+
+    return findBlueprintPasteConflictsAndUpdate(importsContent, ownContents)
   }
 
-  private pasteContentAndRenderDiagnostics(
-    relativePosition: MapPositionTable | undefined,
+  private pasteBlueprintWithSourceMap(
     content: PasteBlueprint,
-    conflicts: BlueprintPasteConflicts,
-    name: State<LocalisedString> | undefined,
-  ) {
-    const leftTop = this.area.left_top
-    const worldLeftTop = relativePosition ? pos.add(leftTop, relativePosition) : leftTop
-    pasteBlueprint(this.surface, worldLeftTop, content.entities, this.area)
+    absolutePosition: MapPositionTable,
+    map: EntitySourceMapBuilder,
+    sourceArea: AreaIdentification | undefined,
+  ): void {
+    const entities = this.pasteBlueprint(content, absolutePosition)
+    if (sourceArea) map.addAll(entities, sourceArea, absolutePosition)
+  }
 
-    const diagnostics = mapPasteConflictsToDiagnostics(conflicts, this.surface, worldLeftTop)
+  private pasteBlueprint(content: PasteBlueprint, absolutePosition: MapPositionTable): LuaEntity[] {
+    return pasteBlueprint(this.surface, absolutePosition, content.entities, this.area)
+  }
+
+  private getAbsolutePosition(relativePosition: MapPositionTable | undefined): MapPositionTable {
+    const leftTop = this.area.left_top
+    return relativePosition ? pos.add(leftTop, relativePosition) : leftTop
+  }
+
+  private computeAndRenderDiagnostics(
+    conflicts: BlueprintPasteConflicts,
+    relativeLeftTop: MapPositionTable | undefined,
+    sourceMap: EntitySourceMap,
+  ): PasteDiagnostics {
+    const absoluteLeftTop = this.getAbsolutePosition(relativeLeftTop)
+    const diagnostics = mapPasteConflictsToDiagnostics(conflicts, this.surface, absoluteLeftTop, sourceMap)
     DefaultAssemblyContent.renderDiagnostics(diagnostics)
-    return { name, bpConflicts: conflicts, diagnostics }
+    return diagnostics
   }
 
   private static renderDiagnostics(collection: PasteDiagnostics): void {
@@ -132,15 +168,10 @@ export class DefaultAssemblyContent implements AssemblyContent {
   }
 
   hasConflicts(): State<boolean> {
-    return this.lastPasteConflicts.map(funcRef(DefaultAssemblyContent.hasAnyConflicts))
+    return this.pasteDiagnostics.map(funcRef(DefaultAssemblyContent.hasAnyConflicts))
   }
-  private static hasAnyConflicts(this: void, conflicts: LayerPasteConflicts[]): boolean {
-    for (const conflict of conflicts) {
-      if (!isEmpty(conflict.bpConflicts)) {
-        return true
-      }
-    }
-    return false
+  private static hasAnyConflicts(this: void, conflicts: readonly LayerPasteDiagnostics[]): boolean {
+    return conflicts.some((conflict) => !isEmpty(conflict.diagnostics))
   }
 
   prepareSave(): BlueprintDiff {
@@ -174,6 +205,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   delete(): void {
     this.resultContent.set(undefined)
+    this.entitySourceMap.set(undefined)
   }
 }
 
