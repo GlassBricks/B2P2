@@ -2,7 +2,9 @@ import { deepCompare, shallowCopy } from "../lib/util"
 import { Mutable, PRecord } from "../lib/util-types"
 import {
   ConflictingProp,
+  Entity,
   EntityNumber,
+  FullEntity,
   IgnoredProps,
   KnownProps,
   PlainEntity,
@@ -15,7 +17,7 @@ import {
 import { pos } from "../lib/geometry/position"
 import { getEntityInfo } from "./entity-info"
 
-export function isCompatibleEntity(a: BlueprintEntityRead, b: BlueprintEntityRead): boolean {
+export function isCompatibleEntity(a: Entity, b: Entity): boolean {
   if (!pos.equals(a.position, b.position)) return false
 
   const aInfo = getEntityInfo(a.name)
@@ -26,7 +28,7 @@ export function isCompatibleEntity(a: BlueprintEntityRead, b: BlueprintEntityRea
 }
 
 function findConflictsAndUpdateReferenceEntity(
-  below: BlueprintEntityRead,
+  below: FullEntity,
   above: UpdateableReferenceEntity,
 ): ConflictingProp | undefined {
   const { changedProps } = above
@@ -58,8 +60,8 @@ function findConflictsAndUpdateReferenceEntity(
 }
 
 function findConflictsInPlainEntity(
-  above: BlueprintEntityRead | ReferenceEntity,
-  below: BlueprintEntityRead,
+  above: FullEntity | ReferenceEntity,
+  below: FullEntity,
 ): ConflictingProp | undefined {
   if (below.name !== above.name) return "name"
 
@@ -80,7 +82,7 @@ function findConflictsInPlainEntity(
 }
 
 export function findEntityPasteConflictAndUpdate(
-  below: BlueprintEntityRead,
+  below: FullEntity,
   above: UpdateablePasteEntity,
 ): ConflictingProp | undefined {
   if ((above as ReferenceEntity).changedProps) {
@@ -88,14 +90,14 @@ export function findEntityPasteConflictAndUpdate(
   }
   return findConflictsInPlainEntity(above, below)
 }
-export const findEntityPasteConflict = (
-  below: BlueprintEntityRead,
-  above: BlueprintEntityRead | PlainEntity,
-): ConflictingProp | undefined => findEntityPasteConflictAndUpdate(below, above as PlainEntity)
+export const findEntityPasteConflict: (
+  below: FullEntity,
+  above: PlainEntity | ReferenceEntity,
+) => ConflictingProp | undefined = findEntityPasteConflictAndUpdate
 
 export function computeEntityDiff(
-  before: BlueprintEntityRead,
-  after: BlueprintEntityRead,
+  before: FullEntity,
+  after: FullEntity,
   entityNumberMap: Record<EntityNumber, EntityNumber>, // from before to after
 ): ReferenceEntity | undefined {
   const changedProps = new LuaSet<UpdateableProp>()
@@ -177,7 +179,7 @@ function compareConnectionData(
   return result[0] && result
 }
 
-export function createReferenceOnlyEntity(entity: BlueprintEntityRead): ReferenceEntity {
+export function createReferenceOnlyEntity(entity: Entity): ReferenceEntity {
   const result = shallowCopy(entity) as Mutable<ReferenceEntity>
   result.changedProps = new LuaSet<UpdateableProp>()
   return result

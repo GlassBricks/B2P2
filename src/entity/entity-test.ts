@@ -1,12 +1,12 @@
-import { Entity, EntityNumber, getTileBox, remapEntityNumbersInArrayPosition, withEntityNumber } from "./entity"
+import { EntityNumber, FullEntity, getTileBox, remapEntityNumbersInArrayPosition, withEntityNumber } from "./entity"
 import { computeTileBox } from "./entity-info"
 
-const mockEntity: Entity = {
+const mockEntity: FullEntity = {
   name: "iron-chest",
   position: { x: 1.5, y: 2.5 },
   entity_number: 1,
 }
-const mockEntity2: Entity = {
+const mockEntity2: FullEntity = {
   name: "wooden-chest",
   position: { x: 1.5, y: 2.5 },
   entity_number: 2,

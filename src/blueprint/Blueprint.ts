@@ -10,10 +10,10 @@ import iterateTiles = bbox.iterateTiles
 import fromCorners = bbox.fromCorners
 
 @Classes.register("Blueprint")
-export class Blueprint<E extends BlueprintEntityRead = PlainEntity> implements Blueprint<E> {
+export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
   private byPosition?: PRRecord<NumberPair, LuaSet<E>>
 
-  private constructor(public readonly entities: Record<number, E>) {}
+  private constructor(public readonly entities: readonly E[]) {}
 
   static fromArray<E extends Entity>(entities: readonly E[]): Blueprint<E> {
     return new Blueprint(shallowCopy(entities))
@@ -57,7 +57,7 @@ export class Blueprint<E extends BlueprintEntityRead = PlainEntity> implements B
 
   private doComputeByPosition(): PRecord<NumberPair, LuaSet<E>> {
     const result: PRecord<NumberPair, MutableLuaSet<E>> = {}
-    for (const [, entity] of pairs(this.entities)) {
+    for (const entity of this.entities) {
       for (const [x, y] of iterateTiles(getTileBox(entity))) {
         const set = (result[pair(x, y)] ??= new LuaSet())
         set.add(entity)
@@ -80,7 +80,7 @@ export class Blueprint<E extends BlueprintEntityRead = PlainEntity> implements B
       if (x > maxX) maxX = x
       if (y > maxY) maxY = y
     }
-    for (const [, entity] of pairs(this.entities)) {
+    for (const entity of this.entities) {
       const tileBox = getTileBox(entity)
       expandTo(tileBox.left_top)
       expandTo(tileBox.right_bottom)

@@ -1,5 +1,5 @@
 import { Blueprint } from "../blueprint/Blueprint"
-import { Entity, remapEntityNumbersInArrayPosition } from "../entity/entity"
+import { Entity, FullEntity, remapEntityNumbersInArrayPosition } from "../entity/entity"
 
 function compareByPosition(a: Entity, b: Entity): boolean {
   const aPos = a.position
@@ -10,13 +10,13 @@ function compareByPosition(a: Entity, b: Entity): boolean {
   return aPos.x < bPos.x
 }
 
-function sortEntities(entities: Record<number, Entity>): Entity[] {
+function sortEntities(entities: Record<number, FullEntity>): FullEntity[] {
   const result = Object.values(entities)
   table.sort(result, compareByPosition)
   return result
 }
 
-export function assertBlueprintsEquivalent(expected: Blueprint<Entity>, actual: Blueprint<Entity>): void {
+export function assertBlueprintsEquivalent(expected: Blueprint<FullEntity>, actual: Blueprint<FullEntity>): void {
   const expectedEntities = remapEntityNumbersInArrayPosition(sortEntities(expected.entities))
   const actualEntities = remapEntityNumbersInArrayPosition(sortEntities(actual.entities))
   assert.same(expectedEntities, actualEntities)

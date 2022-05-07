@@ -1,12 +1,12 @@
 import { Blueprint } from "./Blueprint"
-import { Entity, getTileBox } from "../entity/entity"
+import { FullEntity, getTileBox } from "../entity/entity"
 import { bbox } from "../lib/geometry/bounding-box"
 
 test("new blueprint is empty", () => {
   assert.same({}, Blueprint.of().entities)
 })
 
-let mockEntity: Entity, mockEntity2: Entity
+let mockEntity: FullEntity, mockEntity2: FullEntity
 before_all(() => {
   mockEntity = {
     name: "assembling-machine-1",

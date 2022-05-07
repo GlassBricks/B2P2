@@ -1,5 +1,7 @@
 ## Now
 
+- track entity source
+
 - ability to toggle imports temporarily
 - autoreset
 
@@ -9,14 +11,16 @@
 
 - handle rails and locomotives
 - handle other off-grid stuff
+- clean imports
 
 ## v0.2
 
+- Lazy properties, make less like rxjs
 - Dependency checking, invalidation
 
+- ethereal ghosts
 - refactor blueprint conflict checking
     - More advanced diagnostic teleporting
-- ethereal ghosts
 
 - lost references diagnostics
 - diagnostic actions

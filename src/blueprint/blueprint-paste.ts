@@ -2,6 +2,7 @@ import {
   ConflictingProp,
   Entity,
   EntityNumber,
+  FullEntity,
   getTileBox,
   PasteEntity,
   PlainEntity,
@@ -17,10 +18,7 @@ import {
 import { bbox } from "../lib/geometry/bounding-box"
 import { nilIfEmpty } from "../lib/util"
 
-export function findCompatibleEntity<T extends Entity>(
-  blueprint: Blueprint<T>,
-  entity: BlueprintEntityRead,
-): T | undefined {
+export function findCompatibleEntity<T extends Entity>(blueprint: Blueprint<T>, entity: Entity): T | undefined {
   const entities = blueprint.getAt(entity.position)
   if (entities === undefined) return undefined
   for (const [e] of entities) {
@@ -42,12 +40,12 @@ export function findOverlappingEntity<T extends Entity>(blueprint: Blueprint<T>,
 }
 
 export interface Overlap {
-  readonly below: Entity
+  readonly below: FullEntity
   readonly above: PasteEntity
 }
 
 export interface PropConflict {
-  readonly below: Entity
+  readonly below: FullEntity
   readonly above: PasteEntity
   readonly prop: ConflictingProp
 }
@@ -65,7 +63,7 @@ export function findBlueprintPasteConflictsAndUpdate(
   const overlaps: Overlap[] = []
   const propConflicts: PropConflict[] = []
   const lostReferences: ReferenceEntity[] = []
-  for (const [, aboveEntity] of pairs(above.entities)) {
+  for (const aboveEntity of above.entities) {
     const compatible = findCompatibleEntity(below, aboveEntity)
     if (compatible) {
       const conflict = findEntityPasteConflictAndUpdate(compatible, aboveEntity)
@@ -122,12 +120,12 @@ export interface BlueprintDiff {
 }
 
 export function computeBlueprintDiff(below: Blueprint, current: Blueprint): BlueprintDiff {
-  const corresponding = new LuaMap<Entity, Entity | undefined>() // new to old
+  const corresponding = new LuaMap<FullEntity, FullEntity | undefined>() // new to old
   const entityNumberMap: Record<EntityNumber, EntityNumber> = {} // old to new
   const shouldAlwaysInclude = new LuaSet<number>()
 
   // find corresponding entities
-  for (const [, entity] of pairs(current.entities)) {
+  for (const entity of current.entities) {
     const compatible = findCompatibleEntity(below, entity)
     if (compatible) {
       // new entity
@@ -159,7 +157,7 @@ export function computeBlueprintDiff(below: Blueprint, current: Blueprint): Blue
   }
 
   const content: PasteEntity[] = []
-  for (const [, currentEntity] of pairs(current.entities)) {
+  for (const currentEntity of current.entities) {
     const compatible = corresponding.get(currentEntity)
     if (compatible) {
       const referenceEntity = computeEntityDiff(compatible, currentEntity, entityNumberMap)
@@ -174,7 +172,7 @@ export function computeBlueprintDiff(below: Blueprint, current: Blueprint): Blue
   }
 
   const deletions: PlainEntity[] = []
-  for (const [, belowEntity] of pairs(below.entities)) {
+  for (const belowEntity of below.entities) {
     if (!(belowEntity.entity_number in entityNumberMap)) {
       deletions.push(belowEntity)
     }

@@ -1,8 +1,8 @@
 import { isEmpty } from "../lib/util"
 import { pos } from "../lib/geometry/position"
-import { Mutable, RRecord } from "../lib/util-types"
+import { Mutable } from "../lib/util-types"
 import { bbox } from "../lib/geometry/bounding-box"
-import { Entity, getTileBox } from "../entity/entity"
+import { FullEntity, getTileBox } from "../entity/entity"
 
 declare const global: {
   __tempBlueprintInventory: LuaInventory
@@ -17,7 +17,7 @@ export function takeBlueprint(
   surface: SurfaceIdentification,
   area: BoundingBoxRead,
   worldTopLeft: MapPositionTable = area.left_top,
-): BlueprintEntityRead[] {
+): FullEntity[] {
   const item = getTempItemStack()
   const index = item.create_blueprint({
     surface,
@@ -27,7 +27,7 @@ export function takeBlueprint(
     include_trains: true,
   })
   if (isEmpty(index)) return []
-  const entities = item.get_blueprint_entities()! as Mutable<BlueprintEntityRead>[]
+  const entities = item.get_blueprint_entities()! as Mutable<FullEntity>[]
   const targetPos = pos.sub(index[1].position, worldTopLeft)
   const actualPos = item.get_blueprint_entities()![0].position
   const offset = pos.sub(targetPos, actualPos)
@@ -41,13 +41,13 @@ export function takeBlueprint(
   return entities
 }
 
-function reviveGhost(ghost: GhostEntity): boolean {
+function reviveGhost(ghost: GhostEntity): LuaEntity | undefined {
   const [, entity, requestProxy] = ghost.silent_revive({
     return_item_request_proxy: true,
   })
-  if (entity === undefined) return false
+  if (entity === undefined) return
 
-  if (!requestProxy) return true
+  if (!requestProxy) return entity
 
   // manually add items from request proxy
   const requests = requestProxy.item_requests
@@ -62,32 +62,21 @@ function reviveGhost(ghost: GhostEntity): boolean {
     }
   }
   requestProxy.destroy()
-  return true
+  return entity
 }
 
 export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: MapPositionTable,
   entities: readonly BlueprintEntityRead[],
-): void
-export function pasteBlueprint(
-  surface: SurfaceIdentification,
-  location: MapPositionTable,
-  entities: readonly Entity[] | RRecord<number, Entity>,
   areaRestriction?: BoundingBox,
-): void
-export function pasteBlueprint(
-  surface: SurfaceIdentification,
-  location: MapPositionTable,
-  entities: Record<number, BlueprintEntityRead>,
-  areaRestriction?: BoundingBox,
-): void {
-  if (isEmpty(entities)) return
+): LuaEntity[] {
+  if (isEmpty(entities)) return []
 
   if (areaRestriction) {
     // for performance reasons, instead of creating a new list, we remove entities outside the area and restore them later
     const area = bbox.normalize(areaRestriction).shiftNegative(location)
-    entities = (entities as Entity[]).filter((entity) => {
+    entities = entities.filter((entity) => {
       const entityBox = getTileBox(entity)
       return area.contains(entityBox.left_top) && area.contains(entityBox.right_bottom)
     })
@@ -97,7 +86,7 @@ export function pasteBlueprint(
   stack.set_stack("blueprint")
   stack.blueprint_snap_to_grid = [1, 1]
   stack.blueprint_absolute_snapping = true
-  stack.set_blueprint_entities(entities as BlueprintEntityRead[])
+  stack.set_blueprint_entities(entities)
   const ghosts = stack.build_blueprint({
     surface,
     position: location,
@@ -105,15 +94,24 @@ export function pasteBlueprint(
     force_build: true,
     skip_fog_of_war: false,
   })
+  const resultEntities: LuaEntity[] = []
   const attemptReRevive: LuaEntity[] = []
   for (const ghost of ghosts) {
-    if (!reviveGhost(ghost)) {
+    const entity = reviveGhost(ghost)
+    if (!entity) {
       attemptReRevive.push(ghost)
+    } else {
+      resultEntities.push(entity)
     }
   }
   for (const entity of attemptReRevive) {
-    reviveGhost(entity)
+    const revived = reviveGhost(entity)
+    if (revived) {
+      resultEntities.push(revived)
+    }
+    // todo: warning if not revived second time?
   }
+  return resultEntities
 }
 
 export function clearBuildableEntities(surface: SurfaceIdentification, area: BoundingBoxRead): void {

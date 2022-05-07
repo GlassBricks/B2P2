@@ -4,14 +4,17 @@ import { computeTileBox } from "./entity-info"
 
 export type EntityNumber = number
 
-export interface Entity extends BlueprintEntityRead {
+/** Minimally enough information to identify an existing entity. */
+export type Entity = Pick<BlueprintEntityRead, "name" | "position" | "direction">
+
+export interface FullEntity extends Entity, BlueprintEntityRead {
   readonly tileBox?: BoundingBoxRead
 }
 
-export interface PlainEntity extends Entity {
+export interface PlainEntity extends FullEntity {
   readonly changedProps?: never
 }
-export interface ReferenceEntity extends Entity {
+export interface ReferenceEntity extends FullEntity {
   readonly changedProps: LuaSet<UpdateableProp>
 }
 export type UpdateableReferenceEntity = Mutable<ReferenceEntity>
@@ -20,19 +23,17 @@ export type PasteEntity = PlainEntity | ReferenceEntity
 export type UpdateablePasteEntity = PlainEntity | UpdateableReferenceEntity
 
 export function getTileBox(entity: Entity): BoundingBoxRead {
-  return ((entity as Mutable<Entity>).tileBox ||= computeTileBox(entity))
+  return ((entity as Mutable<FullEntity>).tileBox ||= computeTileBox(entity))
 }
 
-export function withEntityNumber<T extends Entity>(entity: T, number: EntityNumber): T
-export function withEntityNumber(entity: BlueprintEntityRead, number: EntityNumber): Entity
-export function withEntityNumber<T extends Entity>(entity: T, number: EntityNumber): T {
+export function withEntityNumber<T extends FullEntity>(entity: T, number: EntityNumber): T {
   if (entity.entity_number === number) return entity
   const result = mutableShallowCopy(entity)
   result.entity_number = number
   return result
 }
 
-function remapEntityNumbers<T extends BlueprintEntityRead>(
+function remapEntityNumbers<T extends FullEntity>(
   entities: readonly T[],
   map: Record<EntityNumber, EntityNumber>,
 ): T[] {
@@ -79,7 +80,7 @@ function remapEntityNumbers<T extends BlueprintEntityRead>(
   }
 }
 
-export function remapEntityNumbersInArrayPosition<T extends BlueprintEntityRead>(entities: readonly T[]): T[] {
+export function remapEntityNumbersInArrayPosition<T extends FullEntity>(entities: readonly T[]): T[] {
   const map: Record<EntityNumber, EntityNumber> = {}
   for (const [number, entity] of ipairs(entities)) {
     map[entity.entity_number] = number
@@ -87,7 +88,7 @@ export function remapEntityNumbersInArrayPosition<T extends BlueprintEntityRead>
   return remapEntityNumbers(entities, map)
 }
 
-export function describeEntity(entity: BlueprintEntityRead): LocalisedString {
+export function describeEntity(entity: Entity): LocalisedString {
   return ["entity-name." + entity.name]
 }
 

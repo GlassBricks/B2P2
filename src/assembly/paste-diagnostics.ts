@@ -1,14 +1,13 @@
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
 import { addDiagnostic, DiagnosticCategory, DiagnosticCollection, Location } from "./diagnostics/Diagnostic"
-import { describeEntity, getTileBox, isUnhandledProp, UnhandledProp } from "../entity/entity"
+import { describeEntity, Entity, getTileBox, isUnhandledProp, UnhandledProp } from "../entity/entity"
 import { assertNever } from "../lib/util"
 import { L_Diagnostic } from "../locale"
 
 export type PasteDiagnosticId = "overlap" | "items-ignored" | "cannot-upgrade" | "unsupported-prop"
 
 export type PasteDiagnostics = DiagnosticCollection<PasteDiagnosticId>
-
-function makeLocation(worldTopLeft: MapPositionTable, surface: LuaSurface, entity: BlueprintEntityRead): Location {
+function makeLocation(worldTopLeft: MapPositionTable, surface: LuaSurface, entity: Entity): Location {
   return {
     surface,
     worldTopLeft,
@@ -21,12 +20,7 @@ export const Overlap = DiagnosticCategory(
     shortDescription: [L_Diagnostic.Overlap],
     highlightType: "not-allowed",
   },
-  (
-    below: BlueprintEntityRead,
-    above: BlueprintEntityRead,
-    surface: LuaSurface,
-    relativePosition: MapPositionTable,
-  ) => ({
+  (below: Entity, above: Entity, surface: LuaSurface, relativePosition: MapPositionTable) => ({
     message: [L_Diagnostic.OverlapItem, describeEntity(above), describeEntity(below)],
     location: makeLocation(relativePosition, surface, above),
   }),
@@ -38,12 +32,7 @@ export const CannotUpgrade = DiagnosticCategory(
     longDescription: [L_Diagnostic.CannotUpgradeDetail],
     highlightType: "copy",
   },
-  (
-    below: BlueprintEntityRead,
-    above: BlueprintEntityRead,
-    surface: LuaSurface,
-    relativePosition: MapPositionTable,
-  ) => ({
+  (below: Entity, above: Entity, surface: LuaSurface, relativePosition: MapPositionTable) => ({
     message: [L_Diagnostic.CannotUpgradeItem, describeEntity(above), describeEntity(below)],
     location: makeLocation(relativePosition, surface, above),
   }),
@@ -55,7 +44,7 @@ export const ItemsIgnored = DiagnosticCategory(
     longDescription: [L_Diagnostic.ItemsIgnoredDetail],
     highlightType: "pair",
   },
-  (entity: BlueprintEntityRead, surface: LuaSurface, relativePosition: MapPositionTable) => ({
+  (entity: Entity, surface: LuaSurface, relativePosition: MapPositionTable) => ({
     message: [L_Diagnostic.ItemsIgnoredItem, describeEntity(entity)],
     location: makeLocation(relativePosition, surface, entity),
   }),
@@ -67,7 +56,7 @@ export const UnsupportedProp = DiagnosticCategory(
     shortDescription: [L_Diagnostic.UnsupportedProp],
     highlightType: "not-allowed",
   },
-  (entity: BlueprintEntityRead, surface: LuaSurface, relativePosition: MapPositionTable, property: UnhandledProp) => ({
+  (entity: Entity, surface: LuaSurface, relativePosition: MapPositionTable, property: UnhandledProp) => ({
     message: [L_Diagnostic.UnsupportedPropItem, describeEntity(entity), property],
     location: makeLocation(relativePosition, surface, entity),
   }),

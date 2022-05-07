@@ -1,5 +1,5 @@
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
-import { Entity } from "../entity/entity"
+import { FullEntity } from "../entity/entity"
 import { getEntitySample } from "../test/entity-sample"
 import {
   CannotUpgrade,
@@ -13,8 +13,8 @@ import {
 import { Diagnostic, DiagnosticCategory } from "./diagnostics/Diagnostic"
 import { pos } from "../lib/geometry/position"
 
-let entity1: Entity
-let entity2: Entity
+let entity1: FullEntity
+let entity2: FullEntity
 before_all(() => {
   entity1 = getEntitySample("assembling-machine-1")
   entity2 = getEntitySample("assembling-machine-2")

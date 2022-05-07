@@ -1,5 +1,6 @@
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { UP } from "../lib/geometry/rotation"
+import { Entity } from "./entity"
 
 export interface EntityInfo {
   readonly collisionBox: BoundingBoxClass
@@ -27,7 +28,7 @@ export function getEntityInfo(entityName: string): EntityInfo {
 }
 
 // gets the area a blueprint entity takes, rounded to the nearest tile
-export function computeTileBox(entity: BlueprintEntityRead): BoundingBoxClass {
+export function computeTileBox(entity: Entity): BoundingBoxClass {
   // only conservative because of offshore pumps, is this worth it?
   return getEntityInfo(entity.name)
     .collisionBox.rotateAboutOrigin(entity.direction ?? UP)

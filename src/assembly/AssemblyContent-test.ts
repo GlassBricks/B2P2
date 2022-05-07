@@ -6,7 +6,7 @@ import { invalidMockImport, mockImport } from "./imports/import-mock"
 import { pos } from "../lib/geometry/position"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { BlueprintPasteConflicts, Overlap } from "../blueprint/blueprint-paste"
-import { Entity, FullEntity, withEntityNumber } from "../entity/entity"
+import { FullEntity, withEntityNumber } from "../entity/entity"
 import { Mutable } from "../lib/util-types"
 import { assertNever } from "../lib/util"
 import { Classes } from "../lib"
@@ -223,7 +223,7 @@ describe("paste conflicts", () => {
     "pole circuit add": undefined,
   }
   function assertConflictEquivalent(expected: BlueprintPasteConflicts, actual: BlueprintPasteConflicts): void {
-    function normalizeEntity(entity: Entity) {
+    function normalizeEntity(entity: FullEntity) {
       const result = withEntityNumber(entity, 1) as Mutable<FullEntity>
       delete result.connections
       return result

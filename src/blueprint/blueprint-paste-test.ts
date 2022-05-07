@@ -1,5 +1,5 @@
 import { Blueprint } from "./Blueprint"
-import { Entity, PasteEntity, ReferenceEntity } from "../entity/entity"
+import { FullEntity, PasteEntity, ReferenceEntity } from "../entity/entity"
 import { getEntitySample } from "../test/entity-sample"
 import { pos } from "../lib/geometry/position"
 import {
@@ -19,7 +19,7 @@ import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { createReferenceOnlyEntity } from "../entity/entity-paste"
 
 let emptyBlueprint: Blueprint
-function getAssemblingMachineEntity(): Entity {
+function getAssemblingMachineEntity(): FullEntity {
   return {
     ...getEntitySample("assembling-machine-1"),
     position: pos(3.5, 3.5),
