@@ -16,6 +16,7 @@ import {
 } from "./entity"
 import { pos } from "../lib/geometry/position"
 import { getEntityInfo } from "./entity-info"
+import { UP } from "../lib/geometry/rotation"
 
 export function isCompatibleEntity(a: Entity, b: Entity): boolean {
   if (!pos.equals(a.position, b.position)) return false
@@ -24,7 +25,7 @@ export function isCompatibleEntity(a: Entity, b: Entity): boolean {
   const bInfo = getEntityInfo(b.name)
   if (aInfo.entityGroup !== bInfo.entityGroup) return false
 
-  return aInfo.isRotationPasteable || a.direction === b.direction
+  return aInfo.isRotationPasteable || (a.direction ?? UP) === (b.direction ?? UP)
 }
 
 function findConflictsAndUpdateReferenceEntity(

@@ -1,7 +1,7 @@
 import { Assembly } from "../Assembly"
 import { BasicImport } from "./BasicImport"
 import { getBlueprintSample } from "../../test/blueprint-sample"
-import { pasteBlueprint } from "../../world-interaction/blueprint"
+import { clearBuildableEntities, pasteBlueprint } from "../../world-interaction/blueprint"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { assertBlueprintsEquivalent } from "../../test/blueprint"
 import { Blueprint } from "../../blueprint/Blueprint"
@@ -15,6 +15,7 @@ let area: BoundingBoxRead
 before_each(() => {
   blueprint = Blueprint.fromArray(getBlueprintSample("original"))
   ;[surface, area] = getWorkingArea1()
+  clearBuildableEntities(surface, area)
 })
 after_each(() => {
   for (const [assembly] of Assembly.getAllAssemblies()) {
