@@ -13,10 +13,10 @@ import {
 } from "./blueprint-paste"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
-import { get_area } from "__testorio__/testUtil/areas"
 import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
-import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
+import { BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { createReferenceOnlyEntity } from "../entity/entity-paste"
+import { getWorkingArea1 } from "../test/misc"
 
 let emptyBlueprint: Blueprint
 function getAssemblingMachineEntity(): FullEntity {
@@ -179,9 +179,7 @@ describe("findBlueprintPasteConflictsInWorld", () => {
   let surface: LuaSurface
   let area: BoundingBoxClass
   before_all(() => {
-    const [surface1, area1] = get_area(1 as SurfaceIdentification, "working area 1")
-    area = bbox.normalize(area1)
-    surface = surface1
+    ;[surface, area] = getWorkingArea1()
     clearBuildableEntities(surface, area)
     pasteBlueprint(surface, area.left_top, singleAssemblerBlueprint.entities, area)
   })

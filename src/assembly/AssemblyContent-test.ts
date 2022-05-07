@@ -11,9 +11,9 @@ import { Mutable } from "../lib/util-types"
 import { assertNever } from "../lib/util"
 import { Classes } from "../lib"
 import { AssemblyContent, DefaultAssemblyContent } from "./AssemblyContent"
-import { get_area } from "__testorio__/testUtil/areas"
 import { mapPasteConflictsToDiagnostics } from "./paste-diagnostics"
 import { getActualLocation } from "./diagnostics/Diagnostic"
+import { getWorkingArea1 } from "../test/misc"
 
 test("registered", () => {
   Classes.nameOf(DefaultAssemblyContent)
@@ -25,9 +25,7 @@ let surface: LuaSurface
 let originalBlueprintSample: Blueprint
 
 before_all(() => {
-  const [surface1, area1] = get_area(1 as SurfaceIdentification, "working area 1")
-  surface = surface1
-  area = bbox.normalize(area1)
+  ;[surface, area] = getWorkingArea1()
 
   originalBlueprintSample = Blueprint.fromArray(getBlueprintSample("original"))
 })

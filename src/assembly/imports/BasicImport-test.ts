@@ -1,22 +1,20 @@
 import { Assembly } from "../Assembly"
 import { BasicImport } from "./BasicImport"
 import { getBlueprintSample } from "../../test/blueprint-sample"
-import { get_area } from "__testorio__/testUtil/areas"
 import { pasteBlueprint } from "../../world-interaction/blueprint"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { assertBlueprintsEquivalent } from "../../test/blueprint"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { pos } from "../../lib/geometry/position"
 import { UserError } from "../../lib"
+import { getWorkingArea1 } from "../../test/misc"
 
 let blueprint: Blueprint
 let surface: LuaSurface
 let area: BoundingBoxRead
 before_each(() => {
   blueprint = Blueprint.fromArray(getBlueprintSample("original"))
-  const [surface1, area1] = get_area(1 as SurfaceIdentification, "working area 1")
-  surface = surface1
-  area = bbox.normalize(area1)
+  ;[surface, area] = getWorkingArea1()
 })
 after_each(() => {
   for (const [assembly] of Assembly.getAllAssemblies()) {

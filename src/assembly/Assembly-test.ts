@@ -2,15 +2,13 @@ import { Assembly } from "./Assembly"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
 import { Classes, UserError } from "../lib"
-import { get_area } from "__testorio__/testUtil/areas"
+import { getWorkingArea1 } from "../test/misc"
 
 let area: BoundingBoxClass
 let surface: LuaSurface
 
 before_all(() => {
-  const [surface1, area1] = get_area(1 as SurfaceIdentification, "working area 1")
-  surface = surface1
-  area = bbox.normalize(area1)
+  ;[surface, area] = getWorkingArea1()
 })
 after_each(() => {
   for (const [assembly] of Assembly.getAllAssemblies()) {
