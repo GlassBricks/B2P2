@@ -25,8 +25,8 @@ export const Overlap = DiagnosticCategory(
     aboveLocation: AreaIdentification | undefined,
   ) => ({
     message: [L_Diagnostic.OverlapItem, describeEntity(above), describeEntity(below)],
-    location: belowLocation,
-    altLocation: aboveLocation,
+    location: aboveLocation,
+    altLocation: belowLocation,
   }),
 )
 export const CannotUpgrade = DiagnosticCategory(
@@ -43,8 +43,8 @@ export const CannotUpgrade = DiagnosticCategory(
     aboveLocation: AreaIdentification | undefined,
   ) => ({
     message: [L_Diagnostic.CannotUpgradeItem, describeEntity(above), describeEntity(below)],
-    location: belowLocation,
-    altLocation: aboveLocation,
+    location: aboveLocation,
+    altLocation: belowLocation,
   }),
 )
 export const ItemsIgnored = DiagnosticCategory(
@@ -61,8 +61,8 @@ export const ItemsIgnored = DiagnosticCategory(
     aboveLocation: AreaIdentification | undefined,
   ) => ({
     message: [L_Diagnostic.ItemsIgnoredItem, describeEntity(above)],
-    location: belowLocation,
-    altLocation: aboveLocation,
+    location: aboveLocation,
+    altLocation: belowLocation,
   }),
 )
 
@@ -80,8 +80,8 @@ export const UnsupportedProp = DiagnosticCategory(
     prop: string,
   ) => ({
     message: [L_Diagnostic.UnsupportedPropItem, describeEntity(above), prop],
-    location: belowLocation,
-    altLocation: aboveLocation,
+    location: aboveLocation,
+    altLocation: belowLocation,
   }),
 )
 

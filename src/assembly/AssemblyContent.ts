@@ -29,7 +29,7 @@ export interface AssemblyContent extends AreaIdentification {
   resetInWorld(): void
   readonly pasteDiagnostics: State<readonly LayerPasteDiagnostics[]>
 
-  hasConflicts(): State<boolean>
+  hasConflictsProp(): State<boolean>
 
   readonly resultContent: State<Blueprint | undefined> // undefined when invalid
   readonly entitySourceMap: State<EntitySourceMap | undefined>
@@ -167,7 +167,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
     }
   }
 
-  hasConflicts(): State<boolean> {
+  hasConflictsProp(): State<boolean> {
     return this.pasteDiagnostics.map(funcRef(DefaultAssemblyContent.hasAnyConflicts))
   }
   private static hasAnyConflicts(this: void, conflicts: readonly LayerPasteDiagnostics[]): boolean {

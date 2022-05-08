@@ -56,7 +56,7 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
             <tab
               caption={this.assembly
                 .getContent()!
-                .hasConflicts()
+                .hasConflictsProp()
                 .choice([L_Gui.DiagnosticsWithConflicts], [L_Gui.Diagnostics])}
             />
             <DiagnosticsTab assembly={this.assembly} />
