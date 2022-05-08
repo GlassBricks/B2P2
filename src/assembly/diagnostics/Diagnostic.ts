@@ -1,7 +1,6 @@
 import { bbox } from "../../lib/geometry/bounding-box"
 import { Mutable } from "../../lib/util-types"
 import { AreaIdentification } from "../AreaIdentification"
-import scaleAroundCenter = bbox.scaleAroundCenter
 import center = bbox.center
 
 export interface DiagnosticCategory<Id extends string> {
@@ -15,7 +14,9 @@ export type Diagnostic = {
   readonly id: string
   readonly message?: LocalisedString
   readonly location?: AreaIdentification
+  readonly highlightLocation?: AreaIdentification
   readonly altLocation?: AreaIdentification
+  readonly altHighlightLocation?: AreaIdentification
 }
 
 export type DiagnosticCollection<Id extends string = string> = {
@@ -63,19 +64,22 @@ export function addDiagnostic<Id extends string, A extends any[]>(
 }
 
 const defaultType: CursorBoxRenderType = "entity"
-export function createDiagnosticHighlight(
-  diagnostic: Diagnostic,
+
+export function getDiagnosticHighlightType(categoryId: string): CursorBoxRenderType {
+  return categories.get(categoryId)?.highlightType ?? defaultType
+}
+
+export function createHighlight(
+  location: AreaIdentification | undefined,
+  highlightType: CursorBoxRenderType,
   additionalParams: Partial<HighlightBoxSurfaceCreateEntity> = {},
-  scale: number = 1,
 ): HighlightBoxEntity | undefined {
-  const { id, location } = diagnostic
   if (!location) return
-  const box = location.area
-  const highlightType = categories.get(id)!.highlightType ?? defaultType
+  const area = location.area
   return location.surface.create_entity({
     name: "highlight-box",
-    position: center(box),
-    bounding_box: scaleAroundCenter(box, scale),
+    position: center(area),
+    bounding_box: area,
     box_type: highlightType,
     ...additionalParams,
   })

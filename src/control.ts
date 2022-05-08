@@ -28,7 +28,7 @@ if (script.active_mods.testorio) {
   require("__testorio__/init")(__getTestFiles(), {
     tag_blacklist: tagBlacklist,
     before_test_run() {
-      // clear global data
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       global = {}
       Events.raiseFakeEventNamed("on_init", undefined)
       const force = game.forces.player

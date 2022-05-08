@@ -1,11 +1,5 @@
 import { L_Diagnostic } from "../../locale"
-import {
-  addDiagnostic,
-  createDiagnosticHighlight,
-  Diagnostic,
-  DiagnosticCategory,
-  DiagnosticCollection,
-} from "./Diagnostic"
+import { addDiagnostic, createHighlight, DiagnosticCategory, DiagnosticCollection } from "./Diagnostic"
 import { pos } from "../../lib/geometry/position"
 import { bbox } from "../../lib/geometry/bounding-box"
 
@@ -47,21 +41,18 @@ test("addDiagnostic", () => {
 
 describe("highlight", () => {
   test("undefined for no entity", () => {
-    const diagnostic = category.create(1)
-    const result = createDiagnosticHighlight(diagnostic)
+    const result = createHighlight(undefined, "entity", {})
     assert.is_nil(result)
   })
 
   test("with location", () => {
-    const diagnostic: Diagnostic = {
-      id: category.id,
-      message: [L_Diagnostic.Overlap, 1],
-      location: {
+    const result = createHighlight(
+      {
         surface: game.surfaces[1],
         area: bbox.fromCorners(0, 0, 1, 1),
       },
-    }
-    const result = createDiagnosticHighlight(diagnostic)!
+      "entity",
+    )!
     assert.not_nil(result)
     assert.same(pos(0.5, 0.5), result.position)
     assert.same(bbox.fromCorners(0, 0, 1, 1), result.bounding_box)

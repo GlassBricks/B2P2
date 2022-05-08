@@ -14,7 +14,7 @@ import { pos } from "../lib/geometry/position"
 import { MutableState, state, State } from "../lib/observable"
 import { isEmpty } from "../lib/util"
 import { mapPasteConflictsToDiagnostics, PasteDiagnostics } from "./paste-diagnostics"
-import { createDiagnosticHighlight } from "./diagnostics/Diagnostic"
+import { createHighlight, getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
 import { EntitySourceMap, EntitySourceMapBuilder } from "./EntitySourceMap"
 import { AreaIdentification } from "./AreaIdentification"
 
@@ -155,14 +155,14 @@ export class DefaultAssemblyContent implements AssemblyContent {
   ): PasteDiagnostics {
     const absoluteLeftTop = this.getAbsolutePosition(relativeLeftTop)
     const diagnostics = mapPasteConflictsToDiagnostics(conflicts, this.surface, absoluteLeftTop, sourceMap)
-    DefaultAssemblyContent.renderDiagnostics(diagnostics)
+    DefaultAssemblyContent.renderDiagnosticHighlights(diagnostics)
     return diagnostics
   }
 
-  private static renderDiagnostics(collection: PasteDiagnostics): void {
+  private static renderDiagnosticHighlights(collection: PasteDiagnostics): void {
     for (const [, diagnostics] of pairs(collection)) {
       for (const diagnostic of diagnostics) {
-        createDiagnosticHighlight(diagnostic)
+        createHighlight(diagnostic.location, getDiagnosticHighlightType(diagnostic.id), {})
       }
     }
   }

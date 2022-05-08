@@ -6,6 +6,7 @@ import { L_Diagnostic } from "../locale"
 import { AreaIdentification } from "./AreaIdentification"
 import { EntitySourceMap, getEntitySourceLocation } from "./EntitySourceMap"
 import { bbox } from "../lib/geometry/bounding-box"
+import { pos } from "../lib/geometry/position"
 import shift = bbox.shift
 
 export type PasteDiagnosticId = "overlap" | "items-ignored" | "cannot-upgrade" | "unsupported-prop"
@@ -20,13 +21,17 @@ export const Overlap = DiagnosticCategory(
   },
   (
     below: Entity,
-    belowLocation: AreaIdentification | undefined,
     above: Entity,
-    aboveLocation: AreaIdentification | undefined,
+    assemblyBelowLocation: AreaIdentification,
+    assemblyAboveLocation: AreaIdentification,
+    sourceBelowLocation: AreaIdentification | undefined,
+    sourceAboveLocation: AreaIdentification | undefined,
   ) => ({
     message: [L_Diagnostic.OverlapItem, describeEntity(above), describeEntity(below)],
-    location: aboveLocation,
-    altLocation: belowLocation,
+    location: assemblyAboveLocation,
+    highlightLocation: assemblyBelowLocation,
+    altLocation: sourceAboveLocation,
+    altHighlightLocation: sourceBelowLocation,
   }),
 )
 export const CannotUpgrade = DiagnosticCategory(
@@ -38,13 +43,13 @@ export const CannotUpgrade = DiagnosticCategory(
   },
   (
     below: Entity,
-    belowLocation: AreaIdentification | undefined,
+    sourceLocation: AreaIdentification | undefined,
     above: Entity,
-    aboveLocation: AreaIdentification | undefined,
+    assemblyLocation: AreaIdentification | undefined,
   ) => ({
     message: [L_Diagnostic.CannotUpgradeItem, describeEntity(above), describeEntity(below)],
-    location: aboveLocation,
-    altLocation: belowLocation,
+    location: assemblyLocation,
+    altLocation: sourceLocation,
   }),
 )
 export const ItemsIgnored = DiagnosticCategory(
@@ -56,13 +61,13 @@ export const ItemsIgnored = DiagnosticCategory(
   },
   (
     below: Entity,
-    belowLocation: AreaIdentification | undefined,
+    sourceLocation: AreaIdentification | undefined,
     above: Entity,
-    aboveLocation: AreaIdentification | undefined,
+    assemblyLocation: AreaIdentification,
   ) => ({
     message: [L_Diagnostic.ItemsIgnoredItem, describeEntity(above)],
-    location: aboveLocation,
-    altLocation: belowLocation,
+    location: assemblyLocation,
+    altLocation: sourceLocation,
   }),
 )
 
@@ -74,14 +79,14 @@ export const UnsupportedProp = DiagnosticCategory(
   },
   (
     below: Entity,
-    belowLocation: AreaIdentification | undefined,
+    sourceLocation: AreaIdentification | undefined,
     above: Entity,
-    aboveLocation: AreaIdentification | undefined,
+    assemblyLocation: AreaIdentification,
     prop: string,
   ) => ({
     message: [L_Diagnostic.UnsupportedPropItem, describeEntity(above), prop],
-    location: aboveLocation,
-    altLocation: belowLocation,
+    location: assemblyLocation,
+    altLocation: sourceLocation,
   }),
 )
 
@@ -93,10 +98,10 @@ export function mapPasteConflictsToDiagnostics(
 ): PasteDiagnostics {
   const diagnostics: PasteDiagnostics = {}
 
-  function getBelowArea(entity: Entity): AreaIdentification | undefined {
+  function getSourceArea(entity: Entity): AreaIdentification | undefined {
     return getEntitySourceLocation(sourceMap, entity, pastedLeftTop)
   }
-  function getAboveArea(entity: Entity): AreaIdentification | undefined {
+  function getAssemblyArea(entity: Entity): AreaIdentification {
     return {
       surface,
       area: shift(getTileBox(entity), pastedLeftTop),
@@ -105,13 +110,40 @@ export function mapPasteConflictsToDiagnostics(
 
   if (conflicts.overlaps) {
     for (const { below, above } of conflicts.overlaps) {
-      addDiagnostic(diagnostics, Overlap, below, getBelowArea(below), above, getAboveArea(above))
+      const aboveAssemblyArea = getAssemblyArea(above)
+      const belowAssemblyArea = getAssemblyArea(below)
+
+      const belowSourceArea = getSourceArea(below)
+
+      let aboveSourceArea: AreaIdentification | undefined
+      if (belowSourceArea) {
+        // relative area of above entity in below source area
+        const sourcePos = belowSourceArea.area.left_top
+        const belowRelativePos = getTileBox(below).left_top
+        const offset = pos.sub(sourcePos, belowRelativePos)
+        const relativeAltLocation: BoundingBoxRead = bbox.shift(getTileBox(above), offset)
+        aboveSourceArea = {
+          surface: belowSourceArea.surface,
+          area: relativeAltLocation,
+        }
+      }
+
+      addDiagnostic(
+        diagnostics,
+        Overlap,
+        below,
+        above,
+        belowAssemblyArea,
+        aboveAssemblyArea,
+        belowSourceArea,
+        aboveSourceArea,
+      )
     }
   }
   if (conflicts.propConflicts)
     for (const { prop, below, above } of conflicts.propConflicts) {
-      const belowArea = getBelowArea(below)
-      const aboveArea = getAboveArea(above)
+      const belowArea = getSourceArea(below)
+      const aboveArea = getAssemblyArea(above)
       if (prop === "name") {
         addDiagnostic(diagnostics, CannotUpgrade, below, belowArea, above, aboveArea)
       } else if (prop === "items") {

@@ -1,10 +1,8 @@
-import { Component, ComponentClass, destroy, EmptyProps, render, Spec, Tracker } from "../../lib/factoriojsx"
+import { Component, ComponentClass, destroy, EmptyProps, render } from "../../lib/factoriojsx"
 
 export type ConcreteWindow = ComponentClass<EmptyProps> & typeof Window
 
-export abstract class Window implements Component<EmptyProps> {
-  // implements instead of extends to reduce prototype chain
-
+export abstract class Window extends Component<EmptyProps> {
   static readonly _fullName: string | undefined
   public static getName(this: ConcreteWindow): string {
     let name = rawget(this, "_fullName" as any)
@@ -47,10 +45,4 @@ export abstract class Window implements Component<EmptyProps> {
       this.create(screen)
     }
   }
-
-  abstract render(props: EmptyProps, tracker: Tracker): Spec
-  declare _props: EmptyProps
-
-  onMount?(firstElement: LuaGuiElement, tracker: Tracker): void
-  onDestroy?(): void
 }

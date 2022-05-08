@@ -23,8 +23,8 @@ let area1: AreaIdentification
 let area2: AreaIdentification
 let sourceMap: EntitySourceMap
 
-let entity1Location: AreaIdentification
-let entity2Location: AreaIdentification
+let entity1SourceLocation: AreaIdentification
+let entity2AssemblyLocation: AreaIdentification
 
 before_all(() => {
   entity1 = getEntitySample("assembling-machine-1")
@@ -37,8 +37,8 @@ before_all(() => {
 
   sourceMap = new EntitySourceMapBuilder().addMock(entity1, area1, area2.area.left_top).build()
 
-  entity1Location = { surface, area: bbox.load(getTileBox(entity1)).shift(area1.area.left_top) }
-  entity2Location = { surface, area: bbox.load(getTileBox(entity2)).shift(area2.area.left_top) }
+  entity1SourceLocation = { surface, area: bbox.load(getTileBox(entity1)).shift(area1.area.left_top) }
+  entity2AssemblyLocation = { surface, area: bbox.load(getTileBox(entity2)).shift(area2.area.left_top) }
 })
 
 function assertSingleDiagnostic(map: PasteDiagnostics, expectedDiagnostic: Diagnostic) {
@@ -57,8 +57,20 @@ test("overlap", () => {
       },
     ],
   }
+
+  const entity1AssemblyLocation = { surface, area: bbox.load(getTileBox(entity1)).shift(area2.area.left_top) }
+  const entity2SourceLocation = { surface, area: bbox.load(getTileBox(entity2)).shift(area1.area.left_top) }
+
+  const expected = Overlap.create(
+    entity1,
+    entity2,
+    entity1AssemblyLocation,
+    entity2AssemblyLocation,
+    entity1SourceLocation,
+    entity2SourceLocation,
+  )
+
   const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
-  const expected = Overlap.create(entity1, entity1Location, entity2, entity2Location)
   assertSingleDiagnostic(diagnostics, expected)
 })
 
@@ -73,7 +85,7 @@ test("upgrade", () => {
     ],
   }
   const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
-  const expected = CannotUpgrade.create(entity1, entity1Location, entity2, entity2Location)
+  const expected = CannotUpgrade.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
   assertSingleDiagnostic(diagnostics, expected)
 })
 
@@ -88,7 +100,7 @@ test("items", () => {
     ],
   }
   const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
-  const expected = ItemsIgnored.create(entity1, entity1Location, entity2, entity2Location)
+  const expected = ItemsIgnored.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
   assertSingleDiagnostic(diagnostics, expected)
 })
 
@@ -103,6 +115,6 @@ test("unsupported prop", () => {
     ],
   }
   const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
-  const expected = UnsupportedProp.create(entity1, entity1Location, entity2, entity2Location, "foo")
+  const expected = UnsupportedProp.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation, "foo")
   assertSingleDiagnostic(diagnostics, expected)
 })

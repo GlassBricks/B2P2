@@ -4,11 +4,17 @@ import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { Styles } from "../../constants"
 import { Fn } from "../components/Fn"
 import { PasteDiagnosticId } from "../../assembly/paste-diagnostics"
-import { createDiagnosticHighlight, Diagnostic, getDiagnosticCategory } from "../../assembly/diagnostics/Diagnostic"
+import {
+  createHighlight,
+  Diagnostic,
+  getDiagnosticCategory,
+  getDiagnosticHighlightType,
+} from "../../assembly/diagnostics/Diagnostic"
 import { LayerPasteDiagnostics } from "../../assembly/AssemblyContent"
 import { L_Gui } from "../../locale"
 import { MaybeState } from "../../lib/observable"
 import { isEmpty } from "../../lib/util"
+import { AreaIdentification } from "../../assembly/AreaIdentification"
 
 @Classes.register()
 export class DiagnosticsTab extends Component<{
@@ -43,11 +49,8 @@ export class DiagnosticsTab extends Component<{
       L_Gui.OwnContents,
     ]
     const allDiagnostics = layerDiagnostics.diagnostics
+    if (isEmpty(allDiagnostics)) return <></>
     const categories = Object.keys(allDiagnostics) as PasteDiagnosticId[]
-    const hasDiagnostics = !isEmpty(categories)
-    if (!hasDiagnostics) {
-      return <></>
-    }
 
     return (
       <>
@@ -89,8 +92,8 @@ export class DiagnosticsTab extends Component<{
             <button
               style="list_box_item"
               caption={diagnostic.message}
-              enabled={diagnostic.location !== undefined}
-              on_gui_click={diagnostic.location && bind(this.teleportTo, this, diagnostic)}
+              on_gui_click={bind(this.diagnosticClicked, this, diagnostic)}
+              mouse_button_filter={["left"]}
             />
           ))}
         </flow>
@@ -99,23 +102,56 @@ export class DiagnosticsTab extends Component<{
   }
 
   @bound
-  private teleportTo(diagnostic: Diagnostic, event: OnGuiClickEvent) {
-    const surface = this.assembly.surface
+  private diagnosticClicked(diagnostic: Diagnostic, event: OnGuiClickEvent) {
+    if (!event.shift) {
+      DiagnosticsTab.showDiagnosticMainLocation(diagnostic, event)
+    } else {
+      DiagnosticsTab.showDiagnosticAltLocation(diagnostic, event)
+    }
+  }
 
-    const highlight = createDiagnosticHighlight(
-      diagnostic,
-      {
-        blink_interval: 20,
-        time_to_live: 300,
-        box_type: "entity",
-        render_player_index: event.player_index,
-      },
-      1.1,
-    )!
+  private static showDiagnosticMainLocation(diagnostic: Diagnostic, event: OnGuiClickEvent) {
+    const location = diagnostic.highlightLocation ?? diagnostic.location
+    if (!location) return
+    DiagnosticsTab.createHighlightAndTeleportPlayer(location, game.get_player(event.player_index)!, "entity")
+  }
+  private static showDiagnosticAltLocation(diagnostic: Diagnostic, event: OnGuiClickEvent) {
+    const location = diagnostic.altHighlightLocation ?? diagnostic.altLocation
+    if (!location) return
+    DiagnosticsTab.createHighlightAndTeleportPlayer(location, game.get_player(event.player_index)!, "copy")
+    if (diagnostic.altHighlightLocation && diagnostic.altLocation) {
+      DiagnosticsTab.createHighlight(
+        diagnostic.altLocation,
+        getDiagnosticHighlightType(diagnostic.id),
+        event.player_index,
+        false,
+      )
+    }
+  }
 
+  private static createHighlightAndTeleportPlayer(
+    location: AreaIdentification,
+    player: LuaPlayer,
+    boxType: CursorBoxRenderType,
+  ) {
+    const highlight = DiagnosticsTab.createHighlight(location, boxType, player.index, true)
     const position = highlight.position
-    const player = game.get_player(event.player_index)!
+    DiagnosticsTab.teleportPlayerToPos(player, location.surface, position)
+  }
 
+  private static createHighlight(
+    location: AreaIdentification,
+    boxType: CursorBoxRenderType,
+    playerIndex: PlayerIndex,
+    blinking: boolean,
+  ) {
+    return createHighlight(location, boxType, {
+      blink_interval: blinking ? 20 : undefined,
+      time_to_live: 300,
+      render_player_index: playerIndex,
+    })!
+  }
+  private static teleportPlayerToPos(player: LuaPlayer, surface: LuaSurface, position: MapPositionTable) {
     if (player.character && player.surface === surface) {
       player.zoom_to_world(position, 1)
     } else {
