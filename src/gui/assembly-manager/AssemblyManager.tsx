@@ -1,7 +1,7 @@
 import { bound, Classes, funcRef, PlayerData, reg } from "../../lib"
 import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
 import { GuiConstants } from "../../constants"
-import { Assembly } from "../../assembly/Assembly"
+import { Assembly, AssemblyDeleted } from "../../assembly/Assembly"
 import { AMTitleBar } from "./AMTitleBar"
 import { AMSubframeButtons } from "./AMSubframeButtons"
 import { L_Gui } from "../../locale"
@@ -23,8 +23,6 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
       this.element = element as FrameGuiElementMembers
       openedAssemblies[element.player_index].set(props.assembly, this)
       tracker.onDestroy(reg(this.onDestroyed))
-      const subscription = this.assembly.onDeleteEvent()!.subscribe(reg(this.closeSelf))
-      tracker.onDestroy(subscription)
     })
 
     return (
@@ -71,7 +69,7 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
     openedAssemblies[this.element.player_index].delete(this.assembly)
   }
 
-  @bound
+  // @bound
   closeSelf(): void {
     destroy(this.element)
   }
@@ -90,3 +88,9 @@ export function openAssemblyManager(player: LuaPlayer, assembly: Assembly): void
   }
   render(player.gui.screen, <AssemblyManager assembly={assembly} />)
 }
+
+AssemblyDeleted.subscribe((assembly) => {
+  for (const [, assemblies] of openedAssemblies) {
+    assemblies.get(assembly)?.closeSelf()
+  }
+})

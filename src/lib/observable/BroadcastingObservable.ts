@@ -1,12 +1,11 @@
-import { bind, Callback, Classes } from "../references"
+import { bind, Callback } from "../references"
 import { Observable, Observer, Unsubscribe } from "./Observable"
 
 interface ObserverKey {
   _observerKeyBrand?: any
 }
 
-@Classes.register()
-export class BroadcastingObservable<T> extends Observable<T> {
+export abstract class BroadcastingObservable<T> extends Observable<T> {
   private readonly observers = new LuaMap<ObserverKey, Observer<T>>()
   subscribe(observer: Observer<T>): Callback {
     const key: ObserverKey = {}

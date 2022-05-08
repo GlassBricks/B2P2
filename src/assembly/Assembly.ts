@@ -3,15 +3,18 @@ import { bbox } from "../lib/geometry/bounding-box"
 import { MutableObservableSet, observableSet, ObservableSet } from "../lib/observable/ObservableSet"
 import { L_Gui, L_Interaction } from "../locale"
 import { Colors } from "../constants"
-import { Event, MutableState, Observable, State, state } from "../lib/observable"
+import { MutableState, State, state } from "../lib/observable"
 import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 import { AreaIdentification } from "./AreaIdentification"
+import { GlobalEvent } from "../lib/observable/Event"
+
+export const AssemblyCreated = new GlobalEvent<Assembly>()
+export const AssemblyDeleted = new GlobalEvent<Assembly>()
 
 @Classes.register()
 export class Assembly implements AreaIdentification {
   readonly name: MutableState<string>
   readonly displayName: State<LocalisedString>
-  readonly onDelete: Event<void> = new Event()
 
   private readonly boxRenderId: number
   private readonly textRenderId: number
@@ -63,6 +66,7 @@ export class Assembly implements AreaIdentification {
     const content = createAssemblyContent(surface, area)
     const assembly = new Assembly(name, surface, area, content)
     global.assemblies.add(assembly)
+    AssemblyCreated.raise(assembly)
     return assembly
   }
 
@@ -118,15 +122,11 @@ export class Assembly implements AreaIdentification {
     rendering.destroy(this.boxRenderId)
     rendering.destroy(this.textRenderId)
     global.assemblies.delete(this)
-    this.onDelete.raise()
+    AssemblyDeleted.raise(this)
   }
 
   getContent(): AssemblyContent | undefined {
     if (this.isValid()) return this.content
-  }
-
-  onDeleteEvent(): Observable<void> | undefined {
-    if (this.isValid()) return this.onDelete
   }
 
   static getAllAssemblies(): ObservableSet<Assembly> {

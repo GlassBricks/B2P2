@@ -1,7 +1,5 @@
 ## Now
 
-- track entity source
-
 - ability to toggle imports temporarily
 - autoreset
 
@@ -11,7 +9,6 @@
 
 - handle rails and locomotives
 - handle other off-grid stuff
-- clean imports
 
 ## v0.2
 
