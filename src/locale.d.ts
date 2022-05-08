@@ -11,17 +11,17 @@ export declare const enum L_Diagnostic {
   OverlapItem = "bbpp.diagnostic.overlap-item",
   /** [color=purple]Upgrades:[/color] */
   CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
-  /** These entities were upgraded/fast-replaced, which cannot be pasted. This may be better supported in the future. */
+  /** Upgraded/fast-replace cannot be pasted by blueprinting. This may be better supported in the future. */
   CannotUpgradeDetail = "bbpp.diagnostic.cannot-upgrade-detail",
   /** __1__ changed from __2__ */
   CannotUpgradeItem = "bbpp.diagnostic.cannot-upgrade-item",
-  /** [color=yellow]Item requests ignored:[/color] */
+  /** [color=yellow]Item requests changes:[/color] */
   ItemsIgnored = "bbpp.diagnostic.items-ignored",
   /** Changes in item requests will have no effect on paste. */
   ItemsIgnoredDetail = "bbpp.diagnostic.items-ignored-detail",
   /** __1__ */
   ItemsIgnoredItem = "bbpp.diagnostic.items-ignored-item",
-  /** [color=yellow]Unsupported properties:[/color] */
+  /** [color=yellow]Unsupported properties:[/color] [img=info] */
   UnsupportedProp = "bbpp.diagnostic.unsupported-prop",
   /** These properties are not yet checked. Please report this to the mod author! */
   UnsupportedPropDetail = "bbpp.diagnostic.unsupported-prop-detail",
@@ -45,6 +45,8 @@ export declare const enum L_Interaction {
   CannotFlipOrRotateImport = "bbpp.interaction.cannot-flip-or-rotate-import",
   /** An import from "__1__" was created on "__2__". */
   ImportCreated = "bbpp.interaction.import-created",
+  /** This import has no source assembly. */
+  ImportHasNoSource = "bbpp.interaction.import-has-no-source",
   /** Assembly saved\n  [font=default-bold]__1__[/font] entities */
   AssemblySaved = "bbpp.interaction.assembly-saved",
   /** Paste conflicts found after reset! */
@@ -65,7 +67,7 @@ export declare const enum L_Gui {
   TeleportToAssembly = "bbpp.gui.teleport-to-assembly",
   /** Save */
   Save = "bbpp.gui.save",
-  /** Save the current assembly, and reset the area. */
+  /** Save the current assembly and reset the area. */
   SaveButtonTooltip = "bbpp.gui.save-button-tooltip",
   /** There are paste conflicts in this assembly.\nSome entities may not save as expected.\nAre you sure you want to save? */
   ConfirmSaveWithPasteConflicts = "bbpp.gui.confirm-save-with-paste-conflicts",
@@ -73,7 +75,7 @@ export declare const enum L_Gui {
   ConfirmSaveWithDeletions = "bbpp.gui.confirm-save-with-deletions",
   /** Reset */
   Reset = "bbpp.gui.reset",
-  /** Resets the current assembly. [font=default-bold]Shift-click[/font] to skip confirmation dialog. */
+  /** Reset the current assembly. [font=default-bold]Shift-click[/font] to skip confirmation dialog. */
   ResetButtonTooltip = "bbpp.gui.reset-button-tooltip",
   /** Are you sure you want to reset this assembly? Any unsaved changes will be lost. */
   ConfirmResetAssembly = "bbpp.gui.confirm-reset-assembly",
@@ -89,7 +91,7 @@ export declare const enum L_Gui {
   ChooseImportSource = "bbpp.gui.choose-import-source",
   /** There are no importable assemblies. */
   NoSourceAssemblies = "bbpp.gui.no-source-assemblies",
-  /** [font=default-bold]Left-click[/font] to highlight the import.\n[font=default-bold]Control left-click[/font] to move up.\n[font=default-bold]Shift left-click[/font] to move down. */
+  /** [font=default-bold]Click[/font] to highlight the import.\n[font=default-bold]Control click[/font] to teleport to import source.\n[font=default-bold]Shift click[/font] to move up.\n[font=default-bold]Control-shift click[/font] to move down. */
   ImportItemTooltip = "bbpp.gui.import-item-tooltip",
   /** Delete import */
   DeleteImport = "bbpp.gui.delete-import",
@@ -107,6 +109,8 @@ export declare const enum L_Gui {
   OwnContents = "bbpp.gui.own-contents",
   /** No diagnostics */
   NoDiagnostics = "bbpp.gui.no-diagnostics",
+  /** [font=default-bold]Click[/font] to highlight and teleport to the entity.\n[font=default-bold]Control click[/font] to highlight and teleport to the entity [font=default-bold]at the import source[/font]. */
+  DiagnosticTooltip = "bbpp.gui.diagnostic-tooltip",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
   /** All assemblies [img=info] */

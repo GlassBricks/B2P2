@@ -6,6 +6,7 @@ import { L_Gui } from "../../locale"
 import { showDialogue } from "../window/Dialogue"
 import { HorizontalPusher } from "../components/misc"
 import { ResetButton, SaveButton } from "./SaveButtons"
+import { teleportPlayer } from "../../assembly/AreaIdentification"
 
 @Classes.register()
 export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
@@ -33,7 +34,7 @@ export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
 
   @bound
   private teleport(e: OnGuiClickEvent) {
-    this.assembly.teleportPlayer(game.get_player(e.player_index)!)
+    teleportPlayer(game.get_player(e.player_index)!, this.assembly)
   }
 
   @bound

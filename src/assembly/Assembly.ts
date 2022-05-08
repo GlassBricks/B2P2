@@ -5,7 +5,6 @@ import { L_Gui, L_Interaction } from "../locale"
 import { Colors } from "../constants"
 import { Event, MutableState, Observable, State, state } from "../lib/observable"
 import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
-import { PositionClass } from "../lib/geometry/position"
 import { AreaIdentification } from "./AreaIdentification"
 
 @Classes.register()
@@ -135,13 +134,6 @@ export class Assembly implements AreaIdentification {
   }
 
   // interaction
-  teleportPlayer(player: LuaPlayer): void {
-    player.teleport(bbox.center(this.area), this.surface)
-  }
-  getCenter(): PositionClass {
-    return bbox.center(this.area)
-  }
-
   canImport(assembly: Assembly): boolean {
     return assembly !== this
   }

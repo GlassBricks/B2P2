@@ -92,6 +92,7 @@ export class DiagnosticsTab extends Component<{
             <button
               style="list_box_item"
               caption={diagnostic.message}
+              tooltip={[L_Gui.DiagnosticTooltip]}
               on_gui_click={bind(this.diagnosticClicked, this, diagnostic)}
               mouse_button_filter={["left"]}
             />
@@ -103,7 +104,7 @@ export class DiagnosticsTab extends Component<{
 
   @bound
   private diagnosticClicked(diagnostic: Diagnostic, event: OnGuiClickEvent) {
-    if (!event.shift) {
+    if (!event.control) {
       DiagnosticsTab.showDiagnosticMainLocation(diagnostic, event)
     } else {
       DiagnosticsTab.showDiagnosticAltLocation(diagnostic, event)

@@ -75,6 +75,7 @@ export const UnsupportedProp = DiagnosticCategory(
   {
     id: "unsupported-prop",
     shortDescription: [L_Diagnostic.UnsupportedProp],
+    longDescription: [L_Diagnostic.UnsupportedPropDetail],
     highlightType: "not-allowed",
   },
   (

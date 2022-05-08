@@ -8,6 +8,7 @@ import { Window } from "../window/Window"
 import { openAssemblyManager } from "../assembly-manager/AssemblyManager"
 import { CloseButton } from "../components/buttons"
 import { AssembliesList } from "../AssembliesList"
+import { teleportPlayer } from "../../assembly/AreaIdentification"
 
 @Classes.register()
 export class AssembliesOverview extends Window {
@@ -44,8 +45,7 @@ export class AssembliesOverview extends Window {
   private assemblyButtonClick(assembly: Assembly, event: OnGuiClickEvent) {
     const player = game.players[event.player_index]
     if (event.control) {
-      // teleport player
-      assembly.teleportPlayer(player)
+      teleportPlayer(player, assembly)
     } else {
       openAssemblyManager(player, assembly)
     }
