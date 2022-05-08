@@ -6,7 +6,7 @@ import { bbox } from "../../lib/geometry/bounding-box"
 import { assertBlueprintsEquivalent } from "../../test/blueprint"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { pos } from "../../lib/geometry/position"
-import { UserError } from "../../lib"
+import { isUserError } from "../../lib"
 import { getWorkingArea1 } from "../../test/misc"
 
 let blueprint: Blueprint
@@ -42,7 +42,7 @@ test("create for", () => {
   const assembly2 = Assembly.create("test2", surface, area2)
 
   const err = assert.error(() => BasicImport.createFor(assembly2, assembly1, pos(10, 10))) //  no overlap
-  assert.true(err instanceof UserError)
+  assert.true(isUserError(err))
 
   const value = assert.no_error(() => BasicImport.createFor(assembly2, assembly1, pos(5, 5)))
   assert.true(value instanceof BasicImport)

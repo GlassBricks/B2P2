@@ -30,7 +30,6 @@ test("add from in-world", () => {
     name: "small-electric-pole",
     position: relativePos,
   }
-  __DebugAdapter?.breakpoint()
   assert.same(
     bbox.fromCorners(2, 2, 3, 3).shift(area2.left_top),
     getEntitySourceLocation(map, lookupEntity, area.left_top)?.area,

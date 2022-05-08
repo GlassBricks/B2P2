@@ -1,7 +1,7 @@
 import { Assembly } from "./Assembly"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
-import { Classes, UserError } from "../lib"
+import { Classes, isUserError } from "../lib"
 import { getWorkingArea1 } from "../test/misc"
 
 let area: BoundingBoxClass
@@ -40,7 +40,7 @@ describe("lifecycle", () => {
       rawset(rendering, "draw_rectangle", sp)
       after_test(() => rawset(rendering, "draw_rectangle", undefined!))
       const error = assert.error(() => Assembly.create("test2", surface, area))
-      assert.truthy(error instanceof UserError)
+      assert.truthy(isUserError(error))
       assert.message("highlighted").spy(sp).called()
     })
 

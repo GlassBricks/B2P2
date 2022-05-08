@@ -1,4 +1,4 @@
-import { Classes, UserError } from "../../lib"
+import { Classes, raiseUserError } from "../../lib"
 import { AssemblyImport } from "./AssemblyImport"
 import { Assembly } from "../Assembly"
 import { Blueprint } from "../../blueprint/Blueprint"
@@ -33,7 +33,7 @@ export class BasicImport implements AssemblyImport {
     const sourceRelative = bbox.shiftToOrigin(source.area)
     const targetRelative = bbox.shiftToOrigin(target.area).shift(relativePosition)
     if (!bbox.intersectsNonZeroArea(sourceRelative, targetRelative))
-      throw new UserError([L_Interaction.ImportDoesNotIntersectAssembly], "flying-text")
+      raiseUserError([L_Interaction.ImportDoesNotIntersectAssembly], "flying-text")
     return new BasicImport(source, targetRelative)
   }
 

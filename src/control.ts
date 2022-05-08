@@ -7,6 +7,8 @@ import { AssembliesOverview } from "./gui/assemblies-overview/AssembliesOverview
 
 declare function __getTestFiles(): string[]
 
+declare let global: unknown
+
 if (script.active_mods.testorio) {
   let testsStarted = false
   Events.on_game_created_from_scenario(() => {
@@ -26,6 +28,8 @@ if (script.active_mods.testorio) {
   require("__testorio__/init")(__getTestFiles(), {
     tag_blacklist: tagBlacklist,
     before_test_run() {
+      // clear global data
+      global = {}
       Events.raiseFakeEventNamed("on_init", undefined)
       const force = game.forces.player
       force.enable_all_recipes()

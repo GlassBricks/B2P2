@@ -291,7 +291,6 @@ describe("sourceMap", () => {
     const contents = createAssemblyContent()
     const map = contents.entitySourceMap.get()!
     assert.not_nil(map)
-    __DebugAdapter?.breakpoint()
     for (const entity of blueprintSample) {
       const box = getEntitySourceLocation(map, entity, area.left_top)?.area
       assert.same(shift(getTileBox(entity), area.left_top), box)

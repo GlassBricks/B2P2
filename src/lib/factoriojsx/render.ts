@@ -378,7 +378,7 @@ export function cleanGuiInstances(): number {
   for (const [, byPlayer] of Elements) {
     for (const [, instance] of pairs(byPlayer)) {
       const element = instance.element
-      if (element.valid) {
+      if (!element.valid) {
         destroy(element)
         count++
       }

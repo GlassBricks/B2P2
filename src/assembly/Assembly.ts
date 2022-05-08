@@ -1,4 +1,4 @@
-import { bound, Classes, Events, reg, UserError } from "../lib"
+import { bound, Classes, Events, raiseUserError, reg } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
 import { MutableObservableSet, observableSet, ObservableSet } from "../lib/observable/ObservableSet"
 import { L_Gui, L_Interaction } from "../locale"
@@ -71,7 +71,7 @@ export class Assembly implements AreaIdentification {
     const assembly = Assembly.findAssemblyInArea(surface, area)
     if (assembly) {
       assembly.highlightForError()
-      throw new UserError([L_Interaction.IntersectsExistingAssembly, assembly.name.value], "flying-text")
+      raiseUserError([L_Interaction.IntersectsExistingAssembly, assembly.name.value], "flying-text")
     }
   }
   private static findAssemblyInArea(surface: LuaSurface, area: BoundingBoxRead): Assembly | undefined {

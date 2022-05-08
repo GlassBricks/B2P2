@@ -6,17 +6,15 @@ import { PRecord } from "./util-types"
  * Called when player is initialized (both during on_init and on_player_created).
  * @param action
  */
-export function onPlayerInit(action: (index: PlayerIndex, player: LuaPlayer) => void): void {
+export function onPlayerInit(action: (player: LuaPlayer) => void): void {
   Events.onAll({
     on_init() {
-      for (const [index, player] of game.players) {
-        action(index, player)
+      for (const [, player] of game.players) {
+        action(player)
       }
     },
     on_player_created(e): void {
-      const index = e.player_index
-      const player = game.get_player(index)!
-      action(index, player)
+      action(game.get_player(e.player_index)!)
     },
   })
 }
@@ -44,8 +42,8 @@ Events.onAll({
     delete data![e.player_index]
   },
 })
-onPlayerInit((index) => {
-  data![index] = {}
+onPlayerInit((player) => {
+  data![player.index] = {}
 })
 
 function playerDataIt(name: string, index: PlayerIndex | undefined) {
@@ -91,8 +89,8 @@ export function PlayerData<T>(name: string, init?: (player: LuaPlayer) => T): Pl
     playerDataMetatable,
   )
   if (init) {
-    onPlayerInit((index, player) => {
-      result[index] = init(player)
+    onPlayerInit((player) => {
+      result[player.index] = init(player)
     })
   }
 
