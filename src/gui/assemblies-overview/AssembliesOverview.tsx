@@ -1,22 +1,22 @@
-import { bound, Classes, reg } from "../../lib"
-import { Component, destroy, EmptyProps, FactorioJsx, Spec } from "../../lib/factoriojsx"
+import { bound, Classes, funcRef, reg } from "../../lib"
+import { destroy, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { Assembly } from "../../assembly/Assembly"
 import { L_Gui } from "../../locale"
 import { startAssemblyCreation } from "../../assembly/assembly-creation"
-import { DraggableSpace, TitleBar } from "../components/TitleBar"
-import { addWindow } from "../window/Window"
+import { closeParentParent, DraggableSpace, TitleBar } from "../components/TitleBar"
+import { Window } from "../window/Window"
 import { openAssemblyManager } from "../assembly-manager/AssemblyManager"
 import { CloseButton } from "../components/buttons"
 import { AssembliesList } from "../AssembliesList"
 
 @Classes.register()
-export class AssembliesOverview extends Component<EmptyProps> {
+export class AssembliesOverview extends Window {
   render(): Spec {
     return (
       <frame auto_center direction="vertical">
         <TitleBar title={[L_Gui.AssemblyOverviewTitle]}>
           <DraggableSpace />
-          <CloseButton onClick={reg(this.close)} />
+          <CloseButton onClick={funcRef(closeParentParent)} />
         </TitleBar>
         <frame style="inside_shallow_frame_with_padding">
           <flow
@@ -66,5 +66,3 @@ export class AssembliesOverview extends Component<EmptyProps> {
     destroy(this.element)
   }
 }
-
-addWindow("assemblies-list", <AssembliesOverview />)

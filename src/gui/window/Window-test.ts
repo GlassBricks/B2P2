@@ -1,18 +1,21 @@
-import { FlowElementSpec } from "../../lib/factoriojsx"
-import { addWindow, Window } from "./Window"
+import { Spec } from "../../lib/factoriojsx"
+import { Window } from "./Window"
 import { getPlayer } from "../../lib/test-util/misc"
+import { Classes } from "../../lib"
 
-const spec: FlowElementSpec = { type: "flow", tags: { isTestWindow: true } }
-
-let window: Window
+@Classes.register("test-window")
+class TestWindow extends Window {
+  render(): Spec {
+    return { type: "flow", tags: { isTestWindow: true } }
+  }
+}
 let player: LuaPlayer
 before_each(() => {
-  window = addWindow("test", spec)
   player = getPlayer()
 })
 
 after_all(() => {
-  window.close(player)
+  TestWindow.close(player)
 })
 
 function findTestWindow() {
@@ -27,52 +30,52 @@ function testWindowFound() {
 }
 
 test("isOpen starts as false", () => {
-  assert.false(window.isOpen(player))
+  assert.false(TestWindow.isOpen(player))
 })
 
 test("open", () => {
-  window.open(player)
+  TestWindow.open(player)
   assert.true(testWindowFound())
-  assert.true(window.isOpen(player))
+  assert.true(TestWindow.isOpen(player))
 })
 
 test("open: refresh", () => {
-  window.open(player)
+  TestWindow.open(player)
   const oldGui = findTestWindow()!
-  window.open(player)
+  TestWindow.open(player)
   assert.is_false(oldGui.valid)
   const newGui = findTestWindow()!
   assert.is_true(newGui.valid)
 })
 
 test("close when not open", () => {
-  window.close(player)
+  TestWindow.close(player)
 })
 
 test("close", () => {
-  window.open(player)
-  window.close(player)
+  TestWindow.open(player)
+  TestWindow.close(player)
   assert.false(testWindowFound())
-  assert.false(window.isOpen(player))
+  assert.false(TestWindow.isOpen(player))
 })
 
 test("toggle to open", () => {
-  window.toggle(player)
+  TestWindow.toggle(player)
   assert.true(testWindowFound())
-  assert.true(window.isOpen(player))
+  assert.true(TestWindow.isOpen(player))
 })
 
 test("toggle to close", () => {
-  window.open(player)
-  window.toggle(player)
+  TestWindow.open(player)
+  TestWindow.toggle(player)
   assert.false(testWindowFound())
-  assert.false(window.isOpen(player))
+  assert.false(TestWindow.isOpen(player))
 })
 
 test("refreshIfOpen", () => {
-  window.open(player)
+  TestWindow.open(player)
   const oldGui = findTestWindow()!
-  window.refreshIfOpen(player)
+  TestWindow.refreshIfOpen(player)
   assert.is_false(oldGui.valid)
   const newGui = findTestWindow()!
   assert.is_true(newGui.valid)
