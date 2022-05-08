@@ -1,7 +1,9 @@
 ## Now
 
+- Player tracking
 - ability to toggle imports temporarily
-- autoreset
+- auto-reset
+- better import creation preview
 
 
 - Test with real blueprints

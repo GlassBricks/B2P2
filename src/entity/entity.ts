@@ -89,7 +89,7 @@ export function remapEntityNumbersInArrayPosition<T extends FullEntity>(entities
 }
 
 export function describeEntity(entity: Entity): LocalisedString {
-  return ["entity-name." + entity.name]
+  return ["", "[entity=", entity.name, "]", ["entity-name." + entity.name]]
 }
 
 export type EntityProp = keyof PasteEntity

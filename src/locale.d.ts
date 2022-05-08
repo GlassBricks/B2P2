@@ -109,7 +109,7 @@ export declare const enum L_Gui {
   OwnContents = "bbpp.gui.own-contents",
   /** No diagnostics */
   NoDiagnostics = "bbpp.gui.no-diagnostics",
-  /** [font=default-bold]Click[/font] to highlight and teleport to the entity.\n[font=default-bold]Control click[/font] to highlight and teleport to the entity [font=default-bold]at the import source[/font]. */
+  /** [font=default-bold]Click[/font] to highlight and teleport to the entity.\n[font=default-bold]Control click[/font] to highlight and teleport to the corresponding conflicting entity [font=default-bold]at the import source[/font]. */
   DiagnosticTooltip = "bbpp.gui.diagnostic-tooltip",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",

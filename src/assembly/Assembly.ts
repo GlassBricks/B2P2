@@ -50,10 +50,6 @@ export class Assembly implements AreaIdentification {
     this.name.subscribe(reg(this.setName))
   }
 
-  static mock(area: BoundingBoxRead, surface: LuaSurface = game.surfaces[1]): Assembly {
-    return new Assembly("mocked", surface, area, undefined!)
-  }
-
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
     area = bbox.roundTile(area)
     assert(surface.valid)

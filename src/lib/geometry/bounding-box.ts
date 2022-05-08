@@ -77,12 +77,12 @@ namespace bbox {
       { x: right_bottom.x * factor, y: right_bottom.y * factor },
     )
   }
-  export function scaleAroundCenter(box: BoundingBoxRead, factor: number): BoundingBoxClass {
-    if (factor === 1) return bbox.from(box)
-    const center = bbox.center(box)
-    const boxAroundCenter = bbox.shiftNegative(box, center)
-    const scaledBox = bbox.scale(boxAroundCenter, factor)
-    return bbox.shift(scaledBox, center)
+  export function expand(box: BoundingBoxRead, amount: number): BoundingBoxClass {
+    const { left_top, right_bottom } = box
+    return bbox(
+      { x: left_top.x - amount, y: left_top.y - amount },
+      { x: right_bottom.x + amount, y: right_bottom.y + amount },
+    )
   }
   export function center(box: BoundingBoxRead): PositionClass {
     const { left_top, right_bottom } = box
