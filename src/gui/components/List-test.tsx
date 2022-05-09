@@ -1,21 +1,21 @@
-import { MutableObservableSet, observableSet } from "../../lib/observable"
-import { ElementWrapper, testRender } from "../../lib/test-util/gui"
+import { MutableObservableList, observableList } from "../../lib/observable"
 import { FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { EnumerateSet } from "./EnumerateSet"
-import { returns } from "../../lib"
+import { List } from "./List"
 import { asFunc } from "../../lib/test-util/func"
+import { ElementWrapper, testRender } from "../../lib/test-util/gui"
+import { returns } from "../../lib"
 
 function presentElements(wrapper: ElementWrapper) {
   return wrapper.findAll("label").map((x) => x.native.caption)
 }
-let set: MutableObservableSet<string>
+let array: MutableObservableList<string>
 let spec: Spec
 before_each(() => {
-  set = observableSet()
+  array = observableList()
   spec = (
-    <EnumerateSet
+    <List
       uses="flow"
-      of={set}
+      of={array}
       map={asFunc((v) => (
         <label caption={v} />
       ))}
@@ -29,39 +29,72 @@ it("starts empty with no elements", () => {
 })
 
 it("creates with initial contents", () => {
-  set.add("a")
-  set.add("b")
+  array.push("a")
+  array.push("b")
   const wrapper = testRender(spec)
   assert.same(["a", "b"], presentElements(wrapper))
 })
 
 it("adds elements", () => {
   const wrapper = testRender(spec)
-  set.add("a")
-  set.add("b")
+  array.push("a")
+  array.push("b")
   assert.same(
     ["a", "b"],
     wrapper.findAll("label").map((x) => x.native.caption),
   )
 })
 
+it("inserts elements", () => {
+  const wrapper = testRender(spec)
+  array.push("a")
+  array.push("b")
+  array.insert(1, "c")
+  assert.same(
+    ["a", "c", "b"],
+    wrapper.findAll("label").map((x) => x.native.caption),
+  )
+})
+
 it("removes elements", () => {
   const wrapper = testRender(spec)
-  set.add("a")
-  set.add("b")
-  set.delete("a")
+  array.push("a")
+  array.push("b")
+  array.remove(0)
   assert.same(["b"], presentElements(wrapper))
 })
 
+it("swaps elements", () => {
+  const wrapper = testRender(spec)
+  array.push("a")
+  array.push("b")
+  array.swap(0, 1)
+  assert.same(
+    ["b", "a"],
+    wrapper.findAll("label").map((x) => x.native.caption),
+  )
+})
+
+it("changes elements", () => {
+  const wrapper = testRender(spec)
+  array.push("a")
+  array.push("b")
+  array.set(0, "c")
+  assert.same(
+    ["c", "b"],
+    wrapper.findAll("label").map((x) => x.native.caption),
+  )
+})
+
 describe("ifEmpty", () => {
-  let set: MutableObservableSet<string>
+  let array: MutableObservableList<string>
   let spec: Spec
   before_each(() => {
-    set = observableSet()
+    array = observableList()
     spec = (
-      <EnumerateSet
+      <List
         uses="flow"
-        of={set}
+        of={array}
         map={asFunc((v) => (
           <label caption={v} />
         ))}
@@ -70,38 +103,27 @@ describe("ifEmpty", () => {
     )
   })
 
-  test("is present if empty", () => {
-    const wrapper = testRender(
-      <EnumerateSet
-        uses="flow"
-        of={set}
-        map={asFunc((v) => (
-          <label caption={v} />
-        ))}
-        ifEmpty={asFunc(() => (
-          <label caption="empty" />
-        ))}
-      />,
-    )
+  it("is present if empty", () => {
+    const wrapper = testRender(spec)
     assert.same(["empty"], presentElements(wrapper))
   })
 
-  test("is not present if not empty", () => {
-    set.add("a")
+  it("is not present if not empty", () => {
+    array.push("a")
     const wrapper = testRender(spec)
     assert.same(["a"], presentElements(wrapper))
   })
 
-  test("is present if made empty", () => {
-    set.add("a")
+  it("is present if made empty", () => {
+    array.push("a")
     const wrapper = testRender(spec)
-    set.delete("a")
+    array.remove(0)
     assert.same(["empty"], presentElements(wrapper))
   })
 
-  test("is not present if made non-empty", () => {
+  it("is not present if made non-empty", () => {
     const wrapper = testRender(spec)
-    set.add("a")
+    array.push("a")
     assert.same(["a"], presentElements(wrapper))
   })
 })
