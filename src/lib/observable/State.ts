@@ -1,15 +1,55 @@
-import { bind, Callback, Classes } from "../references"
-import { MappedObservable, Mapper, Observable, Observer } from "./Observable"
-import { BroadcastingObservable } from "./BroadcastingObservable"
+import { bind, Callback, Classes, Func, funcRef, Registered } from "../references"
+import { Observers } from "./Observers"
+import { Subscribable, Unsubscribe } from "./Observable"
 
-/**
- * When states are subscribed to, the observer is immediately notified of the current state.
- */
-export interface State<T> extends Observable<T> {
-  get(): T
+declare const ObservableBrand: unique symbol
 
-  map<V>(mapper: Mapper<T, V>): State<V>
+export abstract class State<T> implements Subscribable<ChangeListener<T>> {
+  declare [ObservableBrand]: true
+  abstract get(): T
+
+  protected listeners = new Observers<ChangeListener<T>>()
+  subscribe(observer: ChangeListener<T>): Callback {
+    return this.listeners.addSubscription(observer)
+  }
+
+  subscribeAndFire(observer: PartialChangeListener<T>): Callback {
+    const callback = this.subscribe(observer)
+    observer(this.get(), undefined)
+    return callback
+  }
+
+  map<V>(mapper: Mapper<T, V>): State<V> {
+    return new MappedState(this, mapper)
+  }
+
+  choice<V>(this: State<boolean>, whenTrue: V, whenFalse: V): State<V> {
+    return this.map(bind(State.choiceFn, undefined, whenTrue, whenFalse))
+  }
+  static choiceFn<V>(whenTrue: V, whenFalse: V, value: boolean): V {
+    return value ? whenTrue : whenFalse
+  }
+  truthy(): State<boolean> {
+    return this.map(funcRef(State.truthyFn))
+  }
+  static truthyFn<V>(this: void, value: V): boolean {
+    return !!value
+  }
+
+  static _numObservers(state: State<any>): number {
+    return table_size(state.listeners)
+  }
 }
+
+export interface ChangeListener<T> extends Registered {
+  (this: unknown, value: T, oldValue: T): void | typeof Unsubscribe
+}
+
+export interface PartialChangeListener<T> extends Registered {
+  (this: unknown, value: T, oldValue: T | undefined): void | typeof Unsubscribe
+}
+
+export type Mapper<T, U> = Func<(value: T) => U>
 
 export interface MutableState<T> extends State<T> {
   readonly value: T
@@ -20,19 +60,12 @@ export interface MutableState<T> extends State<T> {
   toggleFn(this: MutableState<boolean>): Callback
 }
 
-export type MaybeState<T> = State<T> | T
-
 @Classes.register("State")
-class StateImpl<T> extends BroadcastingObservable<T> implements MutableState<T> {
+class MutableStateImpl<T> extends State<T> implements MutableState<T> {
   public value: T
   public constructor(value: T) {
     super()
     this.value = value
-  }
-
-  subscribe(observer: Observer<T>): Callback {
-    observer(this.value)
-    return super.subscribe(observer)
   }
 
   get(): T {
@@ -40,46 +73,67 @@ class StateImpl<T> extends BroadcastingObservable<T> implements MutableState<T> 
   }
 
   public set(value: T): void {
+    const oldValue = this.value
     this.value = value
-    super.next(value)
+    if (oldValue !== value) {
+      this.listeners.fire(value, oldValue)
+    }
   }
 
-  private static setValueFn(this: StateImpl<any>, value: unknown) {
+  private static setValueFn(this: MutableStateImpl<any>, value: unknown) {
     this.set(value)
   }
   setValueFn(value: T): Callback {
-    return bind(StateImpl.setValueFn, this, value)
+    return bind(MutableStateImpl.setValueFn, this, value)
   }
   private static toggleFn(this: MutableState<boolean>) {
     this.set(!this.value)
   }
   toggleFn(this: MutableState<boolean>): Callback {
-    return bind(StateImpl.toggleFn, this)
-  }
-
-  map<V>(mapper: Mapper<T, V>): State<V> {
-    return new MappedState(this, mapper)
+    return bind(MutableStateImpl.toggleFn, this)
   }
 }
-
 export function state<T>(value: T): MutableState<T> {
-  return new StateImpl(value)
+  return new MutableStateImpl(value)
 }
 
 @Classes.register()
-class MappedState<T, U> extends MappedObservable<T, U> implements State<U> {
-  public constructor(source: State<T>, mapper: Mapper<T, U>) {
-    super(source, mapper)
+class MappedState<T, U> extends State<U> {
+  public constructor(private readonly source: State<T>, private readonly mapper: Mapper<T, U>) {
+    super()
   }
-  protected declare source: State<T>
 
   get(): U {
     return this.mapper(this.source.get())
   }
 
-  map<V>(mapper: Mapper<U, V>): State<V> {
-    return new MappedState(this, mapper)
+  private static mappedObserver(
+    this: ChangeListener<any>,
+    mapper: Mapper<any, any>,
+    state: {
+      oldValueSet: boolean
+      oldValue?: unknown
+    },
+    value: unknown,
+    oldValue: unknown,
+  ) {
+    let oldMappedValue: unknown
+    if (!state.oldValueSet) {
+      oldMappedValue = state.oldValue = mapper(oldValue)
+      state.oldValueSet = true
+    } else {
+      oldMappedValue = state.oldValue
+    }
+    const newMappedValue = mapper(value)
+    if (oldMappedValue !== newMappedValue) {
+      state.oldValue = newMappedValue
+      return this(newMappedValue, oldMappedValue)
+    }
+  }
+  subscribe(observer: ChangeListener<U>): Callback {
+    return this.source.subscribe(bind(MappedState.mappedObserver, observer, this.mapper, { oldValueSet: false }))
   }
 }
 
-// possibly make lazy version of this in the future
+export type MaybeState<T> = State<T> | T
+export type MaybeMutableState<T> = MutableState<T> | T

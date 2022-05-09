@@ -1,7 +1,15 @@
 // this could maybe be moved to shared lib in the future
 
-import { bound, Classes } from "../../lib"
-import { Component, destroyChildren, ElemProps, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
+import { bound, Classes, reg } from "../../lib"
+import {
+  Component,
+  destroyChildren,
+  ElemProps,
+  FactorioJsx,
+  renderMultiple,
+  Spec,
+  Tracker,
+} from "../../lib/factoriojsx"
 import { State } from "../../lib/observable"
 
 export type IfProps = {
@@ -24,22 +32,19 @@ export class If extends Component<IfProps> {
         {...props}
         onCreate={(element) => {
           this.element = element
-          const unsubscribe = props.condition.subscribe(this.onChange)
+          const unsubscribe = props.condition.subscribeAndFire(reg(this.onChange))
           tracker.onDestroy(unsubscribe)
         }}
       />
     )
   }
 
-  lastValue: boolean | undefined
   @bound
   private onChange(value: boolean) {
-    if (value === this.lastValue) return
-    this.lastValue = value
     destroyChildren(this.element)
     const spec = value ? this.then() : this.else?.()
     if (spec) {
-      render(this.element, spec)
+      renderMultiple(this.element, spec)
     }
   }
 }

@@ -1,13 +1,13 @@
-import { MutableState, state } from "./State"
 import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
 import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
 import { MutableObservableList, observableList, ObservableListChange } from "./ObservableList"
 import { Event } from "./Event"
-import { Observer } from "./Observable"
+import { MutableState, state } from "./State"
 import { asFunc } from "../test-util/func"
+import { SingleObserver } from "./Observable"
 
 function spy() {
-  return globalThis.spy<Observer<any>>()
+  return globalThis.spy<SingleObserver<any>>()
 }
 describe("Event", () => {
   let event: Event<string>
@@ -96,18 +96,18 @@ describe("observable value", () => {
     assert.equal(s.get(), "end")
   })
 
-  it("notifies subscribers of value upon subscription", () => {
+  test("subscribeAndFire", () => {
     const fn = spy()
-    s.subscribe(fn)
+    s.subscribeAndFire(fn)
     assert.spy(fn).called(1)
-    assert.spy(fn).called_with(match._, "begin")
+    assert.spy(fn).called_with(match._, "begin", undefined)
   })
 
   it("notifies subscribers of value when value changed", () => {
     const fn = spy()
     s.subscribe(fn)
     s.set("end")
-    assert.spy(fn).called_with(match._, "end")
+    assert.spy(fn).called_with(match._, "end", "begin")
   })
 
   test("setValueFn", () => {
@@ -456,15 +456,15 @@ describe("map", () => {
     const val = state(3)
     const mapped = val.map(asFunc((x) => x * 2))
     const fn = spy()
-    mapped.subscribe(fn)
+    mapped.subscribeAndFire(fn)
 
     assert.spy(fn).called(1)
-    assert.spy(fn).called_with(match._, 6)
+    assert.spy(fn).called_with(match._, 6, undefined)
 
     val.set(4)
 
     assert.spy(fn).called(2)
-    assert.spy(fn).called_with(match._, 8)
+    assert.spy(fn).called_with(match._, 8, match._)
   })
 
   test("gives correct value for get()", () => {
@@ -478,11 +478,11 @@ describe("map", () => {
     const choice = val.choice("yes", "no")
 
     const fn = spy()
-    choice.subscribe(fn)
+    choice.subscribeAndFire(fn)
     assert.spy(fn).called(1)
-    assert.spy(fn).called_with(match._, "no")
+    assert.spy(fn).called_with(match._, "no", undefined)
     val.set(true)
     assert.spy(fn).called(2)
-    assert.spy(fn).called_with(match._, "yes")
+    assert.spy(fn).called_with(match._, "yes", "no")
   })
 })

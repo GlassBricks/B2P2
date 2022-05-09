@@ -1,7 +1,7 @@
 import { bound, Classes, reg, returns } from "../../lib"
 import { ClickEventHandler, Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { Assembly } from "../../assembly/Assembly"
-import { Observable, state } from "../../lib/observable"
+import { State, state } from "../../lib/observable"
 import { L_Gui } from "../../locale"
 import { If } from "../components/If"
 import { DraggableSpace, TitleBar } from "../components/TitleBar"
@@ -49,7 +49,7 @@ export class AMTitleBar extends Component<{ assembly: Assembly; onClose: ClickEv
   }
 }
 
-function RenameButton(props: { onClick?: ClickEventHandler; isEditing: Observable<boolean> }): Spec {
+function RenameButton(props: { onClick?: ClickEventHandler; isEditing: State<boolean> }): Spec {
   // when editing, should resemble close button and have "cancel rename" tooltip
   const { isEditing } = props
   const sprite = isEditing.choice("utility/close_white", "utility/rename_icon_small_white")

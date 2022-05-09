@@ -1,4 +1,4 @@
-import { Observable } from "../../lib/observable"
+import { State } from "../../lib/observable"
 import { bound, Classes, Func, reg } from "../../lib"
 import {
   Component,
@@ -12,7 +12,7 @@ import {
 
 export type FuncProps<T, U extends GuiElementType> = {
   uses: U
-  from: Observable<T>
+  from: State<T>
   map: Func<(value: T) => Spec>
 } & ElemProps<U>
 
@@ -27,7 +27,7 @@ export class Fn<T, U extends GuiElementType> extends Component<FuncProps<T, U>> 
     this.map = map
     tracker.onMount((element) => {
       this.element = element
-      const unsub = from.subscribe(reg(this.onChange))
+      const unsub = from.subscribeAndFire(reg(this.onChange))
       tracker.onDestroy(unsub)
     })
 

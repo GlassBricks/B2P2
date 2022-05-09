@@ -243,7 +243,7 @@ const stateProps = {} as Record<GuiElementType, Record<string, string>>
     for (const [name, attr] of Object.entries(element)) {
       const specAttr = spec[name]
       const typeName =
-        type !== "base" && stateProps[type][name] ? `MaybeState<${attr.type}>` : `MaybeObservable<${attr.type}>`
+        type !== "base" && stateProps[type][name] ? `MaybeMutableState<${attr.type}>` : `MaybeState<${attr.type}>`
       merge(name, {
         name,
         type: typeName,
@@ -461,7 +461,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   createMembers("StyleMod", styleMods, () => [])
 
   const header = `
-  import { MaybeObservable, MaybeState } from "../observable"
+  import { MaybeMutableState, MaybeState } from "../observable"
   import { GuiEventHandler, OnCreateHandler, Spec } from "./spec"
 `
   printFile("element-specs.d.ts", header, statements)

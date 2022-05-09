@@ -1,6 +1,6 @@
 import { Classes } from "../references"
-import { BroadcastingObservable } from "./BroadcastingObservable"
 import { Observable } from "./Observable"
+import { SingleSubscribable } from "./Observers"
 
 export type ObservableListAdd<T> = {
   array: ObservableList<T>
@@ -34,6 +34,7 @@ export type ObservableListChange<T> =
   | ObservableListRemove<T>
   | ObservableListSwap<T>
   | ObservableListSet<T>
+
 export interface ObservableList<T extends AnyNotNil> extends Observable<ObservableListChange<T>> {
   length(): number
   value(): readonly T[]
@@ -51,7 +52,7 @@ export interface MutableObservableList<T extends AnyNotNil> extends ObservableLi
 
 @Classes.register()
 class ObservableListImpl<T extends AnyNotNil>
-  extends BroadcastingObservable<ObservableListChange<T>>
+  extends SingleSubscribable<ObservableListChange<T>>
   implements MutableObservableList<T>
 {
   private array: T[] = []
@@ -73,7 +74,7 @@ class ObservableListImpl<T extends AnyNotNil>
     const oldValue = array[index]
     if (oldValue !== value) {
       array[index] = value
-      super.next({
+      this.fire({
         array: this,
         type: "set",
         index,
@@ -86,7 +87,7 @@ class ObservableListImpl<T extends AnyNotNil>
   public insert(index: number, value: T): void {
     const { array } = this
     table.insert(array, index + 1, value)
-    super.next({
+    this.fire({
       array: this,
       type: "add",
       index,
@@ -98,7 +99,7 @@ class ObservableListImpl<T extends AnyNotNil>
     const { array } = this
     const oldValue = array[index]
     table.remove(array, index + 1)
-    super.next({
+    this.fire({
       array: this,
       type: "remove",
       index,
@@ -121,7 +122,7 @@ class ObservableListImpl<T extends AnyNotNil>
     const oldValueB = array[indexB]
     array[indexA] = oldValueB
     array[indexB] = oldValueA
-    super.next({
+    this.fire({
       array: this,
       type: "swap",
       indexA,

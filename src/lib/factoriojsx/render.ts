@@ -15,7 +15,7 @@ import {
   Spec,
   Tracker,
 } from "./spec"
-import { isObservable, MutableState, Observer, Unsubscribe } from "../observable"
+import { MutableState, SingleObserver, State, Unsubscribe } from "../observable"
 import { protectedAction } from "../protected-action"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
@@ -168,7 +168,7 @@ function renderElement(
     const isSpecProp = propProperties[0]
     const isElemProp: string | boolean | null = propProperties[1]
     const stateEvent = propProperties[2] as GuiEventName | null
-    if (!isSpecProp || isObservable(value)) {
+    if (!isSpecProp || value instanceof State) {
       if (!isElemProp) error(`${key} cannot be a source value`)
       if (typeof isElemProp === "string") elemProps.set([isElemProp], value)
       else elemProps.set(key, value)
@@ -187,8 +187,8 @@ function renderElement(
   const subscriptions = tracker.subscriptions
 
   for (const [key, value] of pairs(elemProps)) {
-    if (isObservable(value)) {
-      let observer: Observer<unknown>
+    if (value instanceof State) {
+      let observer: SingleObserver<unknown>
       let name: string
       if (typeof key !== "object") {
         observer = bind(setValueObserver, element, element, key)
@@ -197,7 +197,7 @@ function renderElement(
         name = key[0]
         observer = bind(callSetterObserver, element, name)
       }
-      subscriptions.set(name, value.subscribe(observer))
+      subscriptions.set(name, value.subscribeAndFire(observer))
     } else if (typeof key !== "object") {
       // simple value
       ;(element as any)[key] = value
@@ -211,8 +211,8 @@ function renderElement(
   if (styleMod) {
     const style = element.style
     for (const [key, value] of pairs(styleMod)) {
-      if (isObservable(value)) {
-        subscriptions.set(key, value.subscribe(bind(setValueObserver, style, element, key)))
+      if (value instanceof State) {
+        subscriptions.set(key, value.subscribeAndFire(bind(setValueObserver, style, element, key)))
       } else {
         ;(style as any)[key] = value
       }

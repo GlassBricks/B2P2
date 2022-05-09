@@ -17,7 +17,7 @@ import {
   TextBoxElementSpec,
   Tracker,
 } from "./spec"
-import { state, TestObservable } from "../observable"
+import { State, state } from "../observable"
 import { testRender } from "../test-util/gui"
 import { asFunc } from "../test-util/func"
 
@@ -193,19 +193,19 @@ describe("destroy", () => {
   })
 
   test("calling destroy ends subscriptions", () => {
-    const source = new TestObservable("hi")
+    const source = state("hi")
     const spec: FlowElementSpec = {
       type: "flow",
       caption: source,
     }
     const element = testRender(spec).native
-    assert.spy(source.unsubscribeFn).not_called()
+    assert.equals(1, State._numObservers(source))
     destroy(element)
-    assert.spy(source.unsubscribeFn).called()
+    assert.equals(0, State._numObservers(source))
   })
 
   test("calling destroy ends child subscriptions", () => {
-    const source = new TestObservable("hi")
+    const source = state("hi")
     const spec: FlowElementSpec = {
       type: "flow",
       children: [
@@ -222,9 +222,9 @@ describe("destroy", () => {
     }
     const element = testRender(spec).native
 
-    assert.spy(source.unsubscribeFn).not_called()
+    assert.equals(1, State._numObservers(source))
     destroy(element)
-    assert.spy(source.unsubscribeFn).called()
+    assert.equals(0, State._numObservers(source))
   })
 })
 

@@ -1,9 +1,9 @@
 import { funcRef, Functions } from "../../lib"
 import { destroy, FactorioJsx, Spec, SpecChildren } from "../../lib/factoriojsx"
-import { MaybeObservable } from "../../lib/observable"
+import { MaybeState } from "../../lib/observable"
 import { CloseButton } from "./buttons"
 
-export function TitleBar(props: { title: MaybeObservable<LocalisedString>; children?: SpecChildren }): Spec {
+export function TitleBar(props: { title: MaybeState<LocalisedString>; children?: SpecChildren }): Spec {
   return (
     <flow
       direction="horizontal"
@@ -42,7 +42,7 @@ export function closeParentParent(e: OnGuiClickEvent): void {
 }
 Functions.registerAll({ closeParentParent })
 
-export function SimpleTitleBar(props: { title: MaybeObservable<LocalisedString> }): Spec {
+export function SimpleTitleBar(props: { title: MaybeState<LocalisedString> }): Spec {
   return (
     <TitleBar title={props.title}>
       <DraggableSpace />

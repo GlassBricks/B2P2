@@ -1,10 +1,10 @@
 import { Classes } from "../references"
-import { BroadcastingObservable } from "./BroadcastingObservable"
+import { SingleSubscribable } from "./Observers"
 
 @Classes.register()
-export class Event<T> extends BroadcastingObservable<T> {
+export class Event<T> extends SingleSubscribable<T> {
   public raise(value: T): void {
-    super.next(value)
+    this.fire(value)
   }
 }
 

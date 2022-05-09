@@ -4,7 +4,7 @@ import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../lib/f
 import { AssembliesOverview } from "./assemblies-overview/AssembliesOverview"
 import { L_Gui } from "../locale"
 import { Assembly } from "../assembly/Assembly"
-import { MaybeObservable, state } from "../lib/observable"
+import { State, state } from "../lib/observable"
 import { assemblyAtPlayerLocation } from "../assembly/player-tracking"
 import { openAssemblyManager } from "./assembly-manager/AssemblyManager"
 import { TitleBar } from "./components/TitleBar"
@@ -17,7 +17,7 @@ function toggleAssembliesOverview(event: OnGuiClickEvent) {
   AssembliesOverview.toggle(player)
 }
 
-function nameOfAssembly(assembly: Assembly | undefined): MaybeObservable<LocalisedString> {
+function nameOfAssembly(assembly: Assembly | undefined): State<LocalisedString> | LocalisedString {
   if (!assembly) return L_Gui.None
   return assembly.displayName
 }
@@ -51,7 +51,7 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
   render(props: { player: LuaPlayer }, tracker: Tracker): Spec {
     this.player = props.player
     const assemblyState = assemblyAtPlayerLocation(props.player.index)
-    const unsub = assemblyState.subscribe(this.assemblyChangedListener)
+    const unsub = assemblyState.subscribeAndFire(reg(this.assemblyChangedListener))
     tracker.onDestroy(unsub)
 
     return (
@@ -74,7 +74,7 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
   private assemblyChangedListener(assembly: Assembly | undefined) {
     this.lastSubscription?.()
     if (assembly) {
-      this.lastSubscription = assembly.displayName.subscribe(funcOn(this.currentName, "set"))
+      this.lastSubscription = assembly.displayName.subscribeAndFire(funcOn(this.currentName, "set"))
     } else {
       this.currentName.set([L_Gui.None])
     }

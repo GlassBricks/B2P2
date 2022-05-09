@@ -1,5 +1,7 @@
+// noinspection JSUnusedLocalSymbols
+
 import { Classes } from "../references"
-import { BroadcastingObservable } from "./BroadcastingObservable"
+import { SingleSubscribable } from "./Observers"
 import { Observable } from "./Observable"
 
 export interface ObservableSetChange<T> {
@@ -27,7 +29,7 @@ export function observableSet<T>(): MutableObservableSet<T> {
 interface ObservableSetImpl<T> extends LuaPairsIterable<T, true> {}
 
 @Classes.register()
-class ObservableSetImpl<T> extends BroadcastingObservable<ObservableSetChange<T>> implements MutableObservableSet<T> {
+class ObservableSetImpl<T> extends SingleSubscribable<ObservableSetChange<T>> implements MutableObservableSet<T> {
   private set = new LuaSet<T>()
   private _size = 0
 
@@ -48,7 +50,7 @@ class ObservableSetImpl<T> extends BroadcastingObservable<ObservableSetChange<T>
     if (!set.has(value)) {
       set.add(value)
       this._size++
-      super.next({ set: this, value, added: true })
+      this.fire({ set: this, value, added: true })
     }
   }
 
@@ -57,7 +59,7 @@ class ObservableSetImpl<T> extends BroadcastingObservable<ObservableSetChange<T>
     if (set.has(value)) {
       set.delete(value)
       this._size--
-      super.next({ set: this, value })
+      this.fire({ set: this, value })
     }
   }
 

@@ -1,7 +1,7 @@
 // noinspection JSUnusedLocalSymbols
 
 import { Classes } from "../references"
-import { BroadcastingObservable } from "./BroadcastingObservable"
+import { SingleSubscribable } from "./Observers"
 import { Observable } from "./Observable"
 
 export interface ObservableMapChange<K extends AnyNotNil, V> {
@@ -29,7 +29,7 @@ export interface MutableObservableMap<K extends AnyNotNil, V> extends Observable
 interface ObservableMapImpl<K extends AnyNotNil, V> extends LuaPairsIterable<K, V> {}
 @Classes.register()
 class ObservableMapImpl<K extends AnyNotNil, V>
-  extends BroadcastingObservable<ObservableMapChange<K, V>>
+  extends SingleSubscribable<ObservableMapChange<K, V>>
   implements MutableObservableMap<K, V>
 {
   private _map = new LuaMap<K, V | undefined>()
@@ -60,7 +60,7 @@ class ObservableMapImpl<K extends AnyNotNil, V>
         this._size--
       }
       _map.set(key, value)
-      super.next({ map: this, key, oldValue, value })
+      this.fire({ map: this, key, oldValue, value })
     }
   }
 
