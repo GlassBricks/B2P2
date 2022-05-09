@@ -15,8 +15,6 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
   element!: FrameGuiElementMembers
 
   render(props: { assembly: Assembly }, tracker: Tracker): Spec {
-    assert(props.assembly.isValid())
-
     this.assembly = props.assembly
 
     tracker.onMount((element) => {
@@ -77,6 +75,7 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
 
 const openedAssemblies = PlayerData("opened AssembliesManager", () => new LuaMap<Assembly, AssemblyManager>())
 export function openAssemblyManager(player: LuaPlayer, assembly: Assembly): void {
+  if (!assembly.isValid()) return
   const existingWindow = openedAssemblies[player.index].get(assembly)
   if (existingWindow) {
     if (existingWindow.element.valid) {
@@ -92,5 +91,6 @@ export function openAssemblyManager(player: LuaPlayer, assembly: Assembly): void
 AssemblyDeleted.subscribe((assembly) => {
   for (const [, assemblies] of openedAssemblies) {
     assemblies.get(assembly)?.closeSelf()
+    assemblies.delete(assembly)
   }
 })

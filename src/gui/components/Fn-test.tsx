@@ -1,8 +1,8 @@
 import { testRender } from "../../lib/test-util/gui"
 import { FactorioJsx } from "../../lib/factoriojsx"
 import { Fn } from "./Fn"
-import { asFunc } from "../../lib/test-util/args"
 import { state } from "../../lib/observable"
+import { asFunc } from "../../lib/test-util/func"
 
 test("fn", () => {
   const val = state("one")

@@ -1,4 +1,4 @@
-import { bind, Callback, Classes, Func } from "../references"
+import { bind, Callback, Classes, Func, funcRef } from "../references"
 
 declare const ObservableBrand: unique symbol
 
@@ -15,6 +15,12 @@ export abstract class Observable<T> {
   }
   static choiceFn<V>(whenTrue: V, whenFalse: V, value: boolean): V {
     return value ? whenTrue : whenFalse
+  }
+  truthy(): Observable<boolean> {
+    return this.map(funcRef(Observable.truthyFn))
+  }
+  static truthyFn<V>(this: void, value: V): boolean {
+    return !!value
   }
 }
 

@@ -4,7 +4,7 @@ import { MutableObservableMap, observableMap, ObservableMapChange } from "./Obse
 import { MutableObservableList, observableList, ObservableListChange } from "./ObservableList"
 import { Event } from "./Event"
 import { Observer } from "./Observable"
-import { asFunc } from "../test-util/args"
+import { asFunc } from "../test-util/func"
 
 function spy() {
   return globalThis.spy<Observer<any>>()

@@ -1,7 +1,7 @@
 import { Assembly } from "./Assembly"
 import { bbox } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
-import { getAssemblyAtPlayerLocation, getAssemblyAtPosition } from "./player-tracking"
+import { assemblyAtPlayerLocation, getAssemblyAtPosition } from "./player-tracking"
 import { getPlayer } from "../lib/test-util/misc"
 
 after_each(() => {
@@ -35,10 +35,11 @@ test("getAssemblyAtPlayerLocation", () => {
 
   const player = getPlayer()
 
+  const state = assemblyAtPlayerLocation(player.index)
   for (const [x, y] of area.expand(1).iterateTiles()) {
     const pos1 = pos(x + 0.5, y + 0.5)
     player.teleport(pos1, surface)
-    const assemblyAtPosition = getAssemblyAtPlayerLocation(player.index)
+    const assemblyAtPosition = state.get()
     if (area.contains(pos1)) {
       assert.not_nil(assemblyAtPosition)
       assert.equal(assembly, assemblyAtPosition)

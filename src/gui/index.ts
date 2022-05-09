@@ -1,2 +1,2 @@
 import "./assemblies-overview/AssembliesOverview"
-import "./mod-button"
+import "./mod-frame-and-gui"

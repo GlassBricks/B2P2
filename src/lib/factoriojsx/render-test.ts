@@ -19,7 +19,7 @@ import {
 } from "./spec"
 import { state, TestObservable } from "../observable"
 import { testRender } from "../test-util/gui"
-import { asFunc } from "../test-util/args"
+import { asFunc } from "../test-util/func"
 
 describe("create", () => {
   test("Sets spec property", () => {

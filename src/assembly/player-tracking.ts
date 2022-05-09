@@ -4,6 +4,7 @@ import { Assembly, AssemblyCreated, AssemblyDeleted } from "./Assembly"
 import { Events, PlayerData } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
+import { MutableState, State, state } from "../lib/observable"
 import contains = bbox.contains
 
 type AssembliesByChunk = PRecord<NumberPair, MutableLuaSet<Assembly>>
@@ -58,15 +59,23 @@ export function getAssemblyAtPosition(surfaceIndex: SurfaceIndex, position: MapP
   }
 }
 
-// minor optimization: store last assembly that player was in, to avoid some lookups
-const LastAssembly = PlayerData<Assembly>("lastAssembly")
+const LastAssembly = PlayerData<MutableState<Assembly | undefined>>("lastAssembly", () => state(undefined))
 
-function computeAssemblyAtPlayerLocation(player: LuaPlayer): Assembly | undefined {
+function computeAssemblyAtPlayerLocation(player: LuaPlayer) {
   const index = player.index
   const position = player.position
-  const lastAssembly = LastAssembly[index]
-  if (lastAssembly && lastAssembly.isValid() && contains(lastAssembly.area, position)) return lastAssembly
-  return (LastAssembly[index] = getAssemblyAtPosition(player.surface.index, position))
+  const surface = player.surface
+  const lastAssemblyState = LastAssembly[index]
+  const lastAssembly = lastAssemblyState.get()
+  if (
+    lastAssembly &&
+    lastAssembly.isValid() &&
+    lastAssembly.surface === surface &&
+    contains(lastAssembly.area, position)
+  )
+    return lastAssembly
+  const newAssembly = getAssemblyAtPosition(player.surface.index, position)
+  lastAssemblyState.set(newAssembly)
 }
 
 Events.on_player_changed_position((e) => {
@@ -74,22 +83,22 @@ Events.on_player_changed_position((e) => {
 })
 
 AssemblyDeleted.subscribe((assembly) => {
-  for (const [index, a] of LastAssembly) {
-    if (a === assembly) delete LastAssembly[index]
+  for (const [, a] of LastAssembly) {
+    if (a.get() === assembly) a.set(undefined)
   }
 })
 
 AssemblyCreated.subscribe((assembly) => {
   for (const [index, a] of LastAssembly) {
-    if (a === undefined) {
+    if (a.get() === undefined) {
       const player = game.players[index]
       if (player.surface === assembly.surface && contains(assembly.area, player.position)) {
-        LastAssembly[index] = assembly
+        a.set(assembly)
       }
     }
   }
 })
 
-export function getAssemblyAtPlayerLocation(playerIndex: PlayerIndex): Assembly | undefined {
+export function assemblyAtPlayerLocation(playerIndex: PlayerIndex): State<Assembly | undefined> {
   return LastAssembly[playerIndex]
 }

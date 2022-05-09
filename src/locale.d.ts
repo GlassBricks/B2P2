@@ -59,6 +59,12 @@ export declare const enum L_Interaction {
 export declare const enum L_Gui {
   /** <Unnamed assembly> */
   UnnamedAssembly = "bbpp.gui.unnamed-assembly",
+  /** Current assembly: */
+  CurrentAssembly = "bbpp.gui.current-assembly",
+  /** <None> */
+  None = "bbpp.gui.none",
+  /** Show all assemblies */
+  ShowAllAssemblies = "bbpp.gui.show-all-assemblies",
   /** Rename assembly */
   RenameAssembly = "bbpp.gui.rename-assembly",
   /** Cancel rename */

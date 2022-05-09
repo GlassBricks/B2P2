@@ -12,7 +12,8 @@ export function TitleBar(props: { title: MaybeObservable<LocalisedString>; child
         height: 28,
       }}
       onCreate={(element) => {
-        if (element.parent!.type === "frame") element.drag_target = element.parent
+        const parent = element.parent!
+        if (parent.type === "frame" && parent.parent === element.gui.screen) element.drag_target = parent
       }}
       name="title_bar"
     >

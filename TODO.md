@@ -1,8 +1,7 @@
 ## Now
 
-- Player tracking
-- ability to toggle imports temporarily
 - auto-reset
+- ability to toggle imports temporarily
 - better import creation preview
 
 
