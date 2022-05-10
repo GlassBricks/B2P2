@@ -15,6 +15,8 @@ import { L_Gui } from "../../locale"
 import { MaybeState } from "../../lib/observable"
 import { isEmpty } from "../../lib/util"
 import { AreaIdentification } from "../../assembly/AreaIdentification"
+import { bbox } from "../../lib/geometry/bounding-box"
+import center = bbox.center
 
 @Classes.register()
 export class DiagnosticsTab extends Component<{
@@ -112,34 +114,29 @@ export class DiagnosticsTab extends Component<{
   }
 
   private static showDiagnosticMainLocation(diagnostic: Diagnostic, event: OnGuiClickEvent) {
-    const location = diagnostic.highlightLocation ?? diagnostic.location
-    if (!location) return
-    DiagnosticsTab.createHighlightAndTeleportPlayer(location, game.get_player(event.player_index)!, "entity")
+    const player = game.get_player(event.player_index)!
+    if (diagnostic.location)
+      DiagnosticsTab.createHighlight(diagnostic.location, "blueprint-snap-rectangle", player.index, true)
+    if (diagnostic.highlightLocation)
+      DiagnosticsTab.createHighlight(diagnostic.highlightLocation, "entity", player.index, false)
+
+    const teleportPosition = diagnostic.location ?? diagnostic.highlightLocation
+    if (teleportPosition) DiagnosticsTab.teleportPlayerToPos(player, teleportPosition)
   }
   private static showDiagnosticAltLocation(diagnostic: Diagnostic, event: OnGuiClickEvent) {
-    const location = diagnostic.altHighlightLocation ?? diagnostic.altLocation
-    if (!location) return
-    DiagnosticsTab.createHighlightAndTeleportPlayer(location, game.get_player(event.player_index)!, "copy")
-    if (diagnostic.altHighlightLocation && diagnostic.altLocation) {
+    const player = game.get_player(event.player_index)!
+    if (diagnostic.altLocation)
       DiagnosticsTab.createHighlight(
         diagnostic.altLocation,
         getDiagnosticHighlightType(diagnostic.id),
-        event.player_index,
-        false,
+        player.index,
+        true,
       )
-    }
+    if (diagnostic.altHighlightLocation)
+      DiagnosticsTab.createHighlight(diagnostic.altHighlightLocation, "entity", player.index, false)
+    const teleportPosition = diagnostic.altLocation ?? diagnostic.altHighlightLocation
+    if (teleportPosition) DiagnosticsTab.teleportPlayerToPos(player, teleportPosition)
   }
-
-  private static createHighlightAndTeleportPlayer(
-    location: AreaIdentification,
-    player: LuaPlayer,
-    boxType: CursorBoxRenderType,
-  ) {
-    const highlight = DiagnosticsTab.createHighlight(location, boxType, player.index, true)
-    const position = highlight.position
-    DiagnosticsTab.teleportPlayerToPos(player, location.surface, position)
-  }
-
   private static createHighlight(
     location: AreaIdentification,
     boxType: CursorBoxRenderType,
@@ -152,7 +149,9 @@ export class DiagnosticsTab extends Component<{
       render_player_index: playerIndex,
     })!
   }
-  private static teleportPlayerToPos(player: LuaPlayer, surface: LuaSurface, position: MapPositionTable) {
+  private static teleportPlayerToPos(player: LuaPlayer, location: AreaIdentification) {
+    const { surface, area } = location
+    const position = center(area)
     if (player.character && player.surface === surface) {
       player.zoom_to_world(position, 1)
     } else {
