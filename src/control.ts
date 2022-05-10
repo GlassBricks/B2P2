@@ -1,4 +1,4 @@
 import "./assembly"
-import "./gui"
+import "./ui"
 
 pcall(require, "debug")

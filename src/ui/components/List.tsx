@@ -9,8 +9,7 @@ import {
   Spec,
   Tracker,
 } from "../../lib/factoriojsx"
-import { ObservableList, Unsubscribe } from "../../lib/observable"
-import { ObservableListChange } from "../../lib/observable/ObservableList"
+import { ObservableList, ObservableListChange, Unsubscribe } from "../../lib/observable"
 import { assertNever } from "../../lib/util"
 
 export type ListProps<T, U extends GuiElementType> = {

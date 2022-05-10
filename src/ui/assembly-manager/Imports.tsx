@@ -10,7 +10,7 @@ import { GuiConstants, Styles } from "../../constants"
 import { HorizontalPusher } from "../components/misc"
 import { TrashButton } from "../components/buttons"
 import { showDialogue } from "../window/Dialogue"
-import { ObservableSet } from "../../lib/observable/ObservableSet"
+import { ObservableSet } from "../../lib/observable"
 import { teleportPlayer } from "../../assembly/AreaIdentification"
 
 @Classes.register()

@@ -9,8 +9,7 @@ import {
   Spec,
   Tracker,
 } from "../../lib/factoriojsx"
-import { ObservableSet, ObservableSetChange } from "../../lib/observable/ObservableSet"
-import { Unsubscribe } from "../../lib/observable"
+import { ObservableSet, ObservableSetChange, Unsubscribe } from "../../lib/observable"
 
 export type EnumerateSetProps<T, U extends GuiElementType> = {
   uses: U
