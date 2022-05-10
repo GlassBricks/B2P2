@@ -8,7 +8,7 @@ data.extend([
     type: "bool-setting",
     setting_type: "runtime-per-user",
     name: Settings.Autosave,
-    default_value: true,
+    default_value: false,
     order: "z[bbpp]-[autosave]",
   },
 ])
