@@ -10,6 +10,10 @@ export const enum Prototypes {
   ImportPreviewPositionMarker = "bbpp:import-preview-position-marker",
 }
 
+export const enum Settings {
+  Autosave = "bbpp:auto-save",
+}
+
 export const enum Sprites {
   TeleportBlack = "bbpp:teleport-black",
   TeleportWhite = "bbpp:teleport-white",

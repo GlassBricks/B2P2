@@ -1,7 +1,6 @@
 import { Assembly } from "./assembly/Assembly"
 import { bbox } from "./lib/geometry/bounding-box"
 import { Events } from "./lib"
-import { AssembliesOverview } from "./ui/assemblies-overview/AssembliesOverview"
 
 declare function __getTestFiles(): string[]
 
@@ -37,7 +36,7 @@ if (script.active_mods.testorio) {
       if (results.status === "passed" && results.skipped === 0) {
         Assembly.create("test", game.surfaces[1], bbox.fromCorners(0, 0, 20, 20))
         Assembly.create("test2", game.surfaces[1], bbox.fromCorners(20, 0, 40, 20))
-        AssembliesOverview.open(game.players[1])
+        // AssembliesOverview.open(game.players[1])
       } else {
         game.players[1]?.gui.screen["testorio:test-config"]?.bring_to_front()
       }
