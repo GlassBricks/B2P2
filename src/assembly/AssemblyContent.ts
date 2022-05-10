@@ -9,9 +9,8 @@ import {
 import { AssemblyImport } from "./imports/AssemblyImport"
 import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint, takeBlueprintWithIndex } from "../world-interaction/blueprint"
-import { MutableObservableList, observableList } from "../lib/observable/ObservableList"
+import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
 import { pos } from "../lib/geometry/position"
-import { MutableState, state, State } from "../lib/observable"
 import { isEmpty } from "../lib/util"
 import { mapPasteConflictsToDiagnostics, PasteDiagnostics } from "./paste-diagnostics"
 import { createHighlight, getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
@@ -29,7 +28,7 @@ export interface AssemblyContent extends AreaIdentification {
   resetInWorld(): void
   readonly pasteDiagnostics: State<readonly LayerPasteDiagnostics[]>
 
-  hasConflictsProp(): State<boolean>
+  hasConflicts: State<boolean>
 
   readonly resultContent: State<Blueprint | undefined> // undefined when invalid
   readonly entitySourceMap: State<EntitySourceMap | undefined>
@@ -67,6 +66,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
       diagnostics: {},
     },
   ])
+  hasConflicts = this.pasteDiagnostics.map(funcRef(DefaultAssemblyContent.hasAnyConflicts))
   pendingSave: MutableState<BlueprintDiff | undefined> = state(undefined)
 
   constructor(readonly surface: LuaSurface, readonly area: BoundingBoxRead) {
@@ -167,9 +167,6 @@ export class DefaultAssemblyContent implements AssemblyContent {
     }
   }
 
-  hasConflictsProp(): State<boolean> {
-    return this.pasteDiagnostics.map(funcRef(DefaultAssemblyContent.hasAnyConflicts))
-  }
   private static hasAnyConflicts(this: void, conflicts: readonly LayerPasteDiagnostics[]): boolean {
     return conflicts.some((conflict) => !isEmpty(conflict.diagnostics))
   }
