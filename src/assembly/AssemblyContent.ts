@@ -23,7 +23,7 @@ import { AreaIdentification } from "./AreaIdentification"
 export interface AssemblyContent extends AreaIdentification {
   readonly ownContents: State<PasteBlueprint>
 
-  readonly imports: MutableObservableList<AssemblyImport>
+  readonly imports: MutableObservableList<AssemblyImportItem>
 
   resetInWorld(): void
   readonly pasteDiagnostics: State<readonly LayerPasteDiagnostics[]>
@@ -47,6 +47,11 @@ export interface AssemblyContent extends AreaIdentification {
   delete(): void
 }
 
+export interface AssemblyImportItem {
+  readonly import: AssemblyImport
+  readonly active: MutableState<boolean>
+}
+
 export interface LayerPasteDiagnostics {
   readonly name: State<LocalisedString> | undefined
   readonly diagnostics: PasteDiagnostics
@@ -55,7 +60,7 @@ export interface LayerPasteDiagnostics {
 @Classes.register()
 export class DefaultAssemblyContent implements AssemblyContent {
   ownContents: MutableState<PasteBlueprint>
-  readonly imports: MutableObservableList<AssemblyImport> = observableList()
+  readonly imports = observableList<AssemblyImportItem>()
   readonly resultContent: MutableState<Blueprint | undefined>
   readonly entitySourceMap: MutableState<EntitySourceMap | undefined>
   private importsContent: Blueprint = Blueprint.of()
@@ -98,8 +103,8 @@ export class DefaultAssemblyContent implements AssemblyContent {
     const diagnostics = bpConflicts.map((conflict, index) => {
       const imp = assemblyImports[index]
       return {
-        name: imp?.name(),
-        diagnostics: this.computeAndRenderDiagnostics(conflict, imp?.getRelativePosition(), sourceMap),
+        name: imp?.import.name(),
+        diagnostics: this.computeAndRenderDiagnostics(conflict, imp?.import.getRelativePosition(), sourceMap),
       }
     })
 
@@ -108,7 +113,11 @@ export class DefaultAssemblyContent implements AssemblyContent {
     this.resultContent.set(Blueprint.take(this.surface, this.area))
   }
 
-  private pasteImport(imp: AssemblyImport, sourceMap: EntitySourceMapBuilder): BlueprintPasteConflicts {
+  private pasteImport(
+    { active, import: imp }: AssemblyImportItem,
+    sourceMap: EntitySourceMapBuilder,
+  ): BlueprintPasteConflicts {
+    if (!active.get()) return {}
     const content = imp.content().get()
     if (!content) return {}
 
@@ -196,7 +205,10 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   saveAndAddImport(imp: AssemblyImport): void {
     this.prepareSave()
-    this.imports.push(imp)
+    this.imports.push({
+      active: state(true),
+      import: imp,
+    })
     this.commitAndReset()
   }
 

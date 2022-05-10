@@ -1,17 +1,18 @@
-import { bound, Classes, funcOn, reg } from "../../lib"
+import { bound, Classes, funcOn, raiseUserError, reg } from "../../lib"
 import { Component, destroy, FactorioJsx, GuiEvent, renderOpened, Spec, Tracker } from "../../lib/factoriojsx"
 import { Assembly } from "../../assembly/Assembly"
 import { List } from "../components/List"
 import { L_Gui, L_Interaction } from "../../locale"
 import { startBasicImportCreation } from "../../assembly/imports/import-creation"
 import { AssembliesList } from "../AssembliesList"
-import { AssemblyImport, highlightImport } from "../../assembly/imports/AssemblyImport"
+import { highlightImport } from "../../assembly/imports/AssemblyImport"
 import { GuiConstants, Styles } from "../../constants"
 import { HorizontalPusher } from "../components/misc"
 import { TrashButton } from "../components/buttons"
 import { showDialogue } from "../window/Dialogue"
 import { ObservableSet } from "../../lib/observable"
 import { teleportPlayer } from "../../assembly/AreaIdentification"
+import { AssemblyImportItem } from "../../assembly/AssemblyContent"
 
 @Classes.register()
 export class ImportsTab extends Component<{ assembly: Assembly }> {
@@ -39,8 +40,8 @@ export class ImportsTab extends Component<{ assembly: Assembly }> {
   }
 
   @bound
-  private importItem(item: AssemblyImport): Spec {
-    return <ImportItem import={item} assembly={this.assembly} />
+  private importItem(item: AssemblyImportItem): Spec {
+    return <ImportItem item={item} assembly={this.assembly} />
   }
 
   @bound
@@ -51,16 +52,18 @@ export class ImportsTab extends Component<{ assembly: Assembly }> {
 }
 
 interface ImportItemProps {
-  import: AssemblyImport
+  item: AssemblyImportItem
   assembly: Assembly
 }
 
 @Classes.register()
 class ImportItem extends Component<ImportItemProps> {
-  props!: ImportItemProps
+  item!: AssemblyImportItem
+  assembly!: Assembly
 
   render(props: ImportItemProps): Spec {
-    this.props = props
+    this.item = props.item
+    this.assembly = props.assembly
     return (
       <frame
         style="bordered_frame"
@@ -72,7 +75,7 @@ class ImportItem extends Component<ImportItemProps> {
       >
         <button
           style="list_box_item"
-          caption={props.import.name()}
+          caption={props.item.import.name()}
           tooltip={[L_Gui.ImportItemTooltip]}
           on_gui_click={reg(this.nameClicked)}
         />
@@ -98,12 +101,12 @@ class ImportItem extends Component<ImportItemProps> {
       } else {
         // move down
         const { imports, index } = this.getIndex()
-        if (index === -1 || index === imports.length() - 1) return
+        if (index === imports.length() - 1) return
         imports.swap(index, index + 1)
       }
     } else if (e.control) {
       // teleport to source
-      const source = this.props.import.getSourceArea()
+      const source = this.item.import.getSourceArea()
       const player = game.get_player(e.player_index)!
       if (source) {
         teleportPlayer(player, source)
@@ -114,23 +117,18 @@ class ImportItem extends Component<ImportItemProps> {
         })
       }
     } else {
-      const { assembly, import: imp } = this.props
+      const { assembly, item: imp } = this
       const player = game.get_player(e.player_index)!
-      highlightImport(assembly.surface, assembly.area, imp, player)
+      highlightImport(assembly.surface, assembly.area, imp.import, player)
     }
   }
 
-  private getIndex() {
-    const imports = this.props.assembly.getContent()!.imports
-    const index = imports.value().indexOf(this.props.import)
-    return { imports, index }
-  }
   @bound
   private confirmDeleteImport(e: GuiEvent): void {
     const player = game.get_player(e.player_index)!
     showDialogue(player, {
       title: ["gui.confirmation"],
-      message: [L_Gui.DeleteImportConfirmation, this.props.import.name().get()],
+      message: [L_Gui.DeleteImportConfirmation, this.item.import.name().get()],
       backCaption: ["gui.cancel"],
       confirmCaption: ["gui.delete"],
       redConfirm: true,
@@ -140,13 +138,17 @@ class ImportItem extends Component<ImportItemProps> {
 
   @bound
   private deleteImport(): void {
-    const imports = this.props.assembly.getContent()!.imports
-    const index = imports.value().indexOf(this.props.import)
-    if (index === -1) {
-      // should not happen
-      return
-    }
+    const { imports, index } = this.getIndex()
     imports.remove(index)
+  }
+
+  private getIndex() {
+    const imports = this.assembly.getContent()!.imports
+    const index = imports.value().indexOf(this.item)
+    if (index === -1) {
+      raiseUserError([L_Gui.ImportNoLongerExists], "flying-text")
+    }
+    return { imports, index }
   }
 }
 

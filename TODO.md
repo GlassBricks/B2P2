@@ -1,8 +1,7 @@
 ## Now
 
-- auto-reset
-- ability to toggle imports temporarily
 - better import creation preview
+- ability to toggle imports temporarily
 
 
 - Test with real blueprints

@@ -101,7 +101,7 @@ describe("import", () => {
   })
   test("adding import to blueprint adds to in world", () => {
     const content = createAssemblyContent()
-    content.imports.push(mockImport(originalBlueprintSample))
+    content.saveAndAddImport(mockImport(originalBlueprintSample))
     assert.same({}, content.ownContents.get().entities)
     content.resetInWorld()
     const bp = Blueprint.take(surface, area)
@@ -111,7 +111,7 @@ describe("import", () => {
   })
   test("adding import to blueprint adds to in world at specified location", () => {
     const content = createAssemblyContent()
-    content.imports.push(mockImport(originalBlueprintSample, pos(1, 2)))
+    content.saveAndAddImport(mockImport(originalBlueprintSample, pos(1, 2)))
     assert.same({}, content.ownContents.get().entities)
     content.resetInWorld()
     const bp = Blueprint.take(surface, bbox.shift(area, pos(1, 2)))
@@ -137,7 +137,7 @@ describe("import", () => {
       },
     ]
     const content = createAssemblyContent(bbox(area.left_top, pos.add(area.left_top, pos(5, 5))))
-    content.imports.push(mockImport(Blueprint.fromArray(mockEntities)))
+    content.saveAndAddImport(mockImport(Blueprint.fromArray(mockEntities)))
 
     content.resetInWorld()
     const bp = Blueprint.take(surface, area, area.left_top)
@@ -148,7 +148,7 @@ describe("import", () => {
 
   test("does not paste invalid import", () => {
     const content = createAssemblyContent()
-    content.imports.push(invalidMockImport())
+    content.saveAndAddImport(invalidMockImport())
     const bp = Blueprint.take(surface, area, area.left_top)
     assert.same({}, bp.entities)
   })
@@ -343,7 +343,7 @@ describe("saveChanges", () => {
 
   it("is empty when content exactly matches imports", () => {
     const contents = createAssemblyContent()
-    contents.imports.push(mockImport(originalBlueprintSample))
+    contents.saveAndAddImport(mockImport(originalBlueprintSample))
     contents.resetInWorld()
     contents.prepareSave()
     contents.commitSave()

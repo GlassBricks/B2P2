@@ -4,7 +4,7 @@ import { bbox } from "../../lib/geometry/bounding-box"
 import { pos } from "../../lib/geometry/position"
 import { startBasicImportCreation } from "./import-creation"
 import { getBlueprintSample } from "../../test/blueprint-sample"
-import { pasteBlueprint } from "../../world-interaction/blueprint"
+import { clearBuildableEntities, pasteBlueprint } from "../../world-interaction/blueprint"
 import { UP } from "../../lib/geometry/rotation"
 import direction = defines.direction
 
@@ -20,6 +20,9 @@ test("create", () => {
   const surface = game.surfaces[1]
   const area = bbox.fromCorners(0, 0, 10, 10)
   const area2 = bbox.shift(area, pos(10, 0))
+
+  clearBuildableEntities(surface, area)
+  clearBuildableEntities(surface, area2)
 
   const blueprint = getBlueprintSample("original")
   pasteBlueprint(surface, area2.left_top, blueprint)
