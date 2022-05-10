@@ -23,10 +23,10 @@ export abstract class State<T> implements Subscribable<ChangeListener<T>> {
     return new MappedState(this, mapper)
   }
 
-  choice<V>(this: State<boolean>, whenTrue: V, whenFalse: V): State<V> {
-    return this.map(bind(State.choiceFn, undefined, whenTrue, whenFalse))
+  switch<V>(whenTruthy: V, whenFalsy: V): State<V> {
+    return this.map(bind(State.switchFn, undefined, whenTruthy, whenFalsy))
   }
-  static choiceFn<V>(whenTrue: V, whenFalse: V, value: boolean): V {
+  static switchFn<V>(whenTrue: V, whenFalse: V, value: unknown): V {
     return value ? whenTrue : whenFalse
   }
   truthy(): State<boolean> {

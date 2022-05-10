@@ -2,6 +2,7 @@
 
 - better import creation preview
 - ability to toggle imports temporarily
+- make current assembly window toggleable
 
 
 - Test with real blueprints

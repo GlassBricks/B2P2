@@ -25,10 +25,11 @@ export class ImportsTab extends Component<{ assembly: Assembly }> {
         <frame style="deep_frame_in_shallow_frame">
           <scroll-pane style={Styles.AMListScrollPane}>
             <List
-              uses="flow"
-              direction="vertical"
               of={this.assembly.getContent()!.imports}
               map={reg(this.importItem)}
+              uses="flow"
+              direction="vertical"
+              styleMod={{ vertical_spacing: 0 }}
             />
           </scroll-pane>
         </frame>

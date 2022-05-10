@@ -475,7 +475,7 @@ describe("map", () => {
 
   test("choice", () => {
     const val = state(false)
-    const choice = val.choice("yes", "no")
+    const choice = val.switch("yes", "no")
 
     const fn = spy()
     choice.subscribeAndFire(fn)

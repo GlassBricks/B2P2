@@ -52,9 +52,9 @@ export class AMTitleBar extends Component<{ assembly: Assembly; onClose: ClickEv
 function RenameButton(props: { onClick?: ClickEventHandler; isEditing: State<boolean> }): Spec {
   // when editing, should resemble close button and have "cancel rename" tooltip
   const { isEditing } = props
-  const sprite = isEditing.choice("utility/close_white", "utility/rename_icon_small_white")
-  const tooltip = isEditing.choice<LocalisedString>([L_Gui.CancelRenameAssembly], [L_Gui.RenameAssembly])
-  const hoveredSprite = isEditing.choice("utility/close_black", "utility/rename_icon_small_black")
+  const sprite = isEditing.switch("utility/close_white", "utility/rename_icon_small_white")
+  const tooltip = isEditing.switch<LocalisedString>([L_Gui.CancelRenameAssembly], [L_Gui.RenameAssembly])
+  const hoveredSprite = isEditing.switch("utility/close_black", "utility/rename_icon_small_black")
   return (
     <sprite-button
       style="frame_action_button"
