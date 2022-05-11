@@ -46,7 +46,7 @@ export declare const enum L_Interaction {
   /** An unexpected error occurred: __1__. Additional details outputted to log. Please report this to the mod author! */
   UnexpectedError = "bbpp.interaction.unexpected-error",
   /** __1__ */
-  TranslateDialogueMessage = "bbpp.interaction.translate-dialogue-message",
+  TranslateDialogueMessage = "bbpp.interaction.translate-dialog-message",
   /** Select an area for the new assembly */
   SelectAreaForAssembly = "bbpp.interaction.select-area-for-assembly",
   /** This area intersects with an existing assembly: __1__ */

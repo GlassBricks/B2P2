@@ -19,7 +19,7 @@ export interface DialogueProps {
 }
 
 @Classes.register()
-class Dialogue extends Component<
+class Dialog extends Component<
   DialogueProps & {
     translated: string
   }
@@ -31,7 +31,7 @@ class Dialogue extends Component<
   private redConfirm?: boolean
 
   render(props: DialogueProps & { translated: string }): Spec {
-    assert(props.backCaption || props.confirmCaption, "Dialogue requires at least one button")
+    assert(props.backCaption || props.confirmCaption, "Dialog requires at least one button")
 
     this.onBackFn = props.onBack
     this.onConfirmFn = props.onConfirm
@@ -108,5 +108,5 @@ Events.on_string_translated((e) => {
   if (!props) return
   delete pendingDialogue[playerIndex]
   const player = game.players[playerIndex]
-  player.opened = render(player.gui.screen, <Dialogue {...props} translated={e.result} />)
+  player.opened = render(player.gui.screen, <Dialog {...props} translated={e.result} />)
 })

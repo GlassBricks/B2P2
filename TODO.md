@@ -1,9 +1,5 @@
 ## Now
 
-- make current assembly window toggleable
-
-- rename dialogue to dialog
-
 - Test with real blueprints
 
 

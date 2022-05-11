@@ -2,7 +2,7 @@ import { bound, Classes, reg } from "../../lib"
 import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { Assembly } from "../../assembly/Assembly"
 import { L_Gui, L_Interaction } from "../../locale"
-import { showDialogue } from "../window/Dialogue"
+import { showDialogue } from "../window/Dialog"
 import { GuiConstants } from "../../constants"
 
 @Classes.register()
