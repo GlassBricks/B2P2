@@ -1,11 +1,11 @@
-import { Classes, raiseUserError } from "../../lib"
-import { AssemblyImport } from "./AssemblyImport"
-import { Assembly } from "../Assembly"
 import { Blueprint } from "../../blueprint/Blueprint"
-import { State } from "../../lib/observable"
+import { Classes, raiseUserError } from "../../lib"
 import { bbox } from "../../lib/geometry/bounding-box"
+import { State } from "../../lib/observable"
 import { L_Interaction } from "../../locale"
 import { AreaIdentification } from "../AreaIdentification"
+import { Assembly } from "../Assembly"
+import { AssemblyImport } from "./AssemblyImport"
 
 @Classes.register()
 export class BasicImport implements AssemblyImport {

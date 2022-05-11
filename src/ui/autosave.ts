@@ -1,8 +1,8 @@
-import { bind, Functions, onPlayerInit } from "../lib"
-import { assemblyAtPlayerLocation } from "../assembly/player-tracking"
 import { Assembly } from "../assembly/Assembly"
-import { L_Interaction } from "../locale"
+import { assemblyAtPlayerLocation } from "../assembly/player-tracking"
 import { Settings } from "../constants"
+import { bind, Functions, onPlayerInit } from "../lib"
+import { L_Interaction } from "../locale"
 
 function attemptAutosave(this: unknown, player: LuaPlayer, _: unknown, oldAssembly: Assembly | undefined) {
   if (!oldAssembly || !oldAssembly.isValid()) return

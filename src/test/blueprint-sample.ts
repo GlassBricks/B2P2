@@ -1,7 +1,7 @@
 import { get_area } from "__testorio__/testUtil/areas"
-import { takeBlueprint } from "../world-interaction/blueprint"
-import { bbox } from "../lib/geometry/bounding-box"
 import { table } from "util"
+import { bbox } from "../lib/geometry/bounding-box"
+import { takeBlueprint } from "../world-interaction/blueprint"
 import deepcopy = table.deepcopy
 
 const blueprintSampleNames = {

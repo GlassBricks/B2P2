@@ -1,11 +1,11 @@
-import { Assembly } from "../Assembly"
-import { getPlayer } from "../../lib/test-util/misc"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { pos } from "../../lib/geometry/position"
-import { startBasicImportCreation } from "./import-creation"
+import { UP } from "../../lib/geometry/rotation"
+import { getPlayer } from "../../lib/test-util/misc"
 import { getBlueprintSample } from "../../test/blueprint-sample"
 import { clearBuildableEntities, pasteBlueprint } from "../../world-interaction/blueprint"
-import { UP } from "../../lib/geometry/rotation"
+import { Assembly } from "../Assembly"
+import { startBasicImportCreation } from "./import-creation"
 import direction = defines.direction
 
 const deleteAssemblies = () => {

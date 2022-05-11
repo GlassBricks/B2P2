@@ -1,8 +1,8 @@
+import { returns } from "../../lib"
+import { FactorioJsx } from "../../lib/factoriojsx"
+import { MutableState, state } from "../../lib/observable"
 import { ElementWrapper, testRender } from "../../lib/test-util/gui"
 import { If } from "./If"
-import { MutableState, state } from "../../lib/observable"
-import { FactorioJsx } from "../../lib/factoriojsx"
-import { returns } from "../../lib"
 
 let condition: MutableState<boolean>
 

@@ -1,7 +1,13 @@
-import { Blueprint } from "./Blueprint"
 import { FullEntity, PasteEntity, ReferenceEntity } from "../entity/entity"
-import { getEntitySample } from "../test/entity-sample"
+import { createReferenceOnlyEntity } from "../entity/entity-paste"
+import { BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
+import { assertBlueprintsEquivalent } from "../test/blueprint"
+import { getBlueprintSample } from "../test/blueprint-sample"
+import { getEntitySample } from "../test/entity-sample"
+import { getWorkingArea1 } from "../test/misc"
+import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
+import { Blueprint } from "./Blueprint"
 import {
   BlueprintDiff,
   computeBlueprintDiff,
@@ -11,12 +17,6 @@ import {
   findCompatibleEntity,
   findOverlappingEntity,
 } from "./blueprint-paste"
-import { getBlueprintSample } from "../test/blueprint-sample"
-import { assertBlueprintsEquivalent } from "../test/blueprint"
-import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
-import { BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { createReferenceOnlyEntity } from "../entity/entity-paste"
-import { getWorkingArea1 } from "../test/misc"
 
 let emptyBlueprint: Blueprint
 function getAssemblingMachineEntity(): FullEntity {

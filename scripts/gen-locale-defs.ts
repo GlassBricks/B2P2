@@ -1,7 +1,7 @@
-import * as path from "path"
-import * as ts from "typescript"
 import * as fs from "fs"
+import * as path from "path"
 import { format } from "prettier"
+import * as ts from "typescript"
 import assert = require("assert")
 
 function toPascalCase(str: string): string {

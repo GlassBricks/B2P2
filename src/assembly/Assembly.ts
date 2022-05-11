@@ -1,3 +1,4 @@
+import { Colors } from "../constants"
 import { bound, Classes, Events, raiseUserError, reg } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
 import {
@@ -10,9 +11,8 @@ import {
   State,
 } from "../lib/observable"
 import { L_Gui, L_Interaction } from "../locale"
-import { Colors } from "../constants"
-import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 import { AreaIdentification } from "./AreaIdentification"
+import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 
 export const AssemblyCreated = new GlobalEvent<Assembly>()
 export const AssemblyDeleted = new GlobalEvent<Assembly>()

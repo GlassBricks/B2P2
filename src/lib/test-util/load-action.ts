@@ -1,5 +1,5 @@
-import { getPlayer } from "./misc"
 import { Events } from "../index"
+import { getPlayer } from "./misc"
 
 const loadActions: Record<string, (data: any, player: LuaPlayer) => void> = {}
 

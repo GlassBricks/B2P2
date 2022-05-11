@@ -1,6 +1,6 @@
 import Events from "./Events"
-import "./observable"
 import "./factoriojsx"
+import "./observable"
 
 export * from "./references"
 export * from "./player-data"

@@ -1,9 +1,9 @@
-import { MutableObservableSet, observableSet } from "../../lib/observable"
-import { ElementWrapper, testRender } from "../../lib/test-util/gui"
-import { FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { EnumerateSet } from "./EnumerateSet"
 import { returns } from "../../lib"
+import { FactorioJsx, Spec } from "../../lib/factoriojsx"
+import { MutableObservableSet, observableSet } from "../../lib/observable"
 import { asFunc } from "../../lib/test-util/func"
+import { ElementWrapper, testRender } from "../../lib/test-util/gui"
+import { EnumerateSet } from "./EnumerateSet"
 
 function presentElements(wrapper: ElementWrapper) {
   return wrapper.findAll("label").map((x) => x.native.caption)

@@ -1,7 +1,7 @@
 import { Blueprint } from "../../blueprint/Blueprint"
-import { State } from "../../lib/observable"
-import { bbox } from "../../lib/geometry/bounding-box"
 import { Colors } from "../../constants"
+import { bbox } from "../../lib/geometry/bounding-box"
+import { State } from "../../lib/observable"
 import { AreaIdentification } from "../AreaIdentification"
 
 export interface AssemblyImport {

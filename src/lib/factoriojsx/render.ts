@@ -1,7 +1,9 @@
-import { isEmpty, shallowCopy } from "../util"
 import Events from "../Events"
+import { MutableState, SingleObserver, State, Unsubscribe } from "../observable"
 import { PlayerData } from "../player-data"
+import { protectedAction } from "../protected-action"
 import { bind, Callback, Classes, Func, funcRef, Functions, isCallable, SelflessFun } from "../references"
+import { isEmpty, shallowCopy } from "../util"
 import { PRecord } from "../util-types"
 import * as propTypes from "./propTypes.json"
 import {
@@ -15,8 +17,6 @@ import {
   Spec,
   Tracker,
 } from "./spec"
-import { MutableState, SingleObserver, State, Unsubscribe } from "../observable"
-import { protectedAction } from "../protected-action"
 
 type GuiEventName = Extract<keyof typeof defines.events, `on_gui_${string}`>
 

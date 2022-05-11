@@ -1,12 +1,12 @@
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
-import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
 import { describeEntity, Entity, getTileBox, isUnhandledProp } from "../entity/entity"
+import { bbox } from "../lib/geometry/bounding-box"
+import { pos } from "../lib/geometry/position"
 import { assertNever } from "../lib/util"
 import { L_Diagnostic } from "../locale"
 import { AreaIdentification } from "./AreaIdentification"
+import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
 import { EntitySourceMap, getEntitySourceLocation } from "./EntitySourceMap"
-import { bbox } from "../lib/geometry/bounding-box"
-import { pos } from "../lib/geometry/position"
 import shift = bbox.shift
 
 export type PasteDiagnosticId = "overlap" | "items-ignored" | "cannot-upgrade" | "unsupported-prop"

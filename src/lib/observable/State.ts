@@ -1,6 +1,6 @@
 import { bind, Callback, Classes, Func, funcRef, Registered } from "../references"
-import { Observers } from "./Observers"
 import { Subscribable, Unsubscribe } from "./Observable"
+import { Observers } from "./Observers"
 
 declare const ObservableBrand: unique symbol
 

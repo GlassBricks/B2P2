@@ -1,4 +1,7 @@
+import { mutableShallowCopy, shallowCopy } from "../lib/util"
+import { Mutable } from "../lib/util-types"
 import { EntitySampleName, getEntitySample } from "../test/entity-sample"
+import { EntityNumber, ReferenceEntity } from "./entity"
 import {
   computeEntityDiff,
   createReferenceOnlyEntity,
@@ -6,9 +9,6 @@ import {
   findEntityPasteConflictAndUpdate,
   isCompatibleEntity,
 } from "./entity-paste"
-import { mutableShallowCopy, shallowCopy } from "../lib/util"
-import { Mutable } from "../lib/util-types"
-import { EntityNumber, ReferenceEntity } from "./entity"
 
 describe("isCompatibleEntity", () => {
   test("identical entities are compatible", () => {

@@ -1,5 +1,5 @@
-import { ClickEventHandler, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { Sprites } from "../../constants"
+import { ClickEventHandler, FactorioJsx, Spec } from "../../lib/factoriojsx"
 
 export function CloseButton(props: { tooltip?: LocalisedString; onClick?: ClickEventHandler }): Spec {
   return (

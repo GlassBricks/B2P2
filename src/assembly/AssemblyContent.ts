@@ -1,4 +1,4 @@
-import { Classes, funcRef } from "../lib"
+import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
 import {
   BlueprintDiff,
   BlueprintPasteConflicts,
@@ -6,16 +6,16 @@ import {
   findBlueprintPasteConflictsAndUpdate,
   findBlueprintPasteConflictsInWorld,
 } from "../blueprint/blueprint-paste"
-import { AssemblyImport } from "./imports/AssemblyImport"
-import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
-import { clearBuildableEntities, pasteBlueprint, takeBlueprintWithIndex } from "../world-interaction/blueprint"
-import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
+import { Classes, funcRef } from "../lib"
 import { pos } from "../lib/geometry/position"
+import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
 import { isEmpty } from "../lib/util"
-import { mapPasteConflictsToDiagnostics, PasteDiagnostics } from "./paste-diagnostics"
+import { clearBuildableEntities, pasteBlueprint, takeBlueprintWithIndex } from "../world-interaction/blueprint"
+import { AreaIdentification } from "./AreaIdentification"
 import { createHighlight, getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
 import { EntitySourceMap, EntitySourceMapBuilder } from "./EntitySourceMap"
-import { AreaIdentification } from "./AreaIdentification"
+import { AssemblyImport } from "./imports/AssemblyImport"
+import { mapPasteConflictsToDiagnostics, PasteDiagnostics } from "./paste-diagnostics"
 
 /**
  * Manages in-world contents of an assembly.

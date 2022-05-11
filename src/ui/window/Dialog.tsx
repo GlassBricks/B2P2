@@ -1,5 +1,5 @@
-import { Component, destroy, FactorioJsx, GuiEvent, render, Spec } from "../../lib/factoriojsx"
 import { bound, Classes, Events, Func, PlayerData, reg } from "../../lib"
+import { Component, destroy, FactorioJsx, GuiEvent, render, Spec } from "../../lib/factoriojsx"
 import { L_Interaction } from "../../locale"
 
 export interface DialogueProps {

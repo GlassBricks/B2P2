@@ -1,14 +1,14 @@
+import { teleportPlayer } from "../../assembly/AreaIdentification"
+import { Assembly } from "../../assembly/Assembly"
+import { startAssemblyCreation } from "../../assembly/assembly-creation"
 import { bound, Classes, funcRef, reg } from "../../lib"
 import { destroy, FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { Assembly } from "../../assembly/Assembly"
 import { L_Gui } from "../../locale"
-import { startAssemblyCreation } from "../../assembly/assembly-creation"
+import { AssembliesList } from "../AssembliesList"
+import { openAssemblyManager } from "../assembly-manager"
+import { CloseButton } from "../components/buttons"
 import { closeParentParent, DraggableSpace, TitleBar } from "../components/TitleBar"
 import { Window } from "../window/Window"
-import { CloseButton } from "../components/buttons"
-import { AssembliesList } from "../AssembliesList"
-import { teleportPlayer } from "../../assembly/AreaIdentification"
-import { openAssemblyManager } from "../assembly-manager"
 
 @Classes.register()
 export class AssembliesOverview extends Window {

@@ -1,8 +1,8 @@
-import { bind, bound, Classes, Func, reg } from "../lib"
 import { Assembly } from "../assembly/Assembly"
+import { GuiConstants, Styles } from "../constants"
+import { bind, bound, Classes, Func, reg } from "../lib"
 import { Component, ElemProps, FactorioJsx, Spec } from "../lib/factoriojsx"
 import { EnumerateSet } from "./components/EnumerateSet"
-import { GuiConstants, Styles } from "../constants"
 
 export interface AssembliesListProps extends ElemProps<"frame"> {
   filter?: Func<(assembly: Assembly) => boolean>

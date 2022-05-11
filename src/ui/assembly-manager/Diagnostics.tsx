@@ -1,21 +1,21 @@
+import { AreaIdentification } from "../../assembly/AreaIdentification"
 import { Assembly } from "../../assembly/Assembly"
-import { bind, bound, Classes, funcRef, reg } from "../../lib"
-import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { Styles } from "../../constants"
-import { Fn } from "../components/Fn"
-import { PasteDiagnosticId } from "../../assembly/paste-diagnostics"
+import { LayerPasteDiagnostics } from "../../assembly/AssemblyContent"
 import {
   createHighlight,
   Diagnostic,
   getDiagnosticCategory,
   getDiagnosticHighlightType,
 } from "../../assembly/diagnostics/Diagnostic"
-import { LayerPasteDiagnostics } from "../../assembly/AssemblyContent"
-import { L_Gui } from "../../locale"
+import { PasteDiagnosticId } from "../../assembly/paste-diagnostics"
+import { Styles } from "../../constants"
+import { bind, bound, Classes, funcRef, reg } from "../../lib"
+import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
+import { bbox } from "../../lib/geometry/bounding-box"
 import { MaybeState } from "../../lib/observable"
 import { isEmpty } from "../../lib/util"
-import { AreaIdentification } from "../../assembly/AreaIdentification"
-import { bbox } from "../../lib/geometry/bounding-box"
+import { L_Gui } from "../../locale"
+import { Fn } from "../components/Fn"
 import center = bbox.center
 
 @Classes.register()

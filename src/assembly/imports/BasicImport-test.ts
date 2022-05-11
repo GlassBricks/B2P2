@@ -1,13 +1,13 @@
+import { Blueprint } from "../../blueprint/Blueprint"
+import { isUserError } from "../../lib"
+import { bbox } from "../../lib/geometry/bounding-box"
+import { pos } from "../../lib/geometry/position"
+import { assertBlueprintsEquivalent } from "../../test/blueprint"
+import { getBlueprintSample } from "../../test/blueprint-sample"
+import { getWorkingArea1 } from "../../test/misc"
+import { clearBuildableEntities, pasteBlueprint } from "../../world-interaction/blueprint"
 import { Assembly } from "../Assembly"
 import { BasicImport } from "./BasicImport"
-import { getBlueprintSample } from "../../test/blueprint-sample"
-import { clearBuildableEntities, pasteBlueprint } from "../../world-interaction/blueprint"
-import { bbox } from "../../lib/geometry/bounding-box"
-import { assertBlueprintsEquivalent } from "../../test/blueprint"
-import { Blueprint } from "../../blueprint/Blueprint"
-import { pos } from "../../lib/geometry/position"
-import { isUserError } from "../../lib"
-import { getWorkingArea1 } from "../../test/misc"
 
 let blueprint: Blueprint
 let surface: LuaSurface

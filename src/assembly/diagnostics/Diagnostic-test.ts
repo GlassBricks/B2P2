@@ -1,7 +1,7 @@
+import { bbox } from "../../lib/geometry/bounding-box"
+import { pos } from "../../lib/geometry/position"
 import { L_Diagnostic } from "../../locale"
 import { addDiagnostic, createHighlight, DiagnosticCategory, DiagnosticCollection } from "./Diagnostic"
-import { pos } from "../../lib/geometry/position"
-import { bbox } from "../../lib/geometry/bounding-box"
 
 const category = DiagnosticCategory(
   {

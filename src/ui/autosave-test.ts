@@ -1,12 +1,12 @@
 import { Assembly } from "../assembly/Assembly"
-import { bbox } from "../lib/geometry/bounding-box"
-import { getPlayer } from "../lib/test-util/misc"
-import { pos } from "../lib/geometry/position"
+import { mockImport } from "../assembly/imports/import-mock"
+import { Blueprint } from "../blueprint/Blueprint"
 import { Settings } from "../constants"
 import { ContextualFun } from "../lib"
-import { mockImport } from "../assembly/imports/import-mock"
+import { bbox } from "../lib/geometry/bounding-box"
+import { pos } from "../lib/geometry/position"
+import { getPlayer } from "../lib/test-util/misc"
 import { getBlueprintSample } from "../test/blueprint-sample"
-import { Blueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities } from "../world-interaction/blueprint"
 import Spy = spy.Spy
 

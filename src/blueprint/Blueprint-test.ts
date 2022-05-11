@@ -1,6 +1,6 @@
-import { Blueprint } from "./Blueprint"
 import { FullEntity, getTileBox } from "../entity/entity"
 import { bbox } from "../lib/geometry/bounding-box"
+import { Blueprint } from "./Blueprint"
 
 test("new blueprint is empty", () => {
   assert.same({}, Blueprint.of().entities)

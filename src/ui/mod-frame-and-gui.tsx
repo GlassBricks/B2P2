@@ -1,13 +1,13 @@
-import { bound, Callback, Classes, funcOn, funcRef, Functions, onPlayerInit, reg } from "../lib"
 import * as mod_gui from "mod-gui"
-import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../lib/factoriojsx"
-import { AssembliesOverview } from "./assemblies-overview/AssembliesOverview"
-import { L_Gui } from "../locale"
 import { Assembly } from "../assembly/Assembly"
-import { State, state } from "../lib/observable"
 import { assemblyAtPlayerLocation } from "../assembly/player-tracking"
-import { TitleBar } from "./components/TitleBar"
+import { bound, Callback, Classes, funcOn, funcRef, Functions, onPlayerInit, reg } from "../lib"
+import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../lib/factoriojsx"
+import { State, state } from "../lib/observable"
+import { L_Gui } from "../locale"
+import { AssembliesOverview } from "./assemblies-overview/AssembliesOverview"
 import { openAssemblyManager } from "./assembly-manager"
+import { TitleBar } from "./components/TitleBar"
 
 const modButtonName = `${script.mod_name}:assemblies-overview`
 const modFrameName = `${script.mod_name}:current-assembly`

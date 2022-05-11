@@ -1,9 +1,9 @@
-import { MutableObservableList, observableList } from "../../lib/observable"
+import { returns } from "../../lib"
 import { FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { List } from "./List"
+import { MutableObservableList, observableList } from "../../lib/observable"
 import { asFunc } from "../../lib/test-util/func"
 import { ElementWrapper, testRender } from "../../lib/test-util/gui"
-import { returns } from "../../lib"
+import { List } from "./List"
 
 function presentElements(wrapper: ElementWrapper) {
   return wrapper.findAll("label").map((x) => x.native.caption)

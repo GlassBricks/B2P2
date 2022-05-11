@@ -1,6 +1,9 @@
 // noinspection UnnecessaryLocalVariableJS
 
+import { State, state } from "../observable"
 import { Callback, Classes } from "../references"
+import { asFunc } from "../test-util/func"
+import { testRender } from "../test-util/gui"
 import { destroy } from "./render"
 import {
   ButtonElementSpec,
@@ -17,9 +20,6 @@ import {
   TextBoxElementSpec,
   Tracker,
 } from "./spec"
-import { State, state } from "../observable"
-import { testRender } from "../test-util/gui"
-import { asFunc } from "../test-util/func"
 
 describe("create", () => {
   test("Sets spec property", () => {

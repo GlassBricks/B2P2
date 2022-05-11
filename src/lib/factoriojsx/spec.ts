@@ -1,7 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
-import { ElementSpec } from "./element-specs"
 import { Callback, Func } from "../references"
+import { ElementSpec } from "./element-specs"
 
 export * from "./element-specs"
 

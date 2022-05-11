@@ -1,8 +1,8 @@
 /** @noSelfInFile */
 
+import * as util from "util"
 import { NumberPair, pair } from "./number-pair"
 import { DOWN, LEFT, RIGHT, UP } from "./rotation"
-import * as util from "util"
 
 // Down is positive y, right is positive x
 

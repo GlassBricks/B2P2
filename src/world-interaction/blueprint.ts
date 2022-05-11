@@ -1,8 +1,8 @@
-import { isEmpty } from "../lib/util"
-import { pos } from "../lib/geometry/position"
-import { Mutable } from "../lib/util-types"
-import { bbox } from "../lib/geometry/bounding-box"
 import { FullEntity, getTileBox } from "../entity/entity"
+import { bbox } from "../lib/geometry/bounding-box"
+import { pos } from "../lib/geometry/position"
+import { isEmpty } from "../lib/util"
+import { Mutable } from "../lib/util-types"
 
 declare const global: {
   __tempBlueprintInventory: LuaInventory

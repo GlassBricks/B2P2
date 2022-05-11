@@ -1,6 +1,6 @@
 import { Assembly } from "./assembly/Assembly"
-import { bbox } from "./lib/geometry/bounding-box"
 import { Events } from "./lib"
+import { bbox } from "./lib/geometry/bounding-box"
 
 declare function __getTestFiles(): string[]
 

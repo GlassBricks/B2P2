@@ -1,5 +1,6 @@
-import * as ts from "typescript"
 import * as assert from "assert"
+import * as path from "path"
+import * as ts from "typescript"
 import {
   createAssignmentStatement,
   createBooleanLiteral,
@@ -16,15 +17,14 @@ import {
   Plugin,
   TransformationContext,
 } from "typescript-to-lua"
+import { unsupportedBuiltinOptionalCall } from "typescript-to-lua/dist/transformation/utils/diagnostics"
+import { getFunctionTypeForCall } from "typescript-to-lua/dist/transformation/utils/typescript"
+import { transformExpressionList } from "typescript-to-lua/dist/transformation/visitors/expression-list"
 import {
   getOptionalContinuationData,
   OptionalContinuation,
   transformOptionalChain,
 } from "typescript-to-lua/dist/transformation/visitors/optional-chaining"
-import { getFunctionTypeForCall } from "typescript-to-lua/dist/transformation/utils/typescript"
-import { unsupportedBuiltinOptionalCall } from "typescript-to-lua/dist/transformation/utils/diagnostics"
-import { transformExpressionList } from "typescript-to-lua/dist/transformation/visitors/expression-list"
-import * as path from "path"
 
 const testPattern = /-test\.tsx?$/
 

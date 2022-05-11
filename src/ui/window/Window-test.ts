@@ -1,7 +1,7 @@
-import { Spec } from "../../lib/factoriojsx"
-import { Window } from "./Window"
-import { getPlayer } from "../../lib/test-util/misc"
 import { Classes } from "../../lib"
+import { Spec } from "../../lib/factoriojsx"
+import { getPlayer } from "../../lib/test-util/misc"
+import { Window } from "./Window"
 
 @Classes.register("test-window")
 class TestWindow extends Window {

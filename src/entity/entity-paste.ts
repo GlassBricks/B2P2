@@ -1,3 +1,5 @@
+import { pos } from "../lib/geometry/position"
+import { UP } from "../lib/geometry/rotation"
 import { deepCompare, shallowCopy } from "../lib/util"
 import { Mutable, PRecord } from "../lib/util-types"
 import {
@@ -14,9 +16,7 @@ import {
   UpdateableProp,
   UpdateableReferenceEntity,
 } from "./entity"
-import { pos } from "../lib/geometry/position"
 import { getEntityInfo } from "./entity-info"
-import { UP } from "../lib/geometry/rotation"
 
 export function isCompatibleEntity(a: Entity, b: Entity, bPosition: MapPositionTable = b.position): boolean {
   if (!pos.equals(a.position, bPosition)) return false

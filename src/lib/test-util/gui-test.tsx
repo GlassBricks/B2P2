@@ -1,6 +1,6 @@
-import { getPlayer } from "./misc"
 import { FactorioJsx, GuiEventHandler } from "../factoriojsx"
 import { getDescription, isRoot, makeWrapper, testRender } from "./gui"
+import { getPlayer } from "./misc"
 
 describe("makeWrapper", () => {
   let element: BaseGuiElement

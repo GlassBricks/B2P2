@@ -1,6 +1,6 @@
 import { Data } from "typed-factorio/data/types"
-import { GuiConstants, Prototypes, Sprites, Styles } from "./constants"
 import * as util from "util"
+import { GuiConstants, Prototypes, Sprites, Styles } from "./constants"
 
 declare const data: Data
 

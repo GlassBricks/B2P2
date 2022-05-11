@@ -1,8 +1,8 @@
-import { getPlayer } from "../lib/test-util/misc"
-import { startAssemblyCreation } from "./assembly-creation"
-import { bbox } from "../lib/geometry/bounding-box"
-import { Assembly } from "./Assembly"
 import { Prototypes } from "../constants"
+import { bbox } from "../lib/geometry/bounding-box"
+import { getPlayer } from "../lib/test-util/misc"
+import { Assembly } from "./Assembly"
+import { startAssemblyCreation } from "./assembly-creation"
 
 const deleteAssemblies = () => {
   for (const [assembly] of Assembly.getAllAssemblies()) {

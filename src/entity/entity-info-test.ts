@@ -1,6 +1,6 @@
-import { computeTileBox, getEntityInfo } from "./entity-info"
 import { bbox } from "../lib/geometry/bounding-box"
 import { EntitySampleName, getEntitySample } from "../test/entity-sample"
+import { computeTileBox, getEntityInfo } from "./entity-info"
 
 describe.each<[EntitySampleName, BoundingBoxRead, string]>(
   [

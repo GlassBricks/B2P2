@@ -1,14 +1,14 @@
-import { Assembly } from "../Assembly"
-import { tryClearCursor } from "../assembly-creation"
 import { Prototypes } from "../../constants"
 import { Callback, Events, PlayerData, protectedAction } from "../../lib"
-import { pos } from "../../lib/geometry/position"
-import { BasicImport } from "./BasicImport"
-import { UP } from "../../lib/geometry/rotation"
-import { L_Interaction } from "../../locale"
 import { bbox } from "../../lib/geometry/bounding-box"
+import { pos } from "../../lib/geometry/position"
+import { UP } from "../../lib/geometry/rotation"
 import { Mutable } from "../../lib/util-types"
+import { L_Interaction } from "../../locale"
+import { Assembly } from "../Assembly"
+import { tryClearCursor } from "../assembly-creation"
 import { highlightImport } from "./AssemblyImport"
+import { BasicImport } from "./BasicImport"
 
 const PendingImportCreation = PlayerData<PendingImportCreation | undefined>("PendingImportCreation")
 interface PendingImportCreation {

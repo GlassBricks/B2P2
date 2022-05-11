@@ -1,11 +1,11 @@
+import { Assembly } from "../../assembly/Assembly"
 import { bound, Classes, reg, returns } from "../../lib"
 import { ClickEventHandler, Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { Assembly } from "../../assembly/Assembly"
 import { State, state } from "../../lib/observable"
 import { L_Gui } from "../../locale"
+import { CloseButton } from "../components/buttons"
 import { If } from "../components/If"
 import { DraggableSpace, TitleBar } from "../components/TitleBar"
-import { CloseButton } from "../components/buttons"
 
 type AMTitleParProps = { assembly: Assembly; onClose: ClickEventHandler }
 @Classes.register()

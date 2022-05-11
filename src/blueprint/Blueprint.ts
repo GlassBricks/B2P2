@@ -1,13 +1,13 @@
 import { Entity, getTileBox, PasteEntity, PlainEntity, UpdateablePasteEntity } from "../entity/entity"
-import { PRecord, PRRecord } from "../lib/util-types"
 import { Classes } from "../lib"
-import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
+import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { isEmpty, shallowCopy } from "../lib/util"
+import { PRecord, PRRecord } from "../lib/util-types"
 import { takeBlueprint } from "../world-interaction/blueprint"
-import floor = math.floor
-import iterateTiles = bbox.iterateTiles
 import fromCorners = bbox.fromCorners
+import iterateTiles = bbox.iterateTiles
+import floor = math.floor
 
 @Classes.register("Blueprint")
 export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {

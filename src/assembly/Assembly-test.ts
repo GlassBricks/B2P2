@@ -1,8 +1,8 @@
-import { Assembly } from "./Assembly"
+import { Classes, isUserError } from "../lib"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
-import { Classes, isUserError } from "../lib"
 import { getWorkingArea1 } from "../test/misc"
+import { Assembly } from "./Assembly"
 
 let area: BoundingBoxClass
 let surface: LuaSurface

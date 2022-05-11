@@ -1,8 +1,8 @@
 // noinspection JSUnusedLocalSymbols
 
 import { Classes } from "../references"
-import { SingleSubscribable } from "./Observers"
 import { Observable } from "./Observable"
+import { SingleSubscribable } from "./Observers"
 
 export interface ObservableMapChange<K extends AnyNotNil, V> {
   map: ObservableMap<K, V>

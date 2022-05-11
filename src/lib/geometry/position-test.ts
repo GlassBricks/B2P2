@@ -1,6 +1,6 @@
+import { unpair } from "./number-pair"
 import { pos } from "./position"
 import { DOWN, LEFT, RIGHT, UP } from "./rotation"
-import { unpair } from "./number-pair"
 
 test("create", () => {
   const position = pos(1, 2)

@@ -1,8 +1,8 @@
-import { Assembly } from "./Assembly"
 import { bbox } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
-import { assemblyAtPlayerLocation, getAssemblyAtPosition } from "./player-tracking"
 import { getPlayer } from "../lib/test-util/misc"
+import { Assembly } from "./Assembly"
+import { assemblyAtPlayerLocation, getAssemblyAtPosition } from "./player-tracking"
 
 after_each(() => {
   for (const [assembly] of Assembly.getAllAssemblies()) {

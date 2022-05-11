@@ -1,6 +1,6 @@
-import { getPlayer } from "./test-util/misc"
-import { protectedAction, raiseUserError } from "./protected-action"
 import { L_Interaction } from "../locale"
+import { protectedAction, raiseUserError } from "./protected-action"
+import { getPlayer } from "./test-util/misc"
 
 test("Protected action with no error", () => {
   const player = getPlayer()

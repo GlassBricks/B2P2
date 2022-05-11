@@ -1,4 +1,3 @@
-import { State } from "../../lib/observable"
 import { bound, Classes, Func, reg } from "../../lib"
 import {
   Component,
@@ -9,6 +8,7 @@ import {
   Spec,
   Tracker,
 } from "../../lib/factoriojsx"
+import { State } from "../../lib/observable"
 
 export type FuncProps<T, U extends GuiElementType> = {
   uses: U

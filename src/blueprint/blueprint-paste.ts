@@ -8,7 +8,6 @@ import {
   PlainEntity,
   ReferenceEntity,
 } from "../entity/entity"
-import { Blueprint, PasteBlueprint, UpdateablePasteBlueprint } from "./Blueprint"
 import {
   computeEntityDiff,
   createReferenceOnlyEntity,
@@ -17,6 +16,7 @@ import {
 } from "../entity/entity-paste"
 import { bbox } from "../lib/geometry/bounding-box"
 import { nilIfEmpty } from "../lib/util"
+import { Blueprint, PasteBlueprint, UpdateablePasteBlueprint } from "./Blueprint"
 
 export function findCompatibleEntity<T extends Entity>(
   blueprint: Blueprint<T>,

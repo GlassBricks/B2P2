@@ -1,7 +1,7 @@
-import * as ts from "typescript"
-import * as path from "path"
 import * as fs from "fs"
+import * as path from "path"
 import * as prettier from "prettier"
+import * as ts from "typescript"
 import assert = require("node:assert")
 
 type GuiElementType =

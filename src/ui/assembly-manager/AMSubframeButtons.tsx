@@ -1,12 +1,12 @@
-import { bound, Classes, reg } from "../../lib"
-import { Assembly } from "../../assembly/Assembly"
-import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { TeleportButton, TrashButton } from "../components/buttons"
-import { L_Gui } from "../../locale"
-import { showDialogue } from "../window/Dialog"
-import { HorizontalPusher } from "../components/misc"
-import { ResetButton, SaveButton } from "./SaveButtons"
 import { teleportPlayer } from "../../assembly/AreaIdentification"
+import { Assembly } from "../../assembly/Assembly"
+import { bound, Classes, reg } from "../../lib"
+import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
+import { L_Gui } from "../../locale"
+import { TeleportButton, TrashButton } from "../components/buttons"
+import { HorizontalPusher } from "../components/misc"
+import { showDialogue } from "../window/Dialog"
+import { ResetButton, SaveButton } from "./SaveButtons"
 
 @Classes.register()
 export class AMSubframeButtons extends Component<{ assembly: Assembly }> {

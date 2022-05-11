@@ -1,10 +1,10 @@
 import { Blueprint } from "../blueprint/Blueprint"
-import { Entity, getTileBox } from "../entity/entity"
 import { findCompatibleEntity } from "../blueprint/blueprint-paste"
+import { Entity, getTileBox } from "../entity/entity"
+import { computeTileBoxOfLuaEntity } from "../entity/entity-info"
+import { bbox } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
 import { AreaIdentification } from "./AreaIdentification"
-import { bbox } from "../lib/geometry/bounding-box"
-import { computeTileBoxOfLuaEntity } from "../entity/entity-info"
 import shift = bbox.shift
 
 export interface SourceMapEntity extends Entity {

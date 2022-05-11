@@ -1,7 +1,7 @@
 /** @noSelfInFile */
 
-import { DOWN, LEFT, RIGHT, UP } from "./rotation"
 import { pos, PositionClass } from "./position"
+import { DOWN, LEFT, RIGHT, UP } from "./rotation"
 
 // Down is positive y, right is positive x
 

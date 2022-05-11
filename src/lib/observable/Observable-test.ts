@@ -1,10 +1,10 @@
-import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
-import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
-import { MutableObservableList, observableList, ObservableListChange } from "./ObservableList"
-import { Event } from "./Event"
-import { MutableState, state } from "./State"
 import { asFunc } from "../test-util/func"
+import { Event } from "./Event"
 import { SingleObserver } from "./Observable"
+import { MutableObservableList, observableList, ObservableListChange } from "./ObservableList"
+import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
+import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
+import { MutableState, state } from "./State"
 
 function spy() {
   return globalThis.spy<SingleObserver<any>>()

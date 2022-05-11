@@ -1,7 +1,7 @@
 import { destroy } from "../../lib/factoriojsx"
-import { showDialogue } from "./Dialog"
-import { getPlayer } from "../../lib/test-util/misc"
 import { ElementWrapper } from "../../lib/test-util/gui"
+import { getPlayer } from "../../lib/test-util/misc"
+import { showDialogue } from "./Dialog"
 
 let player: LuaPlayer
 before_all(() => {

@@ -1,6 +1,11 @@
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
 import { FullEntity, getTileBox } from "../entity/entity"
+import { bbox } from "../lib/geometry/bounding-box"
 import { getEntitySample } from "../test/entity-sample"
+import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
+import { AreaIdentification } from "./AreaIdentification"
+import { Diagnostic } from "./diagnostics/Diagnostic"
+import { EntitySourceMap, EntitySourceMapBuilder } from "./EntitySourceMap"
 import {
   CannotUpgrade,
   ItemsIgnored,
@@ -10,11 +15,6 @@ import {
   PasteDiagnostics,
   UnsupportedProp,
 } from "./paste-diagnostics"
-import { Diagnostic } from "./diagnostics/Diagnostic"
-import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
-import { AreaIdentification } from "./AreaIdentification"
-import { EntitySourceMap, EntitySourceMapBuilder } from "./EntitySourceMap"
-import { bbox } from "../lib/geometry/bounding-box"
 
 let entity1: FullEntity
 let entity2: FullEntity

@@ -1,10 +1,10 @@
-import { PRecord } from "../lib/util-types"
-import { NumberPair, pair } from "../lib/geometry/number-pair"
-import { Assembly, AssemblyCreated, AssemblyDeleted } from "./Assembly"
 import { Events, PlayerData } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
+import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { pos } from "../lib/geometry/position"
 import { MutableState, State, state } from "../lib/observable"
+import { PRecord } from "../lib/util-types"
+import { Assembly, AssemblyCreated, AssemblyDeleted } from "./Assembly"
 import contains = bbox.contains
 
 type AssembliesByChunk = PRecord<NumberPair, MutableLuaSet<Assembly>>
