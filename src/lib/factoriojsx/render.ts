@@ -168,12 +168,21 @@ function renderElement(
     const isSpecProp = propProperties[0]
     const isElemProp: string | boolean | null = propProperties[1]
     const stateEvent = propProperties[2] as GuiEventName | null
-    if (!isSpecProp || value instanceof State) {
-      if (!isElemProp) error(`${key} cannot be a source value`)
+
+    const isState = value instanceof State
+    const shouldSetElemProp = !isSpecProp || isState
+    if (shouldSetElemProp) {
+      if (!isElemProp) {
+        // value is state
+        error(`${key} cannot be a state value`)
+      }
       if (typeof isElemProp === "string") elemProps.set([isElemProp], value)
       else elemProps.set(key, value)
       if (stateEvent) {
         events[stateEvent] = bind(setStateFunc, value as MutableState<any>, key)
+        if (isSpecProp) {
+          guiSpec[key] = (value as State<any>).get()
+        }
       }
     } else if (isSpecProp) {
       guiSpec[key] = value

@@ -260,7 +260,7 @@ const stateProps = {} as Record<GuiElementType, Record<string, string>>
     for (const [name, attr] of Object.entries(style)) {
       styleResult[name] = {
         name,
-        type: `MaybeObservable<${attr.type}>`,
+        type: `MaybeState<${attr.type}>`,
         optional: true,
       }
     }

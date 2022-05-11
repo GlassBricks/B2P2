@@ -123,6 +123,16 @@ describe("import", () => {
     )
     assertBlueprintsEquivalent(shiftedBlueprint, content.resultContent.get()!)
   })
+
+  test("inactive import does not add in world", () => {
+    const content = createAssemblyContent()
+    content.saveAndAddImport(mockImport(originalBlueprintSample, pos(1, 2)))
+    content.imports.get(0).active.set(false)
+    content.resetInWorld()
+    const bp = Blueprint.take(surface, area)
+    assert.same({}, bp.entities)
+  })
+
   test("imported entities do not extend beyond bounding box", () => {
     const mockEntities: BlueprintEntityRead[] = [
       {

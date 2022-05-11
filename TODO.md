@@ -1,9 +1,9 @@
 ## Now
 
 - better import creation preview
-- ability to toggle imports temporarily
 - make current assembly window toggleable
 
+- rename dialogue to dialog
 
 - Test with real blueprints
 
@@ -11,7 +11,7 @@
 - handle rails and locomotives
 - handle other off-grid stuff
 
-## v0.2
+## Next
 
 - Lazy properties, make less like rxjs
 - Dependency checking, invalidation
@@ -23,7 +23,7 @@
 - lost references diagnostics
 - diagnostic actions
 
-## v0.3
+## Later
 
 - Filters
     - by entity
@@ -31,13 +31,13 @@
     - area
 - Blueprint book creation/schema
 
-## v1.0
+## Even later
 
 - tiles?
 - optimize
 - "blueprint groups"/schemas (just a special assembly?) (or move this to later version)
 
-## v1.1 and later
+## Laterer
 
 - dependency analysis
 - linting:

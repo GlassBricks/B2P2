@@ -13,8 +13,8 @@ export declare const enum L_ModSettingName {
   BbppAutoSave = "mod-setting-name.bbpp:auto-save",
 }
 export declare const enum L_ModSettingDescription {
-  /** Automatically save assemblies when leaving the assembly, when possible. */
-  BbppAutoSaveDescription = "mod-setting-description.bbpp:auto-save-description",
+  /** Automatically attempt to save when leaving an assembly. */
+  BbppAutoSave = "mod-setting-description.bbpp:auto-save",
 }
 export declare const enum L_Diagnostic {
   /** [color=red]Overlaps:[/color] */
@@ -65,11 +65,11 @@ export declare const enum L_Interaction {
   AssemblySaved = "bbpp.interaction.assembly-saved",
   /** Paste conflicts found after reset. */
   FoundPasteConflicts = "bbpp.interaction.found-paste-conflicts",
-  /** Autosave: Failed to autosave assembly "__1__", has paste conflicts. */
+  /** Autosave: Failed to save assembly "__1__" as it has paste conflicts. */
   AutosaveFailedHasConflicts = "bbpp.interaction.autosave-failed-has-conflicts",
-  /** Autosave: Failed to autosave assembly "__1__", has deleted entities from imports. */
+  /** Autosave: Failed to save assembly "__1__", as it has deleted entities from imports. */
   AutosaveFailedHasDeletions = "bbpp.interaction.autosave-failed-has-deletions",
-  /** Autosave: Assembly "__1__" autosaved. */
+  /** Autosave: "__1__" saved. */
   AutosaveSucceeded = "bbpp.interaction.autosave-succeeded",
 }
 export declare const enum L_Gui {
@@ -121,6 +121,8 @@ export declare const enum L_Gui {
   DeleteImportConfirmation = "bbpp.gui.delete-import-confirmation",
   /** This import no longer exists. */
   ImportNoLongerExists = "bbpp.gui.import-no-longer-exists",
+  /** Toggle active */
+  ToggleImport = "bbpp.gui.toggle-import",
   /** Diagnostics */
   Diagnostics = "bbpp.gui.diagnostics",
   /** Diagnostics [img=warning-white] */

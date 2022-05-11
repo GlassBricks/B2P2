@@ -353,110 +353,110 @@ export type ElementSpec =
   | TextFieldElementSpec
 
 export interface BaseStyleMod {
-  minimal_width?: MaybeObservable<int>
-  maximal_width?: MaybeObservable<int>
-  minimal_height?: MaybeObservable<int>
-  maximal_height?: MaybeObservable<int>
-  natural_width?: MaybeObservable<int>
-  natural_height?: MaybeObservable<int>
-  top_padding?: MaybeObservable<int>
-  right_padding?: MaybeObservable<int>
-  bottom_padding?: MaybeObservable<int>
-  left_padding?: MaybeObservable<int>
-  top_margin?: MaybeObservable<int>
-  right_margin?: MaybeObservable<int>
-  bottom_margin?: MaybeObservable<int>
-  left_margin?: MaybeObservable<int>
-  horizontal_align?: MaybeObservable<"left" | "center" | "right">
-  vertical_align?: MaybeObservable<"top" | "center" | "bottom">
-  font_color?: MaybeObservable<Color>
-  font?: MaybeObservable<string>
-  horizontally_stretchable?: MaybeObservable<boolean>
-  vertically_stretchable?: MaybeObservable<boolean>
-  horizontally_squashable?: MaybeObservable<boolean>
-  vertically_squashable?: MaybeObservable<boolean>
-  width?: MaybeObservable<int>
-  height?: MaybeObservable<int>
-  size?: MaybeObservable<int | SizeArray>
-  padding?: MaybeObservable<int | StyleValuesArray>
-  margin?: MaybeObservable<int | StyleValuesArray>
+  minimal_width?: MaybeState<int>
+  maximal_width?: MaybeState<int>
+  minimal_height?: MaybeState<int>
+  maximal_height?: MaybeState<int>
+  natural_width?: MaybeState<int>
+  natural_height?: MaybeState<int>
+  top_padding?: MaybeState<int>
+  right_padding?: MaybeState<int>
+  bottom_padding?: MaybeState<int>
+  left_padding?: MaybeState<int>
+  top_margin?: MaybeState<int>
+  right_margin?: MaybeState<int>
+  bottom_margin?: MaybeState<int>
+  left_margin?: MaybeState<int>
+  horizontal_align?: MaybeState<"left" | "center" | "right">
+  vertical_align?: MaybeState<"top" | "center" | "bottom">
+  font_color?: MaybeState<Color>
+  font?: MaybeState<string>
+  horizontally_stretchable?: MaybeState<boolean>
+  vertically_stretchable?: MaybeState<boolean>
+  horizontally_squashable?: MaybeState<boolean>
+  vertically_squashable?: MaybeState<boolean>
+  width?: MaybeState<int>
+  height?: MaybeState<int>
+  size?: MaybeState<int | SizeArray>
+  padding?: MaybeState<int | StyleValuesArray>
+  margin?: MaybeState<int | StyleValuesArray>
 }
 
 export interface ScrollPaneStyleMod extends BaseStyleMod {
-  extra_top_padding_when_activated?: MaybeObservable<int>
-  extra_bottom_padding_when_activated?: MaybeObservable<int>
-  extra_left_padding_when_activated?: MaybeObservable<int>
-  extra_right_padding_when_activated?: MaybeObservable<int>
-  extra_top_margin_when_activated?: MaybeObservable<int>
-  extra_bottom_margin_when_activated?: MaybeObservable<int>
-  extra_left_margin_when_activated?: MaybeObservable<int>
-  extra_right_margin_when_activated?: MaybeObservable<int>
-  extra_padding_when_activated?: MaybeObservable<int | StyleValuesArray>
-  extra_margin_when_activated?: MaybeObservable<int | StyleValuesArray>
+  extra_top_padding_when_activated?: MaybeState<int>
+  extra_bottom_padding_when_activated?: MaybeState<int>
+  extra_left_padding_when_activated?: MaybeState<int>
+  extra_right_padding_when_activated?: MaybeState<int>
+  extra_top_margin_when_activated?: MaybeState<int>
+  extra_bottom_margin_when_activated?: MaybeState<int>
+  extra_left_margin_when_activated?: MaybeState<int>
+  extra_right_margin_when_activated?: MaybeState<int>
+  extra_padding_when_activated?: MaybeState<int | StyleValuesArray>
+  extra_margin_when_activated?: MaybeState<int | StyleValuesArray>
 }
 
 export interface TabbedPaneStyleMod extends BaseStyleMod {
-  vertical_spacing?: MaybeObservable<int>
+  vertical_spacing?: MaybeState<int>
 }
 
 export interface TextBoxStyleMod extends BaseStyleMod {
-  rich_text_setting?: MaybeObservable<defines.rich_text_setting>
+  rich_text_setting?: MaybeState<defines.rich_text_setting>
 }
 
 export interface ButtonStyleMod extends BaseStyleMod {
-  hovered_font_color?: MaybeObservable<Color>
-  clicked_font_color?: MaybeObservable<Color>
-  disabled_font_color?: MaybeObservable<Color>
-  pie_progress_color?: MaybeObservable<Color>
-  clicked_vertical_offset?: MaybeObservable<int>
-  selected_font_color?: MaybeObservable<Color>
-  selected_hovered_font_color?: MaybeObservable<Color>
-  selected_clicked_font_color?: MaybeObservable<Color>
-  strikethrough_color?: MaybeObservable<Color>
+  hovered_font_color?: MaybeState<Color>
+  clicked_font_color?: MaybeState<Color>
+  disabled_font_color?: MaybeState<Color>
+  pie_progress_color?: MaybeState<Color>
+  clicked_vertical_offset?: MaybeState<int>
+  selected_font_color?: MaybeState<Color>
+  selected_hovered_font_color?: MaybeState<Color>
+  selected_clicked_font_color?: MaybeState<Color>
+  strikethrough_color?: MaybeState<Color>
 }
 
 export interface FlowStyleMod extends BaseStyleMod {
-  horizontal_spacing?: MaybeObservable<int>
-  vertical_spacing?: MaybeObservable<int>
+  horizontal_spacing?: MaybeState<int>
+  vertical_spacing?: MaybeState<int>
 }
 
 export interface FrameStyleMod extends BaseStyleMod {
-  use_header_filler?: MaybeObservable<boolean>
+  use_header_filler?: MaybeState<boolean>
 }
 
 export interface LabelStyleMod extends BaseStyleMod {
-  rich_text_setting?: MaybeObservable<defines.rich_text_setting>
-  single_line?: MaybeObservable<boolean>
+  rich_text_setting?: MaybeState<defines.rich_text_setting>
+  single_line?: MaybeState<boolean>
 }
 
 export interface ProgressBarStyleMod extends BaseStyleMod {
-  bar_width?: MaybeObservable<uint>
-  color?: MaybeObservable<Color>
+  bar_width?: MaybeState<uint>
+  color?: MaybeState<Color>
 }
 
 export interface SpriteStyleMod extends BaseStyleMod {
-  stretch_image_to_widget_size?: MaybeObservable<boolean>
+  stretch_image_to_widget_size?: MaybeState<boolean>
 }
 
 export interface TabStyleMod extends BaseStyleMod {
-  disabled_font_color?: MaybeObservable<Color>
-  badge_font?: MaybeObservable<string>
-  badge_horizontal_spacing?: MaybeObservable<int>
-  default_badge_font_color?: MaybeObservable<Color>
-  selected_badge_font_color?: MaybeObservable<Color>
-  disabled_badge_font_color?: MaybeObservable<Color>
+  disabled_font_color?: MaybeState<Color>
+  badge_font?: MaybeState<string>
+  badge_horizontal_spacing?: MaybeState<int>
+  default_badge_font_color?: MaybeState<Color>
+  selected_badge_font_color?: MaybeState<Color>
+  disabled_badge_font_color?: MaybeState<Color>
 }
 
 export interface TableStyleMod extends BaseStyleMod {
-  top_cell_padding?: MaybeObservable<int>
-  right_cell_padding?: MaybeObservable<int>
-  bottom_cell_padding?: MaybeObservable<int>
-  left_cell_padding?: MaybeObservable<int>
-  horizontal_spacing?: MaybeObservable<int>
-  vertical_spacing?: MaybeObservable<int>
-  cell_padding?: MaybeObservable<int>
+  top_cell_padding?: MaybeState<int>
+  right_cell_padding?: MaybeState<int>
+  bottom_cell_padding?: MaybeState<int>
+  left_cell_padding?: MaybeState<int>
+  horizontal_spacing?: MaybeState<int>
+  vertical_spacing?: MaybeState<int>
+  cell_padding?: MaybeState<int>
 }
 
 export interface TextFieldStyleMod extends BaseStyleMod {
-  rich_text_setting?: MaybeObservable<defines.rich_text_setting>
+  rich_text_setting?: MaybeState<defines.rich_text_setting>
 }

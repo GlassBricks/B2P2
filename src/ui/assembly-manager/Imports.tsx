@@ -69,19 +69,27 @@ class ImportItem extends Component<ImportItemProps> {
       <frame
         style="bordered_frame"
         styleMod={{
+          padding: [0, 5],
           height: GuiConstants.ImportItemHeight,
-          vertical_align: "center",
         }}
-        direction="horizontal"
       >
-        <button
-          style="list_box_item"
-          caption={props.item.import.name()}
-          tooltip={[L_Gui.ImportItemTooltip]}
-          on_gui_click={reg(this.nameClicked)}
-        />
-        <HorizontalPusher />
-        <TrashButton tooltip={[L_Gui.DeleteImport]} onClick={reg(this.confirmDeleteImport)} />
+        <flow
+          direction="horizontal"
+          styleMod={{
+            vertical_align: "center",
+            vertically_stretchable: true,
+          }}
+        >
+          <checkbox state={this.item.active} tooltip={[L_Gui.ToggleImport]} />
+          <button
+            style="list_box_item"
+            caption={props.item.import.name()}
+            tooltip={[L_Gui.ImportItemTooltip]}
+            on_gui_click={reg(this.nameClicked)}
+          />
+          <HorizontalPusher />
+          <TrashButton tooltip={[L_Gui.DeleteImport]} onClick={reg(this.confirmDeleteImport)} />
+        </flow>
       </frame>
     )
   }
