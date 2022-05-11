@@ -8,6 +8,7 @@ export const enum Prototypes {
   AssemblyCreationTool = "bbpp:assembly-creation-tool",
   ImportPreview = "bbpp:import-preview",
   ImportPreviewPositionMarker = "bbpp:import-preview-position-marker",
+  ImportPreviewBoundaryTile = "bbpp:import-preview-boundary-tile",
 }
 
 export const enum Settings {

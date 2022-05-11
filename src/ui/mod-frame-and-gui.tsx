@@ -6,8 +6,8 @@ import { L_Gui } from "../locale"
 import { Assembly } from "../assembly/Assembly"
 import { State, state } from "../lib/observable"
 import { assemblyAtPlayerLocation } from "../assembly/player-tracking"
-import { openAssemblyManager } from "./assembly-manager/AssemblyManager"
 import { TitleBar } from "./components/TitleBar"
+import { openAssemblyManager } from "./assembly-manager"
 
 const modButtonName = `${script.mod_name}:assemblies-overview`
 const modFrameName = `${script.mod_name}:current-assembly`

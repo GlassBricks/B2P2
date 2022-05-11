@@ -8,6 +8,7 @@ import { L_Gui } from "../../locale"
 import { ImportsTab } from "./Imports"
 import { DiagnosticsTab } from "./Diagnostics"
 import { closeParentParent } from "../components/TitleBar"
+import { _open } from "./open"
 
 @Classes.register()
 class AssemblyManager extends Component<{ assembly: Assembly }> {
@@ -73,7 +74,8 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
 }
 
 const openedAssemblies = PlayerData("opened AssembliesManager", () => new LuaMap<Assembly, AssemblyManager>())
-export function openAssemblyManager(player: LuaPlayer, assembly: Assembly): void {
+log("FOOOOO")
+_open.openAssemblyManager = function (player: LuaPlayer, assembly: Assembly): void {
   if (!assembly.isValid()) return
   const existingWindow = openedAssemblies[player.index].get(assembly)
   if (existingWindow) {

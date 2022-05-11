@@ -1,12 +1,18 @@
 import { bound, Classes, Events, raiseUserError, reg } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
-import { MutableObservableSet, observableSet, ObservableSet } from "../lib/observable/ObservableSet"
+import {
+  GlobalEvent,
+  MutableObservableSet,
+  MutableState,
+  observableSet,
+  ObservableSet,
+  state,
+  State,
+} from "../lib/observable"
 import { L_Gui, L_Interaction } from "../locale"
 import { Colors } from "../constants"
-import { MutableState, State, state } from "../lib/observable"
 import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 import { AreaIdentification } from "./AreaIdentification"
-import { GlobalEvent } from "../lib/observable/Event"
 
 export const AssemblyCreated = new GlobalEvent<Assembly>()
 export const AssemblyDeleted = new GlobalEvent<Assembly>()

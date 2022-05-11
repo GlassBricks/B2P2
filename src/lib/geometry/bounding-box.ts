@@ -59,6 +59,10 @@ namespace bbox {
     const { x: bx, y: by } = left_top
     return bbox({ x: 0, y: 0 }, { x: right_bottom.x - bx, y: right_bottom.y - by })
   }
+  export function size(box: BoundingBoxRead): PositionClass {
+    const { left_top, right_bottom } = box
+    return pos(right_bottom.x - left_top.x, right_bottom.y - left_top.y)
+  }
   export function roundTile(box: BoundingBoxRead): BoundingBoxClass {
     const { left_top, right_bottom } = box
     return bbox({ x: floor(left_top.x), y: floor(left_top.y) }, { x: ceil(right_bottom.x), y: ceil(right_bottom.y) })

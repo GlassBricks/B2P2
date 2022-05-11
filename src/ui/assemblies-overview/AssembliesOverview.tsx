@@ -5,10 +5,10 @@ import { L_Gui } from "../../locale"
 import { startAssemblyCreation } from "../../assembly/assembly-creation"
 import { closeParentParent, DraggableSpace, TitleBar } from "../components/TitleBar"
 import { Window } from "../window/Window"
-import { openAssemblyManager } from "../assembly-manager/AssemblyManager"
 import { CloseButton } from "../components/buttons"
 import { AssembliesList } from "../AssembliesList"
 import { teleportPlayer } from "../../assembly/AreaIdentification"
+import { openAssemblyManager } from "../assembly-manager"
 
 @Classes.register()
 export class AssembliesOverview extends Window {

@@ -88,23 +88,45 @@ const importPreviewPositionMarker = {
   time_before_removed: 1,
   flags: ["hidden", "player-creation"],
   collision_mask: [],
-  placeable_by: {
-    item: Prototypes.ImportPreviewPositionMarker,
-    count: 1,
-  },
 }
 
 const ippmItem = {
   type: "item",
   name: Prototypes.ImportPreviewPositionMarker,
-  icon: "__core__/graphics/empty.png",
-  icon_size: 1,
+  icon: "__core__/graphics/spawn-flag.png",
+  icon_size: 64,
   stack_size: 1,
   flags: ["hidden"],
   place_result: Prototypes.ImportPreviewPositionMarker,
 }
 
-data.extend([assemblyCreationTool, importPreview, importPreviewPositionMarker, ippmItem])
+const labWhite = "__base__/graphics/terrain/lab-tiles/lab-white.png"
+const etherealWhiteTile = {
+  type: "simple-entity",
+  name: Prototypes.ImportPreviewBoundaryTile,
+  icon: labWhite,
+  icon_size: 32,
+  picture: {
+    filename: labWhite,
+    size: 32,
+  },
+  tile_width: 1,
+  tile_height: 1,
+  collision_mask: [],
+  flags: ["hidden", "player-creation"],
+}
+
+const ipemItem = {
+  type: "item",
+  name: Prototypes.ImportPreviewBoundaryTile,
+  icon: labWhite,
+  icon_size: 32,
+  stack_size: 1,
+  place_result: Prototypes.ImportPreviewBoundaryTile,
+  flags: ["hidden"],
+}
+
+data.extend([assemblyCreationTool, importPreview, importPreviewPositionMarker, ippmItem, etherealWhiteTile, ipemItem])
 
 const teleportBlackSprite = {
   type: "sprite",

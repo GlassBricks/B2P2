@@ -1,6 +1,5 @@
 ## Now
 
-- better import creation preview
 - make current assembly window toggleable
 
 - rename dialogue to dialog

@@ -21,9 +21,9 @@ export declare const enum L_Diagnostic {
   Overlap = "bbpp.diagnostic.overlap",
   /** __1__ overlapped by __2__ */
   OverlapItem = "bbpp.diagnostic.overlap-item",
-  /** [color=purple]Upgrades:[/color] */
+  /** [color=purple]Upgrades:[/color][img=info] */
   CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
-  /** Upgraded/fast-replace cannot be pasted by blueprinting. This may be better supported in the future. */
+  /** Upgrades/fast-replace cannot be pasted by blueprinting. Support for allowing this may be implemented in the future. */
   CannotUpgradeDetail = "bbpp.diagnostic.cannot-upgrade-detail",
   /** __1__ changed from __2__ */
   CannotUpgradeItem = "bbpp.diagnostic.cannot-upgrade-item",
