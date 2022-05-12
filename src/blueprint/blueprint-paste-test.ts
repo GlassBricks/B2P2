@@ -6,17 +6,16 @@ import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { getEntitySample } from "../test/entity-sample"
 import { getWorkingArea1 } from "../test/misc"
-import { clearBuildableEntities, pasteBlueprint } from "../world-interaction/blueprint"
 import { Blueprint } from "./Blueprint"
+import { BlueprintDiff, computeBlueprintDiff } from "./blueprint-diff"
 import {
-  BlueprintDiff,
-  computeBlueprintDiff,
   findBlueprintPasteConflicts,
   findBlueprintPasteConflictsAndUpdate,
   findBlueprintPasteConflictsInWorld,
   findCompatibleEntity,
   findOverlappingEntity,
 } from "./blueprint-paste"
+import { clearBuildableEntities, pasteBlueprint } from "./world"
 
 let emptyBlueprint: Blueprint
 function getAssemblingMachineEntity(): FullEntity {

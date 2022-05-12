@@ -30,8 +30,8 @@ describe("lifecycle", () => {
     })
 
     it("rounds tiles", () => {
-      const assembly = Assembly.create("test", surface, bbox.fromCorners(0.5, 0.5, 1.5, 1.5))
-      assert.same(bbox.fromCorners(0, 0, 2, 2), assembly.area)
+      const assembly = Assembly.create("test", surface, bbox.fromCoords(0.5, 0.5, 1.5, 1.5))
+      assert.same(bbox.fromCoords(0, 0, 2, 2), assembly.area)
     })
 
     it("errors if intersects with existing assembly", () => {

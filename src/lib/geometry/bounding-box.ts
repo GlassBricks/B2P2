@@ -31,7 +31,7 @@ namespace bbox {
     return setmetatable(data, meta)
   }
 
-  export function fromCorners(lx: number, ly: number, rx: number, ry: number): BoundingBoxClass {
+  export function fromCoords(lx: number, ly: number, rx: number, ry: number): BoundingBoxClass {
     return bbox({ x: lx, y: ly }, { x: rx, y: ry })
   }
 
@@ -106,7 +106,7 @@ namespace bbox {
   export function intersect(box1: BoundingBoxRead, box2: BoundingBoxRead): BoundingBoxClass {
     const { left_top, right_bottom } = box1
     const { left_top: lt2, right_bottom: rb2 } = box2
-    return bbox.fromCorners(
+    return bbox.fromCoords(
       max(left_top.x, lt2.x),
       max(left_top.y, lt2.y),
       min(right_bottom.x, rb2.x),

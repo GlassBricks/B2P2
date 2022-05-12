@@ -34,8 +34,8 @@ if (script.active_mods.testorio) {
     after_test_run() {
       const results = remote.call("testorio", "getResults")
       if (results.status === "passed" && results.skipped === 0) {
-        Assembly.create("test", game.surfaces[1], bbox.fromCorners(0, 0, 20, 20))
-        Assembly.create("test2", game.surfaces[1], bbox.fromCorners(20, 0, 40, 20))
+        Assembly.create("test", game.surfaces[1], bbox.fromCoords(0, 0, 20, 20))
+        Assembly.create("test2", game.surfaces[1], bbox.fromCoords(20, 0, 40, 20))
         // AssembliesOverview.open(game.players[1])
       } else {
         game.players[1]?.gui.screen["testorio:test-config"]?.bring_to_front()

@@ -11,7 +11,7 @@ after_each(() => {
 })
 
 test("getAssemblyAtPosition", () => {
-  const area = bbox.fromCorners(-1, -1, 2, 2)
+  const area = bbox.fromCoords(-1, -1, 2, 2)
   const surface = game.surfaces[1]
   const assembly = Assembly.create("test", surface, area)
 
@@ -29,7 +29,7 @@ test("getAssemblyAtPosition", () => {
 
 test("getAssemblyAtPlayerLocation", () => {
   // same thing, put teleport player around
-  const area = bbox.fromCorners(-1, -1, 2, 2)
+  const area = bbox.fromCoords(-1, -1, 2, 2)
   const surface = game.surfaces[1]
   const assembly = Assembly.create("test", surface, area)
 

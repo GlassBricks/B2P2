@@ -13,8 +13,8 @@ test("from", () => {
   assert.same({ x: 3, y: 4 }, box.right_bottom)
 })
 
-test("corners", () => {
-  const box = bbox.fromCorners(1, 2, 3, 4)
+test("fromCoords", () => {
+  const box = bbox.fromCoords(1, 2, 3, 4)
   assert.same({ x: 1, y: 2 }, box.left_top)
   assert.same({ x: 3, y: 4 }, box.right_bottom)
 })

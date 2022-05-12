@@ -49,13 +49,13 @@ describe("highlight", () => {
     const result = createHighlight(
       {
         surface: game.surfaces[1],
-        area: bbox.fromCorners(0, 0, 1, 1),
+        area: bbox.fromCoords(0, 0, 1, 1),
       },
       "entity",
     )!
     assert.not_nil(result)
     assert.same(pos(0.5, 0.5), result.position)
-    assert.same(bbox.fromCorners(0, 0, 1, 1), result.bounding_box)
+    assert.same(bbox.fromCoords(0, 0, 1, 1), result.bounding_box)
     assert.equal("highlight-box", result.name)
   })
 })

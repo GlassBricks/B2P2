@@ -28,7 +28,7 @@ export function invalidMockImport(relativePosition: MapPositionTable = pos(0, 0)
     content: () => c,
     name: () => name,
     getRelativePosition: () => relativePosition,
-    getRelativeBoundingBox: () => bbox.fromCorners(0, 0, 0, 0),
+    getRelativeBoundingBox: () => bbox.fromCoords(0, 0, 0, 0),
     getSourceArea: () => undefined,
   }
 }

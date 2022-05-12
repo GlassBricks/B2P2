@@ -1,16 +1,15 @@
 import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
+import { BlueprintDiff, computeBlueprintDiff } from "../blueprint/blueprint-diff"
 import {
-  BlueprintDiff,
   BlueprintPasteConflicts,
-  computeBlueprintDiff,
   findBlueprintPasteConflictsAndUpdate,
   findBlueprintPasteConflictsInWorld,
 } from "../blueprint/blueprint-paste"
+import { clearBuildableEntities, pasteBlueprint, takeBlueprintWithIndex } from "../blueprint/world"
 import { Classes, funcRef } from "../lib"
 import { pos } from "../lib/geometry/position"
 import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
 import { isEmpty } from "../lib/util"
-import { clearBuildableEntities, pasteBlueprint, takeBlueprintWithIndex } from "../world-interaction/blueprint"
 import { AreaIdentification } from "./AreaIdentification"
 import { createHighlight, getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
 import { EntitySourceMap, EntitySourceMapBuilder } from "./EntitySourceMap"

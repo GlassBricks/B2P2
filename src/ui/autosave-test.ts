@@ -1,13 +1,13 @@
 import { Assembly } from "../assembly/Assembly"
 import { mockImport } from "../assembly/imports/import-mock"
 import { Blueprint } from "../blueprint/Blueprint"
+import { clearBuildableEntities } from "../blueprint/world"
 import { Settings } from "../constants"
 import { ContextualFun } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
 import { getPlayer } from "../lib/test-util/misc"
 import { getBlueprintSample } from "../test/blueprint-sample"
-import { clearBuildableEntities } from "../world-interaction/blueprint"
 import Spy = spy.Spy
 
 let oldAutosaveSetting: boolean
@@ -20,7 +20,7 @@ before_all(() => {
   }
   player = getPlayer()
   oldAutosaveSetting = player.mod_settings[Settings.Autosave].value as boolean
-  assembly = Assembly.create("test", game.surfaces[1], bbox.fromCorners(1, 1, 20, 20))
+  assembly = Assembly.create("test", game.surfaces[1], bbox.fromCoords(1, 1, 20, 20))
   const content = assembly.getContent()!
   rawset(content, "commitAndReset", content.commitAndReset)
   saved = spy.on(content, "commitAndReset")

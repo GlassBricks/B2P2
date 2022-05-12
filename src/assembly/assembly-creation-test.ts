@@ -20,7 +20,7 @@ test("create", () => {
   script.get_event_handler(defines.events.on_player_selected_area)!({
     name: defines.events.on_player_selected_area,
     player_index: player.index,
-    area: bbox.fromCorners(0, 0, 1, 1),
+    area: bbox.fromCoords(0, 0, 1, 1),
     entities: [],
     tiles: [],
     item: player.cursor_stack!.name,
@@ -34,5 +34,5 @@ test("create", () => {
   assert.not_nil(assembly, "assembly created")
   assert.equal("", assembly.name.get())
   assert.equal(player.surface, assembly.surface)
-  assert.same(bbox.fromCorners(0, 0, 1, 1), assembly.area)
+  assert.same(bbox.fromCoords(0, 0, 1, 1), assembly.area)
 })

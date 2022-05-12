@@ -26,13 +26,6 @@ export function getTileBox(entity: Entity): BoundingBoxRead {
   return ((entity as Mutable<FullEntity>).tileBox ||= computeTileBox(entity))
 }
 
-export function withEntityNumber<T extends FullEntity>(entity: T, number: EntityNumber): T {
-  if (entity.entity_number === number) return entity
-  const result = mutableShallowCopy(entity)
-  result.entity_number = number
-  return result
-}
-
 function remapEntityNumbers<T extends FullEntity>(
   entities: readonly T[],
   map: Record<EntityNumber, EntityNumber>,

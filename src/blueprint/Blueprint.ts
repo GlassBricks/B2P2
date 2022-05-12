@@ -4,8 +4,8 @@ import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { isEmpty, shallowCopy } from "../lib/util"
 import { PRecord, PRRecord } from "../lib/util-types"
-import { takeBlueprint } from "../world-interaction/blueprint"
-import fromCorners = bbox.fromCorners
+import { takeBlueprint } from "./world"
+import fromCorners = bbox.fromCoords
 import iterateTiles = bbox.iterateTiles
 import floor = math.floor
 

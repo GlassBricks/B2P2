@@ -1,4 +1,4 @@
-import { EntityNumber, FullEntity, getTileBox, remapEntityNumbersInArrayPosition, withEntityNumber } from "./entity"
+import { FullEntity, getTileBox, remapEntityNumbersInArrayPosition } from "./entity"
 import { computeTileBox } from "./entity-info"
 
 const mockEntity: FullEntity = {
@@ -11,12 +11,6 @@ const mockEntity2: FullEntity = {
   position: { x: 1.5, y: 2.5 },
   entity_number: 2,
 }
-
-test("with entity number", () => {
-  const entity2 = withEntityNumber(mockEntity, 2 as EntityNumber)
-  assert.equal(1, mockEntity.entity_number)
-  assert.equal(2, entity2.entity_number)
-})
 
 test("getTileBox matches computeTileBox", () => {
   const tileBox = getTileBox(mockEntity)

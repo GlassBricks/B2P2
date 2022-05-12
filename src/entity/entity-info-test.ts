@@ -4,11 +4,11 @@ import { computeTileBox, getEntityInfo } from "./entity-info"
 
 describe.each<[EntitySampleName, BoundingBoxRead, string]>(
   [
-    ["chest", bbox.fromCorners(0, 0, 1, 1), "container"],
-    ["furnace", bbox.fromCorners(0, 0, 2, 2), "furnace"],
-    ["assembling-machine-1", bbox.fromCorners(0, 0, 3, 3), "assembling-machine"],
-    ["splitter", bbox.fromCorners(0, 0, 2, 1), "transport-belt"],
-    ["offshore-pump", bbox.fromCorners(0, 0, 1, 2), "<none> offshore-pump"],
+    ["chest", bbox.fromCoords(0, 0, 1, 1), "container"],
+    ["furnace", bbox.fromCoords(0, 0, 2, 2), "furnace"],
+    ["assembling-machine-1", bbox.fromCoords(0, 0, 3, 3), "assembling-machine"],
+    ["splitter", bbox.fromCoords(0, 0, 2, 1), "transport-belt"],
+    ["offshore-pump", bbox.fromCoords(0, 0, 1, 2), "<none> offshore-pump"],
   ],
   "entity %s",
   (name, boundingBox, group) => {

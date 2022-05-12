@@ -1,8 +1,8 @@
+import { clearBuildableEntities } from "../blueprint/world"
 import { Entity } from "../entity/entity"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
 import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
-import { clearBuildableEntities } from "../world-interaction/blueprint"
 import { EntitySourceMapBuilder, getEntitySourceLocation } from "./EntitySourceMap"
 
 let surface: LuaSurface
@@ -31,7 +31,7 @@ test("add from in-world", () => {
     position: relativePos,
   }
   assert.same(
-    bbox.fromCorners(2, 2, 3, 3).shift(area2.left_top),
+    bbox.fromCoords(2, 2, 3, 3).shift(area2.left_top),
     getEntitySourceLocation(map, lookupEntity, area.left_top)?.area,
   )
 })

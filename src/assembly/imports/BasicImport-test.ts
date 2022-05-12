@@ -1,11 +1,11 @@
 import { Blueprint } from "../../blueprint/Blueprint"
+import { clearBuildableEntities, pasteBlueprint } from "../../blueprint/world"
 import { isUserError } from "../../lib"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { pos } from "../../lib/geometry/position"
 import { assertBlueprintsEquivalent } from "../../test/blueprint"
 import { getBlueprintSample } from "../../test/blueprint-sample"
 import { getWorkingArea1 } from "../../test/misc"
-import { clearBuildableEntities, pasteBlueprint } from "../../world-interaction/blueprint"
 import { Assembly } from "../Assembly"
 import { BasicImport } from "./BasicImport"
 
