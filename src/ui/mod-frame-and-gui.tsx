@@ -5,7 +5,7 @@ import { bound, Callback, Classes, funcOn, funcRef, Functions, onPlayerInit, reg
 import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../lib/factoriojsx"
 import { State, state } from "../lib/observable"
 import { L_Gui } from "../locale"
-import { AssembliesOverview } from "./assemblies-overview/AssembliesOverview"
+import { AssembliesOverview } from "./AssembliesOverview"
 import { openAssemblyManager } from "./assembly-manager"
 import { TitleBar } from "./components/TitleBar"
 
