@@ -1,3 +1,4 @@
+import { AreaIdentification } from "../blueprint/AreaIdentification"
 import { Colors } from "../constants"
 import { bound, Classes, Events, raiseUserError, reg } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
@@ -11,7 +12,6 @@ import {
   State,
 } from "../lib/observable"
 import { L_Gui, L_Interaction } from "../locale"
-import { AreaIdentification } from "./AreaIdentification"
 import { AssemblyContent, createAssemblyContent } from "./AssemblyContent"
 
 export const AssemblyCreated = new GlobalEvent<Assembly>()

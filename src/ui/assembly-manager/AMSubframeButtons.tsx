@@ -1,5 +1,5 @@
-import { teleportPlayer } from "../../assembly/AreaIdentification"
 import { Assembly } from "../../assembly/Assembly"
+import { teleportPlayer } from "../../blueprint/AreaIdentification"
 import { bound, Classes, reg } from "../../lib"
 import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { L_Gui } from "../../locale"

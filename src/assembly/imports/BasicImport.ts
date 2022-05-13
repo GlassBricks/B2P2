@@ -1,9 +1,9 @@
+import { AreaIdentification } from "../../blueprint/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { Classes, raiseUserError } from "../../lib"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { State } from "../../lib/observable"
 import { L_Interaction } from "../../locale"
-import { AreaIdentification } from "../AreaIdentification"
 import { Assembly } from "../Assembly"
 import { AssemblyImport } from "./AssemblyImport"
 

@@ -1,8 +1,8 @@
+import { AreaIdentification } from "../../blueprint/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { pos } from "../../lib/geometry/position"
 import { state } from "../../lib/observable"
-import { AreaIdentification } from "../AreaIdentification"
 import { AssemblyImport } from "./AssemblyImport"
 
 export function mockImport(

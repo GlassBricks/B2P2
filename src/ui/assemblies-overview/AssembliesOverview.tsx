@@ -1,6 +1,6 @@
-import { teleportPlayer } from "../../assembly/AreaIdentification"
 import { Assembly } from "../../assembly/Assembly"
 import { startAssemblyCreation } from "../../assembly/assembly-creation"
+import { teleportPlayer } from "../../blueprint/AreaIdentification"
 import { bound, Classes, funcRef, reg } from "../../lib"
 import { destroy, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { L_Gui } from "../../locale"

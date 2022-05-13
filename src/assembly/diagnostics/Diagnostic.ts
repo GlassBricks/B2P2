@@ -1,6 +1,6 @@
+import { AreaIdentification } from "../../blueprint/AreaIdentification"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { Mutable } from "../../lib/util-types"
-import { AreaIdentification } from "../AreaIdentification"
 import center = bbox.center
 
 export interface DiagnosticCategory<Id extends string> {
@@ -14,9 +14,7 @@ export type Diagnostic = {
   readonly id: string
   readonly message?: LocalisedString
   readonly location?: AreaIdentification
-  readonly highlightLocation?: AreaIdentification
   readonly altLocation?: AreaIdentification
-  readonly altHighlightLocation?: AreaIdentification
 }
 
 export type DiagnosticCollection<Id extends string = string> = {

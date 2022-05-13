@@ -1,8 +1,8 @@
+import { AreaIdentification } from "../../blueprint/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { Colors } from "../../constants"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { State } from "../../lib/observable"
-import { AreaIdentification } from "../AreaIdentification"
 
 export interface AssemblyImport {
   name(): State<LocalisedString>

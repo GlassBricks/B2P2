@@ -77,12 +77,11 @@ export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: MapPositionTable,
   entities: readonly BlueprintEntityRead[],
-  areaRestriction?: BoundingBox,
+  areaRestriction?: BoundingBox, // todo: remove this parameter
 ): LuaEntity[] {
   if (isEmpty(entities)) return []
 
   if (areaRestriction) {
-    // for performance reasons, instead of creating a new list, we remove entities outside the area and restore them later
     const area = bbox.normalize(areaRestriction).shiftNegative(location)
     entities = entities.filter((entity) => {
       const entityBox = getTileBox(entity)

@@ -1,4 +1,3 @@
-import { AreaIdentification } from "../../assembly/AreaIdentification"
 import { Assembly } from "../../assembly/Assembly"
 import { LayerPasteDiagnostics } from "../../assembly/AssemblyContent"
 import {
@@ -8,6 +7,7 @@ import {
   getDiagnosticHighlightType,
 } from "../../assembly/diagnostics/Diagnostic"
 import { PasteDiagnosticId } from "../../assembly/paste-diagnostics"
+import { AreaIdentification } from "../../blueprint/AreaIdentification"
 import { Styles } from "../../constants"
 import { bind, bound, Classes, funcRef, reg } from "../../lib"
 import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
@@ -107,44 +107,25 @@ export class DiagnosticsTab extends Component<{
   @bound
   private diagnosticClicked(diagnostic: Diagnostic, event: OnGuiClickEvent) {
     if (!event.control) {
-      DiagnosticsTab.showDiagnosticMainLocation(diagnostic, event)
+      DiagnosticsTab.showDiagnosticLocation(event, diagnostic.location, "blueprint-snap-rectangle")
     } else {
-      DiagnosticsTab.showDiagnosticAltLocation(diagnostic, event)
+      DiagnosticsTab.showDiagnosticLocation(event, diagnostic.altLocation, getDiagnosticHighlightType(diagnostic.id))
     }
   }
 
-  private static showDiagnosticMainLocation(diagnostic: Diagnostic, event: OnGuiClickEvent) {
-    const player = game.get_player(event.player_index)!
-    if (diagnostic.location)
-      DiagnosticsTab.createHighlight(diagnostic.location, "blueprint-snap-rectangle", player.index, true)
-    if (diagnostic.highlightLocation)
-      DiagnosticsTab.createHighlight(diagnostic.highlightLocation, "entity", player.index, false)
-
-    const teleportPosition = diagnostic.location ?? diagnostic.highlightLocation
-    if (teleportPosition) DiagnosticsTab.teleportPlayerToPos(player, teleportPosition)
-  }
-  private static showDiagnosticAltLocation(diagnostic: Diagnostic, event: OnGuiClickEvent) {
-    const player = game.get_player(event.player_index)!
-    if (diagnostic.altLocation)
-      DiagnosticsTab.createHighlight(
-        diagnostic.altLocation,
-        getDiagnosticHighlightType(diagnostic.id),
-        player.index,
-        true,
-      )
-    if (diagnostic.altHighlightLocation)
-      DiagnosticsTab.createHighlight(diagnostic.altHighlightLocation, "entity", player.index, false)
-    const teleportPosition = diagnostic.altLocation ?? diagnostic.altHighlightLocation
-    if (teleportPosition) DiagnosticsTab.teleportPlayerToPos(player, teleportPosition)
-  }
-  private static createHighlight(
-    location: AreaIdentification,
+  private static showDiagnosticLocation(
+    event: OnGuiClickEvent,
+    location: AreaIdentification | undefined,
     boxType: CursorBoxRenderType,
-    playerIndex: PlayerIndex,
-    blinking: boolean,
   ) {
+    if (!location) return
+    const player = game.get_player(event.player_index)!
+    DiagnosticsTab.createHighlight(location, boxType, player.index)
+    DiagnosticsTab.teleportPlayerToPos(player, location)
+  }
+  private static createHighlight(location: AreaIdentification, boxType: CursorBoxRenderType, playerIndex: PlayerIndex) {
     return createHighlight(location, boxType, {
-      blink_interval: blinking ? 20 : undefined,
+      blink_interval: 20,
       time_to_live: 300,
       render_player_index: playerIndex,
     })!

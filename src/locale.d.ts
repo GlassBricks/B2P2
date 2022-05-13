@@ -17,9 +17,9 @@ export declare const enum L_ModSettingDescription {
   BbppAutoSave = "mod-setting-description.bbpp:auto-save",
 }
 export declare const enum L_Diagnostic {
-  /** [color=red]Overlaps:[/color] */
+  /** [color=red]Collisions:[/color] */
   Overlap = "bbpp.diagnostic.overlap",
-  /** __1__ overlapped by __2__ */
+  /** __1__ could not be pasted */
   OverlapItem = "bbpp.diagnostic.overlap-item",
   /** [color=purple]Upgrades:[/color][img=info] */
   CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
@@ -46,7 +46,7 @@ export declare const enum L_Interaction {
   /** An unexpected error occurred: __1__. Additional details outputted to log. Please report this to the mod author! */
   UnexpectedError = "bbpp.interaction.unexpected-error",
   /** __1__ */
-  TranslateDialogueMessage = "bbpp.interaction.translate-dialog-message",
+  TranslateDialogueMessage = "bbpp.interaction.translate-dialogue-message",
   /** Select an area for the new assembly */
   SelectAreaForAssembly = "bbpp.interaction.select-area-for-assembly",
   /** This area intersects with an existing assembly: __1__ */

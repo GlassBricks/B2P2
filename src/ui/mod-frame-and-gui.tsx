@@ -77,6 +77,7 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
       this.lastSubscription = assembly.displayName.subscribeAndFire(funcOn(this.currentName, "set"))
     } else {
       this.currentName.set([L_Gui.None])
+      this.lastSubscription = undefined
     }
   }
 

@@ -1,5 +1,4 @@
-import { FullEntity, getTileBox } from "../entity/entity"
-import { bbox } from "../lib/geometry/bounding-box"
+import { FullEntity } from "../entity/entity"
 import { Blueprint } from "./Blueprint"
 
 test("new blueprint is empty", () => {
@@ -32,16 +31,15 @@ describe("getAtPos", () => {
     assert.same(new LuaSet(mockEntity), bp.getAtPos(x, y))
   })
 
-  it("returns entity at all tiles covered after add", () => {
-    const bp = Blueprint.of(mockEntity)
-    for (const [x, y] of bbox.iterateTiles(getTileBox(mockEntity))) {
-      assert.same(new LuaSet(mockEntity), bp.getAtPos(x, y))
-    }
-  })
-
   it("returns nil when empty", () => {
     const bp = Blueprint.of()
     assert.is_nil(bp.getAtPos(0, 0))
+  })
+
+  it("does not round", () => {
+    const bp = Blueprint.of(mockEntity)
+    assert.is_nil(bp.getAtPos(0, 0))
+    assert.is_nil(bp.getAtPos(1, 1))
   })
 
   it("returns nil when no entity at pos", () => {

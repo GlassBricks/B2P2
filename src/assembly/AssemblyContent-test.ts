@@ -1,18 +1,15 @@
 import { Blueprint } from "../blueprint/Blueprint"
-import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
+import { getEntitySourceLocation } from "../blueprint/EntitySourceMap"
 import { clearBuildableEntities, pasteBlueprint } from "../blueprint/world"
 import { getTileBox } from "../entity/entity"
 import { Classes } from "../lib"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
-import { assertNever } from "../lib/util"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
-import { BlueprintSampleName, BlueprintSampleNames, getBlueprintSample } from "../test/blueprint-sample"
+import { BlueprintSampleName, getBlueprintSample } from "../test/blueprint-sample"
 import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
 import { AssemblyContent, DefaultAssemblyContent } from "./AssemblyContent"
-import { getEntitySourceLocation } from "./EntitySourceMap"
 import { invalidMockImport, mockImport } from "./imports/import-mock"
-import { mapPasteConflictsToDiagnostics } from "./paste-diagnostics"
 import shift = bbox.shift
 
 test("registered", () => {
@@ -178,115 +175,16 @@ describe("paste conflicts", () => {
     )
   })
 
-  interface ExpectedConflict {
-    aboveEntity: string
-    belowEntity: string
-    type: "overlap" | "upgrade" | "items"
-    prop?: string
-  }
-
-  const expectedConflicts: Record<BlueprintSampleName, ExpectedConflict | undefined> = {
-    "add inserter": undefined,
-    "add chest": undefined,
-    "assembler rotate": undefined,
-    "circuit wire add": undefined,
-    "circuit wire remove": undefined,
-    "control behavior change": undefined,
-    "delete splitter": undefined,
-    "inserter fast replace": {
-      aboveEntity: "fast-inserter",
-      belowEntity: "inserter",
-      type: "upgrade",
-    },
-    "inserter rotate": {
-      aboveEntity: "inserter",
-      belowEntity: "inserter",
-      type: "overlap",
-    },
-    "mixed change": {
-      aboveEntity: "inserter",
-      belowEntity: "inserter",
-      type: "overlap",
-    },
-    "module change": {
-      aboveEntity: "assembling-machine-2",
-      belowEntity: "assembling-machine-2",
-      type: "items",
-    },
-    "module purple sci": {
-      aboveEntity: "assembling-machine-2",
-      belowEntity: "assembling-machine-2",
-      type: "items",
-    },
-    "move splitter": undefined,
-    "recipe change": undefined,
-    "recipe change 2": undefined,
-    "splitter flip": {
-      aboveEntity: "splitter",
-      belowEntity: "splitter",
-      type: "overlap",
-    },
-    "stack size change": undefined,
-    original: undefined,
-    "pole circuit add": undefined,
-  }
-  function assertConflictEquivalent(expected: BlueprintPasteConflicts, contents: AssemblyContent): void {
-    const diagnostics = mapPasteConflictsToDiagnostics(
-      expected,
-      surface,
-      area.left_top,
-      contents.entitySourceMap.get()!,
-    )
-    assert.same(diagnostics, contents.pasteDiagnostics.get()[1].diagnostics)
-
-    // assert has highlight box
-    for (const diagnostic of Object.values(diagnostics).flat()) {
-      if (!diagnostic.location) continue
-      const box = diagnostic.location.area
-      const highlightBox = surface.find_entity("highlight-box", bbox.center(box))!
-      assert.not_nil(highlightBox, "highlight box found")
-      assert.same(box, highlightBox.bounding_box, "highlight box matches")
-    }
-  }
-
-  test.each(BlueprintSampleNames, "conflicts match expected for sample: %s", (sampleName) => {
-    // test("diagnostics match expected for changing to sample: module change", () => {
-    //   const sampleName: BlueprintSampleName = "inserter fast replace"
-
+  it("highlights conflicts", () => {
     const below = getBlueprintSample("original")
-    const above = getBlueprintSample(sampleName)
-
+    const above = getBlueprintSample("inserter rotate")
     pasteBlueprint(surface, area.left_top, above)
-    const contents = createAssemblyContent()
-    const aboveBlueprint = Blueprint.fromArray(below)
-    contents.saveAndAddImport(mockImport(aboveBlueprint))
-
-    const expected = expectedConflicts[sampleName]
-    if (!expected) {
-      assert.same({}, contents.pasteDiagnostics.get()[0].diagnostics)
-      assert.same({}, contents.pasteDiagnostics.get()[1].diagnostics)
-      return
-    }
-    const aboveEntity = above.find((x) => x.name === expected.aboveEntity)!
-    const belowEntity = below.find((x) => x.name === expected.belowEntity)!
-    let expectedConflict: BlueprintPasteConflicts
-    if (expected.type === "overlap") {
-      expectedConflict = {
-        overlaps: [{ below: belowEntity, above: aboveEntity }],
-      }
-    } else if (expected.type === "upgrade") {
-      expectedConflict = {
-        propConflicts: [{ below: belowEntity, above: aboveEntity, prop: "name" }],
-      }
-    } else if (expected.type === "items") {
-      expectedConflict = {
-        propConflicts: [{ below: belowEntity, above: aboveEntity, prop: "items" }],
-      }
-    } else {
-      assertNever(expected.type)
-    }
-    assert.same({}, contents.pasteDiagnostics.get()[0].diagnostics)
-    assertConflictEquivalent(expectedConflict, contents)
+    const content = createAssemblyContent()
+    content.saveAndAddImport(mockImport(Blueprint.fromArray(below)))
+    const conflictingEntity = above.find((x) => x.name === "inserter")!
+    const conflictingPosition = pos.add(conflictingEntity.position, area.left_top)
+    const higlightbox = surface.find_entity("highlight-box", conflictingPosition)
+    assert.not_nil(higlightbox)
   })
 })
 

@@ -78,3 +78,45 @@ test("does not save if there are deletions", () => {
   teleportOut()
   assert.spy(saved).not_called()
 })
+//
+// function findRefValue(): string[] {
+//   const seen = new LuaTable()
+//   const currentPath: string[] = []
+//
+//   const found: string[] = []
+//
+//   function visit(value: any) {
+//     if (typeof value !== "object" && typeof value !== "function") return
+//     if (seen.has(value)) return
+//     seen.set(value, true)
+//
+//     if (typeof value === "function") {
+//       const info = debug.getinfo(value, "nu")
+//       if (info.nups === 0) return
+//       for (const i of $range(1, info.nups!)) {
+//         const [name, upvalue] = debug.getupvalue(value, i)
+//         currentPath.push("upvalue " + name)
+//         visit(upvalue)
+//         currentPath.pop()
+//       }
+//       // seen.set(value, false)
+//       return
+//     }
+//     if (rawget(value, "__self")) return
+//     if (getmetatable(value) === Blueprint.prototype) {
+//       error(currentPath.join("."))
+//     }
+//
+//     for (const [k, v] of pairs(value as unknown)) {
+//       currentPath.push("in key " + tostring(k))
+//       visit(k)
+//       currentPath.pop()
+//       currentPath.push(tostring(k))
+//       visit(v)
+//       currentPath.pop()
+//     }
+//     // seen.set(value, false)
+//   }
+//   visit(global)
+//   return found
+// }

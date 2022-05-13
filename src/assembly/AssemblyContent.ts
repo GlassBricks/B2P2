@@ -1,18 +1,14 @@
+import { AreaIdentification } from "../blueprint/AreaIdentification"
 import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
 import { BlueprintDiff, computeBlueprintDiff } from "../blueprint/blueprint-diff"
-import {
-  BlueprintPasteConflicts,
-  findBlueprintPasteConflictsAndUpdate,
-  findBlueprintPasteConflictsInWorld,
-} from "../blueprint/blueprint-paste"
-import { clearBuildableEntities, pasteBlueprint, takeBlueprintWithIndex } from "../blueprint/world"
+import { BlueprintPasteConflicts, pasteAndFindConflicts } from "../blueprint/blueprint-paste"
+import { EntitySourceMap, EntitySourceMapBuilder } from "../blueprint/EntitySourceMap"
+import { clearBuildableEntities, takeBlueprintWithIndex } from "../blueprint/world"
 import { Classes, funcRef } from "../lib"
 import { pos } from "../lib/geometry/position"
 import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
 import { isEmpty } from "../lib/util"
-import { AreaIdentification } from "./AreaIdentification"
 import { createHighlight, getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
-import { EntitySourceMap, EntitySourceMapBuilder } from "./EntitySourceMap"
 import { AssemblyImport } from "./imports/AssemblyImport"
 import { mapPasteConflictsToDiagnostics, PasteDiagnostics } from "./paste-diagnostics"
 
@@ -94,7 +90,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
     }
 
     this.importsContent = Blueprint.take(this.surface, this.area)
-    bpConflicts.push(this.pasteOwnContents(this.importsContent, sourceMapBuilder))
+    bpConflicts.push(this.pasteOwnContents(sourceMapBuilder))
 
     const sourceMap = sourceMapBuilder.build()
     this.entitySourceMap.set(sourceMap)
@@ -121,34 +117,24 @@ export class DefaultAssemblyContent implements AssemblyContent {
     if (!content) return {}
 
     const relativePosition = imp.getRelativePosition()
-
-    const topLeft = this.getAbsolutePosition(relativePosition)
-    this.pasteBlueprintWithSourceMap(content, topLeft, sourceMap, imp.getSourceArea())
-
-    return findBlueprintPasteConflictsInWorld(this.surface, this.area, content, relativePosition)
+    const sourceArea = imp.getSourceArea()
+    return this.pasteContentAndRecordSourceMap(content, relativePosition, sourceArea, sourceMap)
   }
 
-  private pasteOwnContents(importsContent: Blueprint, sourceMap: EntitySourceMapBuilder): BlueprintPasteConflicts {
+  private pasteOwnContents(sourceMap: EntitySourceMapBuilder): BlueprintPasteConflicts {
     const ownContents = this.ownContents.get()
-
-    const topLeft = this.area.left_top
-    this.pasteBlueprintWithSourceMap(ownContents, topLeft, sourceMap, this)
-
-    return findBlueprintPasteConflictsAndUpdate(importsContent, ownContents)
+    return this.pasteContentAndRecordSourceMap(ownContents, undefined, this, sourceMap)
   }
-
-  private pasteBlueprintWithSourceMap(
+  private pasteContentAndRecordSourceMap(
     content: PasteBlueprint,
-    absolutePosition: MapPositionTable,
-    map: EntitySourceMapBuilder,
+    relativePosition: MapPositionTable | undefined,
     sourceArea: AreaIdentification | undefined,
-  ): void {
-    const entities = this.pasteBlueprint(content, absolutePosition)
-    if (sourceArea) map.addAll(entities, sourceArea, absolutePosition)
-  }
-
-  private pasteBlueprint(content: PasteBlueprint, absolutePosition: MapPositionTable): LuaEntity[] {
-    return pasteBlueprint(this.surface, absolutePosition, content.entities, this.area)
+    sourceMap: EntitySourceMapBuilder,
+  ) {
+    const topLeft = this.getAbsolutePosition(relativePosition)
+    const [conflicts, entities] = pasteAndFindConflicts(this.surface, this.area, content, topLeft)
+    if (sourceArea) sourceMap.addAll(entities, sourceArea, topLeft)
+    return conflicts
   }
 
   private getAbsolutePosition(relativePosition: MapPositionTable | undefined): MapPositionTable {
@@ -170,7 +156,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
   private static renderDiagnosticHighlights(collection: PasteDiagnostics): void {
     for (const [, diagnostics] of pairs(collection)) {
       for (const diagnostic of diagnostics) {
-        createHighlight(diagnostic.location, getDiagnosticHighlightType(diagnostic.id), {})
+        createHighlight(diagnostic.location, getDiagnosticHighlightType(diagnostic.id))
       }
     }
   }

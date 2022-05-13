@@ -1,18 +1,17 @@
+import { AreaIdentification } from "../blueprint/AreaIdentification"
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
+import { EntitySourceMap, EntitySourceMapBuilder } from "../blueprint/EntitySourceMap"
 import { FullEntity, getTileBox } from "../entity/entity"
 import { bbox } from "../lib/geometry/bounding-box"
 import { getEntitySample } from "../test/entity-sample"
 import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
-import { AreaIdentification } from "./AreaIdentification"
 import { Diagnostic } from "./diagnostics/Diagnostic"
-import { EntitySourceMap, EntitySourceMapBuilder } from "./EntitySourceMap"
 import {
   CannotUpgrade,
   ItemsIgnored,
   mapPasteConflictsToDiagnostics,
   Overlap,
   PasteDiagnosticId,
-  PasteDiagnostics,
   UnsupportedProp,
 } from "./paste-diagnostics"
 
@@ -41,37 +40,20 @@ before_all(() => {
   entity2AssemblyLocation = { surface, area: bbox.load(getTileBox(entity2)).shift(area2.area.left_top) }
 })
 
-function assertSingleDiagnostic(map: PasteDiagnostics, expectedDiagnostic: Diagnostic) {
+function assertSingleDiagnostic(source: BlueprintPasteConflicts, expectedDiagnostic: Diagnostic) {
+  const diagnostics = mapPasteConflictsToDiagnostics(source, surface, area2.area.left_top, sourceMap)
   const id = expectedDiagnostic.id as PasteDiagnosticId
-  assert.same([id], Object.keys(map))
-  assert.same(1, map[id]?.length)
-  assert.same(expectedDiagnostic, map[id]![0])
+  assert.same([id], Object.keys(diagnostics))
+  assert.same(1, diagnostics[id]?.length)
+  assert.same(expectedDiagnostic, diagnostics[id]![0])
 }
 
 test("overlap", () => {
   const conflict: BlueprintPasteConflicts = {
-    overlaps: [
-      {
-        below: entity1,
-        above: entity2,
-      },
-    ],
+    overlaps: [entity2],
   }
-
-  const entity1AssemblyLocation = { surface, area: bbox.load(getTileBox(entity1)).shift(area2.area.left_top) }
-  const entity2SourceLocation = { surface, area: bbox.load(getTileBox(entity2)).shift(area1.area.left_top) }
-
-  const expected = Overlap.create(
-    entity1,
-    entity2,
-    entity1AssemblyLocation,
-    entity2AssemblyLocation,
-    entity1SourceLocation,
-    entity2SourceLocation,
-  )
-
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
-  assertSingleDiagnostic(diagnostics, expected)
+  const expected = Overlap.create(entity2, entity2AssemblyLocation)
+  assertSingleDiagnostic(conflict, expected)
 })
 
 test("upgrade", () => {
@@ -84,9 +66,8 @@ test("upgrade", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
   const expected = CannotUpgrade.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
-  assertSingleDiagnostic(diagnostics, expected)
+  assertSingleDiagnostic(conflict, expected)
 })
 
 test("items", () => {
@@ -99,9 +80,8 @@ test("items", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
   const expected = ItemsIgnored.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
-  assertSingleDiagnostic(diagnostics, expected)
+  assertSingleDiagnostic(conflict, expected)
 })
 
 test("unsupported prop", () => {
@@ -114,7 +94,6 @@ test("unsupported prop", () => {
       },
     ],
   }
-  const diagnostics = mapPasteConflictsToDiagnostics(conflict, surface, area2.area.left_top, sourceMap)
   const expected = UnsupportedProp.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation, "foo")
-  assertSingleDiagnostic(diagnostics, expected)
+  assertSingleDiagnostic(conflict, expected)
 })

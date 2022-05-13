@@ -1,17 +1,15 @@
 import { Entity, getTileBox, PasteEntity, PlainEntity, UpdateablePasteEntity } from "../entity/entity"
 import { Classes } from "../lib"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { NumberPair, pair } from "../lib/geometry/number-pair"
 import { isEmpty, shallowCopy } from "../lib/util"
 import { PRecord, PRRecord } from "../lib/util-types"
-import { takeBlueprint } from "./world"
+import { takeBlueprint, takeBlueprintWithIndex } from "./world"
+import contains = bbox.contains
 import fromCorners = bbox.fromCoords
-import iterateTiles = bbox.iterateTiles
-import floor = math.floor
 
 @Classes.register("Blueprint")
 export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
-  private byPosition?: PRRecord<NumberPair, LuaSet<E>>
+  private byPosition?: PRRecord<number, PRRecord<number, LuaSet<E>>>
 
   private constructor(public readonly entities: readonly E[]) {}
 
@@ -35,33 +33,39 @@ export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
     return new Blueprint(takeBlueprint(surface, area, worldTopLeft))
   }
 
+  static takeWithSourceIndex(
+    surface: SurfaceIdentification,
+    area: BoundingBoxRead,
+    worldTopLeft: MapPositionTable = area.left_top,
+  ): LuaMultiReturn<[Blueprint, Record<number, LuaEntity>]> {
+    const [bp, index] = takeBlueprintWithIndex(surface, area, worldTopLeft)
+    return $multi(new Blueprint(bp), index)
+  }
+
   asArray(): readonly E[] {
     return this.entities as E[]
   }
 
   getAtPos(x: number, y: number): LuaSet<E> | undefined {
-    return this.getOrComputeByPosition()[pair(floor(x), floor(y))]
+    const byx = this.getOrComputeByPosition()[x]
+    return byx && byx[y]
   }
 
   getAt(pos: MapPositionTable): LuaSet<E> | undefined {
-    return this.getOrComputeByPosition()[pair(floor(pos.x), floor(pos.y))]
+    return this.getAtPos(pos.x, pos.y)
   }
 
-  getOrComputeByPosition(): PRRecord<NumberPair, LuaSet<E>> {
+  getOrComputeByPosition(): PRRecord<number, PRRecord<number, LuaSet<E>>> {
     return this.byPosition || (this.byPosition = this.doComputeByPosition())
   }
 
-  computeByPosition(): asserts this is { readonly byPosition: PRRecord<NumberPair, LuaSet<E>> } {
-    this.getOrComputeByPosition()
-  }
-
-  private doComputeByPosition(): PRecord<NumberPair, LuaSet<E>> {
-    const result: PRecord<NumberPair, MutableLuaSet<E>> = {}
+  private doComputeByPosition(): PRRecord<number, PRRecord<number, LuaSet<E>>> {
+    const result: PRecord<number, PRecord<number, MutableLuaSet<E>>> = {}
     for (const entity of this.entities) {
-      for (const [x, y] of iterateTiles(getTileBox(entity))) {
-        const set = (result[pair(x, y)] ??= new LuaSet())
-        set.add(entity)
-      }
+      const { x, y } = entity.position
+      const byX = result[x] || (result[x] = {})
+      const set = byX[y] || (byX[y] = new LuaSet())
+      set.add(entity)
     }
     return result
   }
@@ -91,3 +95,10 @@ export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
 
 export type PasteBlueprint = Blueprint<PasteEntity>
 export type UpdateablePasteBlueprint = Blueprint<UpdateablePasteEntity>
+
+export function filterEntitiesInArea<T extends Entity>(entities: readonly T[], area: BoundingBoxRead): T[] {
+  return entities.filter((entity) => {
+    const entityBox = getTileBox(entity)
+    return contains(area, entityBox.left_top) && contains(area, entityBox.right_bottom)
+  })
+}
