@@ -1,13 +1,13 @@
 import { Events, PlayerData } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
-import { NumberPair, pair } from "../lib/geometry/number-pair"
-import { pos } from "../lib/geometry/position"
+import { add, get, MutableMap2D, remove } from "../lib/map2d"
 import { MutableState, State, state } from "../lib/observable"
 import { PRecord } from "../lib/util-types"
 import { Assembly, AssemblyCreated, AssemblyDeleted } from "./Assembly"
 import contains = bbox.contains
+import floor = math.floor
 
-type AssembliesByChunk = PRecord<NumberPair, MutableLuaSet<Assembly>>
+type AssembliesByChunk = MutableMap2D<Assembly>
 
 declare const global: {
   assembliesByChunk: PRecord<SurfaceIndex, AssembliesByChunk>
@@ -25,9 +25,7 @@ AssemblyCreated.subscribe((assembly) => {
   const assembliesByChunk = global.assembliesByChunk[surfaceIndex] || (global.assembliesByChunk[surfaceIndex] = {})
   const chunkArea = bbox.scale(assembly.area, 1 / 32).roundTile()
   for (const [x, y] of chunkArea.iterateTiles()) {
-    const hash = pair(x, y)
-    const assemblies = assembliesByChunk[hash] || (assembliesByChunk[hash] = new LuaSet())
-    assemblies.add(assembly)
+    add(assembliesByChunk, x, y, assembly)
   }
 })
 
@@ -38,21 +36,14 @@ AssemblyDeleted.subscribe((assembly) => {
   if (!assembliesByChunk) return
   const chunkArea = bbox.scale(assembly.area, 1 / 32).roundTile()
   for (const [x, y] of chunkArea.iterateTiles()) {
-    const hash = pair(x, y)
-    const assemblies = assembliesByChunk[hash]
-    if (assemblies) {
-      assemblies.delete(assembly)
-      if (!assemblies.first()) delete assembliesByChunk[hash]
-    }
+    remove(assembliesByChunk, x, y, assembly)
   }
 })
 
 export function getAssemblyAtPosition(surfaceIndex: SurfaceIndex, position: MapPositionTable): Assembly | undefined {
   const assembliesByChunk = global.assembliesByChunk[surfaceIndex]
   if (!assembliesByChunk) return
-  const chunkArea = pos.div(position, 32).floor()
-  const hash = pair(chunkArea.x, chunkArea.y)
-  const assemblies = assembliesByChunk[hash]
+  const assemblies = get(assembliesByChunk, floor(position.x / 32), floor(position.y / 32))
   if (!assemblies) return
   for (const [assembly] of assemblies) {
     if (contains(assembly.area, position)) return assembly

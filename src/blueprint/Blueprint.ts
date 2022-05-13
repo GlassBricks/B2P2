@@ -1,15 +1,15 @@
 import { Entity, getTileBox, PasteEntity, PlainEntity, UpdateablePasteEntity } from "../entity/entity"
 import { Classes } from "../lib"
 import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
+import { add, get, Map2D, MutableMap2D } from "../lib/map2d"
 import { isEmpty, shallowCopy } from "../lib/util"
-import { PRecord, PRRecord } from "../lib/util-types"
 import { takeBlueprint, takeBlueprintWithIndex } from "./world"
 import contains = bbox.contains
 import fromCorners = bbox.fromCoords
 
 @Classes.register("Blueprint")
 export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
-  private byPosition?: PRRecord<number, PRRecord<number, LuaSet<E>>>
+  private byPosition?: Map2D<E>
 
   private constructor(public readonly entities: readonly E[]) {}
 
@@ -47,25 +47,22 @@ export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
   }
 
   getAtPos(x: number, y: number): LuaSet<E> | undefined {
-    const byx = this.getOrComputeByPosition()[x]
-    return byx && byx[y]
+    return get(this.getOrComputeByPosition(), x, y)
   }
 
   getAt(pos: MapPositionTable): LuaSet<E> | undefined {
     return this.getAtPos(pos.x, pos.y)
   }
 
-  getOrComputeByPosition(): PRRecord<number, PRRecord<number, LuaSet<E>>> {
+  getOrComputeByPosition(): Map2D<E> {
     return this.byPosition || (this.byPosition = this.doComputeByPosition())
   }
 
-  private doComputeByPosition(): PRRecord<number, PRRecord<number, LuaSet<E>>> {
-    const result: PRecord<number, PRecord<number, MutableLuaSet<E>>> = {}
+  private doComputeByPosition(): Map2D<E> {
+    const result: MutableMap2D<E> = {}
     for (const entity of this.entities) {
       const { x, y } = entity.position
-      const byX = result[x] || (result[x] = {})
-      const set = byX[y] || (byX[y] = new LuaSet())
-      set.add(entity)
+      add(result, x, y, entity)
     }
     return result
   }
