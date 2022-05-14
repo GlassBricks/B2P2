@@ -463,6 +463,7 @@ function printFile(filename: string, header: string, statements: ts.Statement[])
   const header = `
   import { MaybeMutableState, MaybeState } from "../observable"
   import { GuiEventHandler, OnCreateHandler, Spec } from "./spec"
+
 `
   printFile("element-specs.d.ts", header, statements)
 }
