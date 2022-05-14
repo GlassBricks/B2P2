@@ -1,4 +1,4 @@
-import { AreaIdentification } from "../blueprint/AreaIdentification"
+import { AreaIdentification } from "../area/AreaIdentification"
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, EntitySourceMapBuilder } from "../blueprint/EntitySourceMap"
 import { FullEntity, getTileBox } from "../entity/entity"

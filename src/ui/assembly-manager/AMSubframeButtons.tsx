@@ -1,5 +1,5 @@
+import { teleportPlayerToArea } from "../../area/teleport-history"
 import { Assembly } from "../../assembly/Assembly"
-import { teleportPlayer } from "../../blueprint/AreaIdentification"
 import { bound, Classes, reg } from "../../lib"
 import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { L_Gui } from "../../locale"
@@ -34,7 +34,7 @@ export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
 
   @bound
   private teleport(e: OnGuiClickEvent) {
-    teleportPlayer(game.get_player(e.player_index)!, this.assembly)
+    teleportPlayerToArea(game.get_player(e.player_index)!, this.assembly)
   }
 
   @bound

@@ -1,4 +1,4 @@
-import { AreaIdentification } from "../blueprint/AreaIdentification"
+import { AreaIdentification, highlightArea } from "../area/AreaIdentification"
 import { Blueprint, PasteBlueprint } from "../blueprint/Blueprint"
 import { BlueprintDiff, computeBlueprintDiff } from "../blueprint/blueprint-diff"
 import { BlueprintPasteConflicts, pasteAndFindConflicts } from "../blueprint/blueprint-paste"
@@ -8,7 +8,7 @@ import { Classes, funcRef } from "../lib"
 import { pos } from "../lib/geometry/position"
 import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
 import { isEmpty } from "../lib/util"
-import { createHighlight, getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
+import { getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
 import { AssemblyImport } from "./imports/AssemblyImport"
 import { mapPasteConflictsToDiagnostics, PasteDiagnostics } from "./paste-diagnostics"
 
@@ -26,7 +26,7 @@ export interface AssemblyContent extends AreaIdentification {
   hasConflicts: State<boolean>
 
   readonly resultContent: State<Blueprint | undefined> // undefined when invalid
-  readonly entitySourceMap: State<EntitySourceMap | undefined>
+  readonly entitySourceMap: State<EntitySourceMap>
 
   prepareSave(): BlueprintDiff
   readonly pendingSave: State<BlueprintDiff | undefined>
@@ -57,7 +57,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
   ownContents: MutableState<PasteBlueprint>
   readonly imports = observableList<AssemblyImportItem>()
   readonly resultContent: MutableState<Blueprint | undefined>
-  readonly entitySourceMap: MutableState<EntitySourceMap | undefined>
+  readonly entitySourceMap: MutableState<EntitySourceMap>
   private importsContent: Blueprint = Blueprint.of()
 
   pasteDiagnostics: MutableState<LayerPasteDiagnostics[]> = state([
@@ -156,7 +156,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
   private static renderDiagnosticHighlights(collection: PasteDiagnostics): void {
     for (const [, diagnostics] of pairs(collection)) {
       for (const diagnostic of diagnostics) {
-        createHighlight(diagnostic.location, getDiagnosticHighlightType(diagnostic.id))
+        highlightArea(diagnostic.location, getDiagnosticHighlightType(diagnostic.id))
       }
     }
   }
@@ -199,7 +199,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   delete(): void {
     this.resultContent.set(undefined)
-    this.entitySourceMap.set(undefined)
+    this.entitySourceMap.set(undefined!)
   }
 }
 

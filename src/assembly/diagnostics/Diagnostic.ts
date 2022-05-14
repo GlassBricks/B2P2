@@ -1,7 +1,5 @@
-import { AreaIdentification } from "../../blueprint/AreaIdentification"
-import { bbox } from "../../lib/geometry/bounding-box"
+import { AreaIdentification } from "../../area/AreaIdentification"
 import { Mutable } from "../../lib/util-types"
-import center = bbox.center
 
 export interface DiagnosticCategory<Id extends string> {
   readonly id: Id
@@ -65,20 +63,4 @@ const defaultType: CursorBoxRenderType = "entity"
 
 export function getDiagnosticHighlightType(categoryId: string): CursorBoxRenderType {
   return categories.get(categoryId)?.highlightType ?? defaultType
-}
-
-export function createHighlight(
-  location: AreaIdentification | undefined,
-  highlightType: CursorBoxRenderType,
-  additionalParams: Partial<HighlightBoxSurfaceCreateEntity> = {},
-): HighlightBoxEntity | undefined {
-  if (!location) return
-  const area = location.area
-  return location.surface.create_entity({
-    name: "highlight-box",
-    position: center(area),
-    bounding_box: area,
-    box_type: highlightType,
-    ...additionalParams,
-  })
 }

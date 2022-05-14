@@ -1,13 +1,9 @@
+import { AreaIdentification, highlightArea } from "../../area/AreaIdentification"
+import { teleportPlayer } from "../../area/teleport-history"
 import { Assembly } from "../../assembly/Assembly"
 import { LayerPasteDiagnostics } from "../../assembly/AssemblyContent"
-import {
-  createHighlight,
-  Diagnostic,
-  getDiagnosticCategory,
-  getDiagnosticHighlightType,
-} from "../../assembly/diagnostics/Diagnostic"
+import { Diagnostic, getDiagnosticCategory, getDiagnosticHighlightType } from "../../assembly/diagnostics/Diagnostic"
 import { PasteDiagnosticId } from "../../assembly/paste-diagnostics"
-import { AreaIdentification } from "../../blueprint/AreaIdentification"
 import { Styles } from "../../constants"
 import { bind, bound, Classes, funcRef, reg } from "../../lib"
 import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
@@ -124,7 +120,7 @@ export class DiagnosticsTab extends Component<{
     DiagnosticsTab.teleportPlayerToPos(player, location)
   }
   private static createHighlight(location: AreaIdentification, boxType: CursorBoxRenderType, playerIndex: PlayerIndex) {
-    return createHighlight(location, boxType, {
+    return highlightArea(location, boxType, {
       blink_interval: 20,
       time_to_live: 300,
       render_player_index: playerIndex,
@@ -133,11 +129,7 @@ export class DiagnosticsTab extends Component<{
   private static teleportPlayerToPos(player: LuaPlayer, location: AreaIdentification) {
     const { surface, area } = location
     const position = center(area)
-    if (player.character && player.surface === surface) {
-      player.zoom_to_world(position, 1)
-    } else {
-      player.close_map()
-      player.teleport(position, surface)
-    }
+    player.close_map()
+    teleportPlayer(player, surface, position)
   }
 }

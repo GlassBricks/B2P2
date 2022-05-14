@@ -1,8 +1,8 @@
+import { AreaIdentification } from "../area/AreaIdentification"
 import { Entity, getTileBox } from "../entity/entity"
 import { computeTileBoxOfLuaEntity } from "../entity/entity-info"
 import { bbox } from "../lib/geometry/bounding-box"
 import { pos } from "../lib/geometry/position"
-import { AreaIdentification } from "./AreaIdentification"
 import { Blueprint } from "./Blueprint"
 import { findCompatibleEntity } from "./blueprint-paste"
 import shift = bbox.shift
@@ -58,9 +58,9 @@ export class EntitySourceMapBuilder {
 export function getEntitySourceLocation(
   map: EntitySourceMap,
   entity: Entity,
-  relativeOffset: MapPositionTable,
+  relativeOffset: MapPositionTable | undefined,
 ): AreaIdentification | undefined {
-  const actualPosition = pos.add(entity.position, relativeOffset)
+  const actualPosition = relativeOffset && pos.add(entity.position, relativeOffset)
   const mapEntity = findCompatibleEntity(map, entity, actualPosition)
   if (mapEntity) return mapEntity.actualLocation
 }

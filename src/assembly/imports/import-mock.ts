@@ -1,4 +1,4 @@
-import { AreaIdentification } from "../../blueprint/AreaIdentification"
+import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { pos } from "../../lib/geometry/position"

@@ -1,6 +1,6 @@
+import { teleportPlayerToArea } from "../area/teleport-history"
 import { Assembly } from "../assembly/Assembly"
 import { startAssemblyCreation } from "../assembly/assembly-creation"
-import { teleportPlayer } from "../blueprint/AreaIdentification"
 import { bound, Classes, funcRef, reg } from "../lib"
 import { destroy, FactorioJsx, Spec } from "../lib/factoriojsx"
 import { L_Gui } from "../locale"
@@ -45,7 +45,7 @@ export class AssembliesOverview extends Window {
   private assemblyButtonClick(assembly: Assembly, event: OnGuiClickEvent) {
     const player = game.players[event.player_index]
     if (event.control) {
-      teleportPlayer(player, assembly)
+      teleportPlayerToArea(player, assembly)
     } else {
       openAssemblyManager(player, assembly)
     }

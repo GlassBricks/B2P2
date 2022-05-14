@@ -1,8 +1,8 @@
+import { teleportPlayerToArea } from "../../area/teleport-history"
 import { Assembly } from "../../assembly/Assembly"
 import { AssemblyImportItem } from "../../assembly/AssemblyContent"
 import { highlightImport } from "../../assembly/imports/AssemblyImport"
 import { startBasicImportCreation } from "../../assembly/imports/import-creation"
-import { teleportPlayer } from "../../blueprint/AreaIdentification"
 import { GuiConstants, Styles } from "../../constants"
 import { bound, Classes, funcOn, raiseUserError, reg } from "../../lib"
 import { Component, destroy, FactorioJsx, GuiEvent, renderOpened, Spec, Tracker } from "../../lib/factoriojsx"
@@ -118,7 +118,7 @@ class ImportItem extends Component<ImportItemProps> {
       const source = this.item.import.getSourceArea()
       const player = game.get_player(e.player_index)!
       if (source) {
-        teleportPlayer(player, source)
+        teleportPlayerToArea(player, source)
       } else {
         player.create_local_flying_text({
           text: [L_Interaction.ImportHasNoSource],
@@ -214,7 +214,7 @@ class ChooseImportSourceDialogue extends Component<{ assembly: Assembly }> {
   private pickAssembly(assembly: Assembly, event: OnGuiClickEvent): void {
     const player = game.get_player(event.player_index)!
     if (event.control) {
-      teleportPlayer(player, assembly)
+      teleportPlayerToArea(player, assembly)
     } else {
       destroy(this.element)
       startBasicImportCreation(player, this.assembly, assembly)
