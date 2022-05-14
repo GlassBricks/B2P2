@@ -158,6 +158,20 @@ describe("import", () => {
     const bp = Blueprint.take(surface, area, area.left_top)
     assert.same({}, bp.entities)
   })
+
+  test("allow upgrades makes diagnostics highlight only", () => {
+    const upgradeBlueprint = getBlueprintSample("inserter fast replace and control change")
+    pasteBlueprint(surface, area.left_top, upgradeBlueprint)
+    const content = createAssemblyContent()
+    content.ownOptions.allowUpgrades.set(true)
+    content.saveAndAddImport(mockImport(originalBlueprintSample))
+    const bp = Blueprint.take(surface, area)
+    assertBlueprintsEquivalent(Blueprint.fromArray(upgradeBlueprint), bp)
+    assertNoGhosts()
+
+    const diagnostics = content.pasteDiagnostics.get()![1]
+    assert.true(diagnostics.diagnostics["cannot-upgrade"]!.highlightOnly)
+  })
 })
 
 describe("paste conflicts", () => {

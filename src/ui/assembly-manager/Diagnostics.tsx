@@ -1,14 +1,14 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { teleportAndHighlight } from "../../area/teleport-history"
 import { Assembly } from "../../assembly/Assembly"
-import { LayerPasteDiagnostics } from "../../assembly/AssemblyContent"
+import { LayerDiagnostics } from "../../assembly/AssemblyContent"
 import { Diagnostic, getDiagnosticCategory, getDiagnosticHighlightType } from "../../assembly/diagnostics/Diagnostic"
 import { PasteDiagnosticId } from "../../assembly/paste-diagnostics"
 import { Styles } from "../../constants"
 import { bind, bound, Classes, funcRef, isEmpty, reg } from "../../lib"
 import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
 import { MaybeState } from "../../lib/observable"
-import { L_Gui } from "../../locale"
+import { L_Diagnostic, L_Gui } from "../../locale"
 import { Fn } from "../components/Fn"
 
 @Classes.register()
@@ -31,7 +31,7 @@ export class DiagnosticsTab extends Component<{
   }
 
   @bound
-  private mapDiagnosticsToListItem(diagnostics: readonly LayerPasteDiagnostics[]): Spec {
+  private mapDiagnosticsToListItem(diagnostics: readonly LayerDiagnostics[]): Spec {
     if (!diagnostics.some((x) => !isEmpty(x.diagnostics))) {
       return <label style="bold_label" caption={[L_Gui.NoDiagnostics]} />
     }
@@ -39,13 +39,21 @@ export class DiagnosticsTab extends Component<{
     return <>{diagnostics.map((conflict) => this.diagnosticsForLayer(conflict))}</>
   }
 
-  private diagnosticsForLayer(layerDiagnostics: LayerPasteDiagnostics): Spec {
+  private diagnosticsForLayer(layerDiagnostics: LayerDiagnostics): Spec {
     const layerName: MaybeState<LocalisedString> = layerDiagnostics.name?.map(funcRef(DiagnosticsTab.importLabel)) ?? [
       L_Gui.OwnContents,
     ]
     const allDiagnostics = layerDiagnostics.diagnostics
     if (isEmpty(allDiagnostics)) return <></>
-    const categories = Object.keys(allDiagnostics) as PasteDiagnosticId[]
+
+    const categories: PasteDiagnosticId[] = []
+
+    for (const [key, diagnostics] of pairs(allDiagnostics)) {
+      if (diagnostics[0] && !diagnostics.highlightOnly) {
+        categories.push(key)
+      }
+    }
+    if (isEmpty(categories)) return <></>
 
     return (
       <>
@@ -89,9 +97,9 @@ export class DiagnosticsTab extends Component<{
               caption={diagnostic.message}
               tooltip={
                 diagnostic.altLocation
-                  ? [L_Gui.DiagnosticTooltipWithAltLocation]
+                  ? [L_Diagnostic.TooltipWithAltLocation]
                   : diagnostic.location
-                  ? [L_Gui.DiagnosticTooltip]
+                  ? [L_Diagnostic.BasicTooltip]
                   : undefined
               }
               on_gui_click={bind(this.diagnosticClicked, this, diagnostic)}

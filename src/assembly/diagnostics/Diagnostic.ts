@@ -16,7 +16,9 @@ export type Diagnostic = {
 }
 
 export type DiagnosticCollection<Id extends string = string> = {
-  [K in Id]?: Diagnostic[]
+  [K in Id]?: Diagnostic[] & {
+    highlightOnly?: boolean
+  }
 }
 
 const categories = new Map<string, DiagnosticCategory<string>>()

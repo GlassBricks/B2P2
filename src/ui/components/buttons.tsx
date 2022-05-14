@@ -38,3 +38,15 @@ export function TrashButton(props: { onClick?: ClickEventHandler; tooltip?: Loca
     />
   )
 }
+
+export function DotDotDotButton(props: { onClick?: ClickEventHandler; tooltip?: LocalisedString }): Spec {
+  return (
+    <button
+      style="tool_button"
+      tooltip={props.tooltip}
+      caption="..."
+      mouse_button_filter={["left"]}
+      on_gui_click={props.onClick}
+    />
+  )
+}

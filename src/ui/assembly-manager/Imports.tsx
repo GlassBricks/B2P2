@@ -1,17 +1,18 @@
 import { teleportPlayerToArea } from "../../area/teleport-history"
 import { Assembly } from "../../assembly/Assembly"
-import { AssemblyImportItem } from "../../assembly/AssemblyContent"
+import { AssemblyImportItem, LayerOptions } from "../../assembly/AssemblyContent"
 import { highlightImport } from "../../assembly/imports/AssemblyImport"
 import { startBasicImportCreation } from "../../assembly/imports/import-creation"
 import { GuiConstants, Styles } from "../../constants"
-import { bound, Classes, funcOn, raiseUserError, reg } from "../../lib"
+import { bound, Classes, funcOn, funcRef, raiseUserError, reg } from "../../lib"
 import { Component, destroy, FactorioJsx, GuiEvent, renderOpened, Spec, Tracker } from "../../lib/factoriojsx"
 import { ObservableSet } from "../../lib/observable"
 import { L_Gui, L_Interaction } from "../../locale"
 import { AssembliesList } from "../AssembliesList"
-import { TrashButton } from "../components/buttons"
+import { CloseButton, DotDotDotButton, TrashButton } from "../components/buttons"
 import { List } from "../components/List"
 import { HorizontalPusher } from "../components/misc"
+import { closeParentParent, TitleBar } from "../components/TitleBar"
 import { showDialogue } from "../window/Dialog"
 
 @Classes.register()
@@ -20,17 +21,19 @@ export class ImportsTab extends Component<{ assembly: Assembly }> {
   render(props: { assembly: Assembly }): Spec {
     assert(props.assembly.isValid())
     this.assembly = props.assembly
+    const assemblyContent = this.assembly.getContent()!
     return (
       <flow direction="vertical">
         <frame style="deep_frame_in_shallow_frame">
           <scroll-pane style={Styles.AMListScrollPane}>
             <List
-              of={this.assembly.getContent()!.imports}
+              of={assemblyContent.imports}
               map={reg(this.importItem)}
               uses="flow"
               direction="vertical"
               styleMod={{ vertical_spacing: 0 }}
             />
+            <ImportItem item={undefined} options={assemblyContent.ownOptions} assembly={this.assembly} />
           </scroll-pane>
         </frame>
         <flow direction={"horizontal"}>
@@ -42,7 +45,7 @@ export class ImportsTab extends Component<{ assembly: Assembly }> {
 
   @bound
   private importItem(item: AssemblyImportItem): Spec {
-    return <ImportItem item={item} assembly={this.assembly} />
+    return <ImportItem item={item} assembly={this.assembly} options={item} />
   }
 
   @bound
@@ -53,18 +56,21 @@ export class ImportsTab extends Component<{ assembly: Assembly }> {
 }
 
 interface ImportItemProps {
-  item: AssemblyImportItem
+  item: AssemblyImportItem | undefined
+  options: LayerOptions
   assembly: Assembly
 }
 
 @Classes.register()
 class ImportItem extends Component<ImportItemProps> {
-  item!: AssemblyImportItem
+  item!: AssemblyImportItem | undefined
   assembly!: Assembly
+  options!: LayerOptions
 
   render(props: ImportItemProps): Spec {
     this.item = props.item
     this.assembly = props.assembly
+    this.options = props.options
     return (
       <frame
         style="bordered_frame"
@@ -80,15 +86,20 @@ class ImportItem extends Component<ImportItemProps> {
             vertically_stretchable: true,
           }}
         >
-          <checkbox state={this.item.active} tooltip={[L_Gui.ToggleImport]} />
-          <button
-            style="list_box_item"
-            caption={props.item.import.name()}
-            tooltip={[L_Gui.ImportItemTooltip]}
-            on_gui_click={reg(this.nameClicked)}
-          />
+          {this.item && <checkbox state={this.item.active} tooltip={[L_Gui.ToggleImport]} />}
+          {this.item ? (
+            <button
+              style={Styles.ListBoxButton}
+              caption={this.item.import.name()}
+              tooltip={[L_Gui.ImportItemTooltip]}
+              on_gui_click={reg(this.nameClicked)}
+            />
+          ) : (
+            <button style={Styles.ListBoxButton} caption={[L_Gui.OwnContents]} enabled={false} />
+          )}
           <HorizontalPusher />
-          <TrashButton tooltip={[L_Gui.DeleteImport]} onClick={reg(this.confirmDeleteImport)} />
+          <DotDotDotButton tooltip={[L_Gui.LayerAdditionalSettings]} onClick={reg(this.openAdditionalSettings)} />
+          {this.item && <TrashButton tooltip={[L_Gui.DeleteImport]} onClick={reg(this.confirmDeleteImport)} />}
         </flow>
       </frame>
     )
@@ -100,6 +111,7 @@ class ImportItem extends Component<ImportItemProps> {
     // control-shift click: move down
     // no modifiers: highlight
     // control-click: teleport to source
+    const item = this.item!
     if (e.button !== defines.mouse_button_type.left) return
     if (e.shift) {
       if (!e.control) {
@@ -115,7 +127,7 @@ class ImportItem extends Component<ImportItemProps> {
       }
     } else if (e.control) {
       // teleport to source
-      const source = this.item.import.getSourceArea()
+      const source = item.import.getSourceArea()
       const player = game.get_player(e.player_index)!
       if (source) {
         teleportPlayerToArea(player, source)
@@ -126,10 +138,23 @@ class ImportItem extends Component<ImportItemProps> {
         })
       }
     } else {
-      const { assembly, item: imp } = this
+      const { assembly } = this
       const player = game.get_player(e.player_index)!
-      highlightImport(assembly.surface, assembly.area, imp.import, player)
+      highlightImport(assembly.surface, assembly.area, item.import, player)
     }
+  }
+
+  @bound
+  private openAdditionalSettings(e: OnGuiClickEvent): void {
+    const player = game.get_player(e.player_index)!
+    renderOpened(
+      player,
+      <LayerAdditionalSettings
+        options={this.options}
+        assemblyName={this.assembly.displayName.get()}
+        layerName={this.item ? this.item.import.name().get() : [L_Gui.OwnContents]}
+      />,
+    )
   }
 
   @bound
@@ -137,7 +162,7 @@ class ImportItem extends Component<ImportItemProps> {
     const player = game.get_player(e.player_index)!
     showDialogue(player, {
       title: ["gui.confirmation"],
-      message: [L_Gui.DeleteImportConfirmation, this.item.import.name().get()],
+      message: [L_Gui.DeleteImportConfirmation, this.item!.import.name().get()],
       backCaption: ["gui.cancel"],
       confirmCaption: ["gui.delete"],
       redConfirm: true,
@@ -153,11 +178,56 @@ class ImportItem extends Component<ImportItemProps> {
 
   private getIndex() {
     const imports = this.assembly.getContent()!.imports
-    const index = imports.value().indexOf(this.item)
+    const index = imports.value().indexOf(this.item!)
     if (index === -1) {
       raiseUserError([L_Gui.ImportNoLongerExists], "flying-text")
     }
     return { imports, index }
+  }
+}
+
+interface AdditionalImportOptionsProps {
+  options: LayerOptions
+  assemblyName: LocalisedString
+  layerName: LocalisedString
+}
+@Classes.register()
+class LayerAdditionalSettings extends Component<AdditionalImportOptionsProps> {
+  options!: LayerOptions
+  override render(props: AdditionalImportOptionsProps): Spec {
+    this.options = props.options
+
+    return (
+      <frame
+        direction="vertical"
+        auto_center
+        onCreate={(el) => {
+          game.get_player(el.player_index)!.opened = el as LuaGuiElement
+        }}
+        on_gui_closed={reg(this.close)}
+      >
+        <TitleBar title={[L_Gui.LayerAdditionalSettingsTitle, props.assemblyName, props.layerName]}>
+          <CloseButton onClick={funcRef(closeParentParent)} />
+        </TitleBar>
+        <frame
+          style="inside_shallow_frame_with_padding"
+          styleMod={{
+            horizontally_stretchable: true,
+          }}
+        >
+          <checkbox
+            state={this.options.allowUpgrades}
+            caption={[L_Gui.LayerAllowUpgrades]}
+            tooltip={[L_Gui.LayerAllowUpgradesTooltip]}
+          />
+        </frame>
+      </frame>
+    )
+  }
+
+  @bound
+  private close(e: OnGuiClosedEvent): void {
+    destroy(e.element!)
   }
 }
 

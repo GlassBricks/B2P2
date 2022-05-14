@@ -1,5 +1,5 @@
 import { AreaIdentification } from "../area/AreaIdentification"
-import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
+import { BlueprintPasteConflicts, BlueprintPasteOptions } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, getEntitySourceLocation } from "../blueprint/EntitySourceMap"
 import { describeEntity, Entity, getTileBox } from "../entity/entity"
 import { bbox, Position } from "../lib/geometry"
@@ -26,7 +26,7 @@ export const CannotUpgrade = DiagnosticCategory(
   {
     id: "cannot-upgrade",
     shortDescription: [L_Diagnostic.CannotUpgrade],
-    longDescription: [L_Diagnostic.CannotUpgradeDetail],
+    longDescription: [L_Diagnostic.CannotUpgradeTooltip],
     highlightType: "copy",
   },
   (
@@ -44,7 +44,7 @@ export const ItemsIgnored = DiagnosticCategory(
   {
     id: "items-ignored",
     shortDescription: [L_Diagnostic.ItemsIgnored],
-    longDescription: [L_Diagnostic.ItemsIgnoredDetail],
+    longDescription: [L_Diagnostic.ItemsIgnoredTooltip],
     highlightType: "pair",
   },
   (
@@ -61,6 +61,7 @@ export const ItemsIgnored = DiagnosticCategory(
 
 export function mapPasteConflictsToDiagnostics(
   conflicts: BlueprintPasteConflicts,
+  options: BlueprintPasteOptions,
   surface: LuaSurface,
   pastedLeftTop: Position,
   sourceMap: EntitySourceMap,
@@ -88,6 +89,11 @@ export function mapPasteConflictsToDiagnostics(
       const belowArea = getSourceArea(below)
       const aboveArea = getAssemblyArea(above)
       addDiagnostic(diagnostics, CannotUpgrade, below, belowArea, above, aboveArea)
+    }
+    if (options.allowUpgrades) {
+      if (diagnostics["cannot-upgrade"]) {
+        diagnostics["cannot-upgrade"].highlightOnly = true
+      }
     }
   }
   if (conflicts.itemRequestChanges) {

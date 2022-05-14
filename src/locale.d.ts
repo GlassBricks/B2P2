@@ -38,24 +38,20 @@ export declare const enum L_Diagnostic {
   OverlapItem = "bbpp.diagnostic.overlap-item",
   /** [color=purple]Upgrades:[/color] [img=info] */
   CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
-  /** Upgrades/fast-replace cannot be affected by blueprinting. Better support for this may be implemented in the future. */
-  CannotUpgradeDetail = "bbpp.diagnostic.cannot-upgrade-detail",
+  /** Upgrades/fast-replace cannot be affected by blueprinting. To allow this, enable "Allow upgrades" in the the import additional settings. */
+  CannotUpgradeTooltip = "bbpp.diagnostic.cannot-upgrade-tooltip",
   /** __1__: upgraded from __2__ */
   CannotUpgradeItem = "bbpp.diagnostic.cannot-upgrade-item",
   /** [color=yellow]Item requests changes:[/color] */
   ItemsIgnored = "bbpp.diagnostic.items-ignored",
   /** Changes in item requests will have no effect on paste. */
-  ItemsIgnoredDetail = "bbpp.diagnostic.items-ignored-detail",
+  ItemsIgnoredTooltip = "bbpp.diagnostic.items-ignored-tooltip",
   /** __1__ */
   ItemsIgnoredItem = "bbpp.diagnostic.items-ignored-item",
-  /** [color=yellow]Unsupported properties:[/color] [img=info] */
-  UnsupportedProp = "bbpp.diagnostic.unsupported-prop",
-  /** These properties are not yet checked. Please report this to the mod author! */
-  UnsupportedPropDetail = "bbpp.diagnostic.unsupported-prop-detail",
-  /** __1__: "__2__" not supported */
-  UnsupportedPropItem = "bbpp.diagnostic.unsupported-prop-item",
-  /** [color=red]The import "__1__" is no longer valid.[/color] */
-  InvalidImport = "bbpp.diagnostic.invalid-import",
+  /** [font=default-bold]Click[/font] to teleport to the entity. */
+  BasicTooltip = "bbpp.diagnostic.basic-tooltip",
+  /** [font=default-bold]Click[/font] to teleport to the entity.\n[font=default-bold]Control click[/font] to teleport to entity at the [font=default-bold]import source[/font]. */
+  TooltipWithAltLocation = "bbpp.diagnostic.tooltip-with-alt-location",
 }
 export declare const enum L_Interaction {
   /** An unexpected error occurred: __1__. Additional details outputted to log. Please report this to the mod author! */
@@ -144,6 +140,14 @@ export declare const enum L_Gui {
   DeleteImportConfirmation = "bbpp.gui.delete-import-confirmation",
   /** This import no longer exists. */
   ImportNoLongerExists = "bbpp.gui.import-no-longer-exists",
+  /** Additional settings */
+  LayerAdditionalSettings = "bbpp.gui.layer-additional-settings",
+  /** Additional settings: __1__  >  __2__ */
+  LayerAdditionalSettingsTitle = "bbpp.gui.layer-additional-settings-title",
+  /** Allow upgrades [img=info] */
+  LayerAllowUpgrades = "bbpp.gui.layer-allow-upgrades",
+  /** Allow upgrades/fast-replace to be affected by blueprinting. */
+  LayerAllowUpgradesTooltip = "bbpp.gui.layer-allow-upgrades-tooltip",
   /** Toggle active */
   ToggleImport = "bbpp.gui.toggle-import",
   /** Diagnostics */
@@ -156,10 +160,6 @@ export declare const enum L_Gui {
   OwnContents = "bbpp.gui.own-contents",
   /** No diagnostics */
   NoDiagnostics = "bbpp.gui.no-diagnostics",
-  /** [font=default-bold]Click[/font] to teleport to the entity. */
-  DiagnosticTooltip = "bbpp.gui.diagnostic-tooltip",
-  /** [font=default-bold]Click[/font] to teleport to the entity.\n[font=default-bold]Control click[/font] to teleport to entity at the [font=default-bold]import source[/font]. */
-  DiagnosticTooltipWithAltLocation = "bbpp.gui.diagnostic-tooltip-with-alt-location",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
   /** All assemblies [img=info] */

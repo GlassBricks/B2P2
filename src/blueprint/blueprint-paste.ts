@@ -96,6 +96,7 @@ export function pasteAndFindConflicts(
         error(`Could not find entity in blueprint: ${belowLuaEntity.name}`)
       }
       const conflict = findEntityPasteConflictAndUpdate(belowBpEntity, aboveBpEntity)
+      shouldRepaste = true // in case of updates
       if (conflict === "name") {
         upgrades.push({ below: belowBpEntity, above: aboveBpEntity })
         if (options.allowUpgrades) {
@@ -109,7 +110,6 @@ export function pasteAndFindConflicts(
             create_build_effect_smoke: false,
             move_stuck_players: true,
           })
-          shouldRepaste = true
         }
       } else if (conflict === "items") {
         itemRequestChanges.push({ below: belowBpEntity, above: aboveBpEntity })

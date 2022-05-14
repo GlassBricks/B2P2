@@ -1,5 +1,5 @@
 import { AreaIdentification } from "../area/AreaIdentification"
-import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
+import { BlueprintPasteConflicts, BlueprintPasteOptions } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, EntitySourceMapBuilder } from "../blueprint/EntitySourceMap"
 import { FullEntity, getTileBox } from "../entity/entity"
 import { bbox } from "../lib/geometry"
@@ -12,6 +12,7 @@ import {
   mapPasteConflictsToDiagnostics,
   Overlap,
   PasteDiagnosticId,
+  PasteDiagnostics,
 } from "./paste-diagnostics"
 
 let entity1: FullEntity
@@ -39,12 +40,17 @@ before_all(() => {
   entity2AssemblyLocation = { surface, area: bbox.load(getTileBox(entity2)).shift(area2.area.left_top) }
 })
 
-function assertSingleDiagnostic(source: BlueprintPasteConflicts, expectedDiagnostic: Diagnostic) {
-  const diagnostics = mapPasteConflictsToDiagnostics(source, surface, area2.area.left_top, sourceMap)
+function assertSingleDiagnostic(
+  source: BlueprintPasteConflicts,
+  expectedDiagnostic: Diagnostic,
+  pasteOptions: BlueprintPasteOptions = {},
+): PasteDiagnostics {
+  const diagnostics = mapPasteConflictsToDiagnostics(source, pasteOptions, surface, area2.area.left_top, sourceMap)
   const id = expectedDiagnostic.id as PasteDiagnosticId
   assert.same([id], Object.keys(diagnostics))
   assert.same(1, diagnostics[id]?.length)
   assert.same(expectedDiagnostic, diagnostics[id]![0])
+  return diagnostics
 }
 
 test("overlap", () => {
@@ -55,7 +61,7 @@ test("overlap", () => {
   assertSingleDiagnostic(conflict, expected)
 })
 
-test("upgrade", () => {
+test.each([false, true], "upgrade, allowed: %s", (allowed) => {
   const conflict: BlueprintPasteConflicts = {
     upgrades: [
       {
@@ -65,7 +71,8 @@ test("upgrade", () => {
     ],
   }
   const expected = CannotUpgrade.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
-  assertSingleDiagnostic(conflict, expected)
+  const diagnostics = assertSingleDiagnostic(conflict, expected, { allowUpgrades: allowed })
+  assert.equal(allowed || undefined, diagnostics["cannot-upgrade"]!.highlightOnly)
 })
 
 test("items", () => {
