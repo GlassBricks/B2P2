@@ -109,7 +109,7 @@ function tryImportCreation(player: LuaPlayer, absolutePosition: MapPositionTable
 function onBuiltHandler(e: OnBuiltEntityEvent) {
   const entity = e.created_entity
   const name = entity.name
-  const realName = name === "ghost-entity" ? entity.ghost_name : name
+  const realName = name === "entity-ghost" ? entity.ghost_name : name
   if (realName === Prototypes.ImportPreviewPositionMarker) {
     const player = game.get_player(e.player_index)!
     protectedAction(player, () => tryImportCreation(player, entity.position))
