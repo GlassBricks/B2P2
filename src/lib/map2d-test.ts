@@ -17,10 +17,10 @@ test("add and get multiple", () => {
   assert.same(new LuaSet("a", "b"), get(map2d, 1, 1))
 })
 
-test("add in multiple chunks", () => {
+test("add in multiple coords", () => {
   add(map2d, 1, 1, "a")
   add(map2d, 2, 2, "b")
-  assert.same(new LuaSet("a", "b"), get(map2d, 1, 1))
+  assert.same(new LuaSet("a"), get(map2d, 1, 1))
   assert.same(new LuaSet("b"), get(map2d, 2, 2))
 })
 
