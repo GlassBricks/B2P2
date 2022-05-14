@@ -5,7 +5,7 @@
     "luaTarget": "5.2",
     "noResolvePaths": ["__testorio__/init"],
     "noImplicitSelf": true,
-    "sourceMapTraceback": false,
+    "sourceMapTraceback": true,
     "luaPlugins": [
       {
         "name": "./tstlPlugin/plugin.js"

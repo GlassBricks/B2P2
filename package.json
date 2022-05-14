@@ -37,7 +37,7 @@
     "build:gui-specs": "ts-node scripts/gen-gui-specs.ts",
     "build:scripts": "concurrently \"yarn build:plugin\" \"yarn build:locale\" \"yarn build:gui-specs\"",
     "build:release": "tstl -p tsconfig-release.json",
-    "prepare-package": "yarn run clean && yarn run build:scripts && yarn run build:release",
+    "prepare-package": "yarn run deep-clean && yarn run build:scripts && yarn run build:release",
     "build": "yarn build:scripts && tstl",
     "watch": "tstl --watch",
     "watch:locale": "npm-watch",
