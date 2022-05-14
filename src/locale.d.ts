@@ -21,11 +21,11 @@ export declare const enum L_Diagnostic {
   Overlap = "bbpp.diagnostic.overlap",
   /** __1__ could not be pasted */
   OverlapItem = "bbpp.diagnostic.overlap-item",
-  /** [color=purple]Upgrades:[/color][img=info] */
+  /** [color=purple]Upgrades[img=info]:[/color] */
   CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
-  /** Upgrades/fast-replace cannot be pasted by blueprinting. Support for allowing this may be implemented in the future. */
+  /** Upgrades/fast-replace cannot be affected by blueprinting. Better support for this may be implemented in the future. */
   CannotUpgradeDetail = "bbpp.diagnostic.cannot-upgrade-detail",
-  /** __1__ changed from __2__ */
+  /** __1__; upgraded from __2__ */
   CannotUpgradeItem = "bbpp.diagnostic.cannot-upgrade-item",
   /** [color=yellow]Item requests changes:[/color] */
   ItemsIgnored = "bbpp.diagnostic.items-ignored",
@@ -139,8 +139,10 @@ export declare const enum L_Gui {
   OwnContents = "bbpp.gui.own-contents",
   /** No diagnostics */
   NoDiagnostics = "bbpp.gui.no-diagnostics",
-  /** [font=default-bold]Click[/font] to highlight and teleport to the entity.\n[font=default-bold]Control click[/font] to highlight and teleport to the corresponding conflicting entity [font=default-bold]at the import source[/font]. */
+  /** [font=default-bold]Click[/font] to teleport to the entity. */
   DiagnosticTooltip = "bbpp.gui.diagnostic-tooltip",
+  /** [font=default-bold]Click[/font] to teleport to the entity.\n[font=default-bold]Control click[/font] to teleport to the corresponding entity at the [font=default-bold]entity source[/font]. */
+  DiagnosticTooltipWithAltLocation = "bbpp.gui.diagnostic-tooltip-with-alt-location",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
   /** All assemblies [img=info] */
