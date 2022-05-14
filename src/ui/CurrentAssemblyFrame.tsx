@@ -64,11 +64,9 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
     AssembliesOverview.toggle(this.player)
   }
 }
-export function renderCurrentAssemblyFrame(player: LuaPlayer): void {
+function renderCurrentAssemblyFrame(player: LuaPlayer): void {
   const frameFlow = mod_gui.get_frame_flow(player)
   destroy(frameFlow[modFrameName])
   render(frameFlow, <CurrentAssembly player={player} />)
 }
-onPlayerInit((player) => {
-  renderCurrentAssemblyFrame(player)
-})
+onPlayerInit(renderCurrentAssemblyFrame)

@@ -4,7 +4,6 @@ import { PRecord } from "./util-types"
 
 /**
  * Called when player is initialized (both during on_init and on_player_created).
- * @param action
  */
 export function onPlayerInit(action: (player: LuaPlayer) => void): void {
   Events.onAll({
