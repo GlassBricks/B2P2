@@ -15,7 +15,6 @@ const assemblyCreationTool = {
   icon_size: 64,
   flags: ["only-in-cursor", "hidden", "not-stackable", "spawnable"],
   stack_size: 1,
-  stackable: false,
   selection_color: [250, 250, 250],
   selection_mode: ["blueprint"],
   alt_selection_color: [250, 250, 250],
@@ -41,7 +40,6 @@ const importPreviewPositionMarker = {
       priority: "low",
     },
   ],
-  time_before_removed: 1,
   flags: ["hidden", "player-creation"],
   collision_mask: [],
 }
