@@ -1,1 +1,1 @@
-import "./teleport-to-source"
+import "./teleport"

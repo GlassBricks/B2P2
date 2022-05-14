@@ -16,6 +16,14 @@ export declare const enum L_ModSettingDescription {
   /** Automatically attempt to save when leaving an assembly. */
   BbppAutoSave = "mod-setting-description.bbpp:auto-save",
 }
+export declare const enum L_Controls {
+  /** Teleport backward */
+  BbppTeleportBackward = "controls.bbpp:teleport-backward",
+  /** Teleport forward */
+  BbppTeleportForward = "controls.bbpp:teleport-forward",
+  /** Teleport to entity at source assembly */
+  BbppTeleportToSource = "controls.bbpp:teleport-to-source",
+}
 export declare const enum L_Diagnostic {
   /** [color=red]Collisions:[/color] */
   Overlap = "bbpp.diagnostic.overlap",
@@ -71,12 +79,12 @@ export declare const enum L_Interaction {
   AutosaveFailedHasDeletions = "bbpp.interaction.autosave-failed-has-deletions",
   /** Autosave: "__1__" saved. */
   AutosaveSucceeded = "bbpp.interaction.autosave-succeeded",
+  /** Not in an assembly */
+  NoAssemblyHere = "bbpp.interaction.no-assembly-here",
   /** This entity has no (known) source assembly. */
   EntityHasNoSource = "bbpp.interaction.entity-has-no-source",
   /** This entity originates from this assembly. */
   EntityAlreadyAtSource = "bbpp.interaction.entity-already-at-source",
-  /** This entity is not in an assembly */
-  NoAssemblyHere = "bbpp.interaction.no-assembly-here",
 }
 export declare const enum L_Gui {
   /** <Unnamed assembly> */

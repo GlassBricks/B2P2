@@ -4,6 +4,8 @@ export const enum Settings {
 
 export const enum Inputs {
   TeleportToSource = "bbpp:teleport-to-source",
+  TeleportForward = "bbpp:teleport-forward",
+  TeleportBackward = "bbpp:teleport-backward",
 }
 
 export const enum Prototypes {

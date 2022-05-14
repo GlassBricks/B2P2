@@ -1,4 +1,4 @@
-import { teleportAndHighlight } from "../../area/teleport-history"
+import { teleportAndHighlight, teleportBackward, teleportForward } from "../../area/teleport-history"
 import { getAssemblyAtPosition } from "../../assembly/player-tracking"
 import { getEntitySourceLocation } from "../../blueprint/EntitySourceMap"
 import { Inputs } from "../../constants"
@@ -43,4 +43,12 @@ Events.on(Inputs.TeleportToSource, (event) => {
   const entity = player.selected
   if (!entity) return
   protectedAction(player, teleportToSourceOfEntity, player, entity)
+})
+
+Events.on(Inputs.TeleportForward, (event) => {
+  teleportForward(game.get_player(event.player_index)!)
+})
+
+Events.on(Inputs.TeleportBackward, (event) => {
+  teleportBackward(game.get_player(event.player_index)!)
 })

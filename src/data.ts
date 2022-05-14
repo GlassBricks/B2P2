@@ -141,8 +141,20 @@ declare const data: Data
     name: Inputs.TeleportToSource,
     key_sequence: "CONTROL + SHIFT + T",
   }
+  const teleportForward = {
+    type: "custom-input",
+    name: Inputs.TeleportForward,
+    key_sequence: "CONTROL + SHIFT + RIGHT",
+    alternative_key_sequence: "CONTROL + mouse-button-5",
+  }
+  const teleportBackward = {
+    type: "custom-input",
+    name: Inputs.TeleportBackward,
+    key_sequence: "CONTROL + SHIFT + LEFT",
+    alternative_key_sequence: "CONTROL + mouse-button-4",
+  }
 
-  data.extend([teleportToSource])
+  data.extend([teleportToSource, teleportForward, teleportBackward])
 }
 
 // sprites
