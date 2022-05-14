@@ -1,19 +1,15 @@
 ## Now
 
+- document
 - Test with real blueprints
-
-
-- handle rails and locomotives
-- handle other off-grid stuff
 
 ## Next
 
-- Lazy properties, make less like rxjs
+- Lazy properties, make simpler
 - Dependency checking, invalidation
 
 - ethereal ghosts
-- refactor blueprint conflict checking
-    - More advanced diagnostic teleporting
+- More advanced diagnostic teleporting
 
 - lost references diagnostics
 - diagnostic actions
