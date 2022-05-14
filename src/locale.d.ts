@@ -31,6 +31,14 @@ export declare const enum L_ShortcutName {
   /** BBPP: New assembly */
   BbppCreateAssembly = "shortcut-name.bbpp:create-assembly",
 }
+export declare const enum L_Bbpp {
+  /** [entity=__1__] */
+  EntityPicture = "bbpp.entity-picture",
+  /** __1__x[item=__2__] */
+  ItemCountPicture = "bbpp.item-count-picture",
+  /** <None> */
+  NoItems = "bbpp.no-items",
+}
 export declare const enum L_Diagnostic {
   /** [color=red]Collisions:[/color] */
   Overlap = "bbpp.diagnostic.overlap",
@@ -46,7 +54,7 @@ export declare const enum L_Diagnostic {
   ItemsIgnored = "bbpp.diagnostic.items-ignored",
   /** Changes in item requests will have no effect on paste. */
   ItemsIgnoredTooltip = "bbpp.diagnostic.items-ignored-tooltip",
-  /** __1__ */
+  /** __1__: __2__  ->  __3__ */
   ItemsIgnoredItem = "bbpp.diagnostic.items-ignored-item",
   /** [font=default-bold]Click[/font] to teleport to the entity. */
   BasicTooltip = "bbpp.diagnostic.basic-tooltip",

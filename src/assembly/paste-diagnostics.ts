@@ -1,7 +1,8 @@
 import { AreaIdentification } from "../area/AreaIdentification"
 import { BlueprintPasteConflicts, BlueprintPasteOptions } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, getEntitySourceLocation } from "../blueprint/EntitySourceMap"
-import { describeEntity, Entity, getTileBox } from "../entity/entity"
+import { describeEntity, describeItems } from "../entity/describe-entity"
+import { Entity, FullEntity, getTileBox } from "../entity/entity"
 import { bbox, Position } from "../lib/geometry"
 import { L_Diagnostic } from "../locale"
 import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
@@ -48,12 +49,17 @@ export const ItemsIgnored = DiagnosticCategory(
     highlightType: "pair",
   },
   (
-    below: Entity,
+    below: FullEntity,
     sourceLocation: AreaIdentification | undefined,
-    above: Entity,
+    above: FullEntity,
     assemblyLocation: AreaIdentification,
   ) => ({
-    message: [L_Diagnostic.ItemsIgnoredItem, describeEntity(above)],
+    message: [
+      L_Diagnostic.ItemsIgnoredItem,
+      describeEntity(above),
+      describeItems(below.items),
+      describeItems(above.items),
+    ],
     location: assemblyLocation,
     altLocation: sourceLocation,
   }),
