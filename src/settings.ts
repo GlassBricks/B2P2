@@ -9,6 +9,6 @@ data.extend([
     setting_type: "runtime-per-user",
     name: Settings.Autosave,
     default_value: false,
-    order: "z[bbpp]-[autosave]",
+    order: "z[b2p2]-[autosave]",
   },
 ])

@@ -3,177 +3,177 @@
 
 export declare const enum L_ItemName {
   /** Assembly Creation Tool */
-  BbppAssemblyCreationTool = "item-name.bbpp:assembly-creation-tool",
+  B2p2AssemblyCreationTool = "item-name.b2p2:assembly-creation-tool",
   /** Import Preview blueprint */
-  BbppImportPreview = "item-name.bbpp:import-preview",
+  B2p2ImportPreview = "item-name.b2p2:import-preview",
   /** Import Preview metadata */
-  BbppImportPreviewPositionMarker = "item-name.bbpp:ImportPreviewPositionMarker",
+  B2p2ImportPreviewPositionMarker = "item-name.b2p2:ImportPreviewPositionMarker",
 }
 export declare const enum L_ModSettingName {
   /** Auto-save assemblies [img=info] */
-  BbppAutoSave = "mod-setting-name.bbpp:auto-save",
+  B2p2AutoSave = "mod-setting-name.b2p2:auto-save",
 }
 export declare const enum L_ModSettingDescription {
   /** Automatically attempt to save when leaving an assembly. */
-  BbppAutoSave = "mod-setting-description.bbpp:auto-save",
+  B2p2AutoSave = "mod-setting-description.b2p2:auto-save",
 }
 export declare const enum L_Controls {
   /** Teleport backward */
-  BbppTeleportBackward = "controls.bbpp:teleport-backward",
+  B2p2TeleportBackward = "controls.b2p2:teleport-backward",
   /** Teleport forward */
-  BbppTeleportForward = "controls.bbpp:teleport-forward",
+  B2p2TeleportForward = "controls.b2p2:teleport-forward",
   /** Teleport to entity at source assembly */
-  BbppTeleportToSource = "controls.bbpp:teleport-to-source",
+  B2p2TeleportToSource = "controls.b2p2:teleport-to-source",
   /** Create new assembly */
-  BbppCreateAssembly = "controls.bbpp:create-assembly",
+  B2p2CreateAssembly = "controls.b2p2:create-assembly",
 }
 export declare const enum L_ShortcutName {
-  /** BBPP: New assembly */
-  BbppCreateAssembly = "shortcut-name.bbpp:create-assembly",
+  /** b2p2: New assembly */
+  B2p2CreateAssembly = "shortcut-name.b2p2:create-assembly",
 }
-export declare const enum L_Bbpp {
+export declare const enum L_B2p2 {
   /** [entity=__1__] */
-  EntityPicture = "bbpp.entity-picture",
+  EntityPicture = "b2p2.entity-picture",
   /** __1__x[item=__2__] */
-  ItemCountPicture = "bbpp.item-count-picture",
+  ItemCountPicture = "b2p2.item-count-picture",
   /** <None> */
-  NoItems = "bbpp.no-items",
+  NoItems = "b2p2.no-items",
 }
 export declare const enum L_Diagnostic {
   /** [color=red]Collisions:[/color] */
-  Overlap = "bbpp.diagnostic.overlap",
+  Overlap = "b2p2.diagnostic.overlap",
   /** __1__ could not be pasted */
-  OverlapItem = "bbpp.diagnostic.overlap-item",
+  OverlapItem = "b2p2.diagnostic.overlap-item",
   /** [color=purple]Upgrades:[/color] [img=info] */
-  CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
+  CannotUpgrade = "b2p2.diagnostic.cannot-upgrade",
   /** Upgrades/fast-replace cannot be affected by blueprinting. To allow this, enable "Allow upgrades" in the the import additional settings. */
-  CannotUpgradeTooltip = "bbpp.diagnostic.cannot-upgrade-tooltip",
+  CannotUpgradeTooltip = "b2p2.diagnostic.cannot-upgrade-tooltip",
   /** __1__: upgraded from __2__ */
-  CannotUpgradeItem = "bbpp.diagnostic.cannot-upgrade-item",
+  CannotUpgradeItem = "b2p2.diagnostic.cannot-upgrade-item",
   /** [color=yellow]Item requests changes:[/color] */
-  ItemsIgnored = "bbpp.diagnostic.items-ignored",
+  ItemsIgnored = "b2p2.diagnostic.items-ignored",
   /** Changes in item requests will have no effect on paste. */
-  ItemsIgnoredTooltip = "bbpp.diagnostic.items-ignored-tooltip",
+  ItemsIgnoredTooltip = "b2p2.diagnostic.items-ignored-tooltip",
   /** __1__: __2__  ->  __3__ */
-  ItemsIgnoredItem = "bbpp.diagnostic.items-ignored-item",
+  ItemsIgnoredItem = "b2p2.diagnostic.items-ignored-item",
   /** [font=default-bold]Click[/font] to teleport to the entity. */
-  BasicTooltip = "bbpp.diagnostic.basic-tooltip",
+  BasicTooltip = "b2p2.diagnostic.basic-tooltip",
   /** [font=default-bold]Click[/font] to teleport to the entity.\n[font=default-bold]Control click[/font] to teleport to entity at the [font=default-bold]import source[/font]. */
-  TooltipWithAltLocation = "bbpp.diagnostic.tooltip-with-alt-location",
+  TooltipWithAltLocation = "b2p2.diagnostic.tooltip-with-alt-location",
 }
 export declare const enum L_Interaction {
   /** An unexpected error occurred: __1__. Additional details outputted to log. Please report this to the mod author! */
-  UnexpectedError = "bbpp.interaction.unexpected-error",
+  UnexpectedError = "b2p2.interaction.unexpected-error",
   /** __1__ */
-  TranslateDialogueMessage = "bbpp.interaction.translate-dialogue-message",
+  TranslateDialogueMessage = "b2p2.interaction.translate-dialogue-message",
   /** This area intersects with an existing assembly: __1__ */
-  IntersectsExistingAssembly = "bbpp.interaction.intersects-existing-assembly",
+  IntersectsExistingAssembly = "b2p2.interaction.intersects-existing-assembly",
   /** The import does not intersect with the target assembly at this location. */
-  ImportDoesNotIntersectAssembly = "bbpp.interaction.import-does-not-intersect-assembly",
+  ImportDoesNotIntersectAssembly = "b2p2.interaction.import-does-not-intersect-assembly",
   /** The source or target assembly no longer exists. */
-  ImportNoLongerValid = "bbpp.interaction.import-no-longer-valid",
+  ImportNoLongerValid = "b2p2.interaction.import-no-longer-valid",
   /** Flipped or rotated imports are currently not supported. */
-  CannotFlipOrRotateImport = "bbpp.interaction.cannot-flip-or-rotate-import",
+  CannotFlipOrRotateImport = "b2p2.interaction.cannot-flip-or-rotate-import",
   /** An import from "__1__" was created on "__2__". */
-  ImportCreated = "bbpp.interaction.import-created",
+  ImportCreated = "b2p2.interaction.import-created",
   /** This import has no source assembly. */
-  ImportHasNoSource = "bbpp.interaction.import-has-no-source",
+  ImportHasNoSource = "b2p2.interaction.import-has-no-source",
   /** Assembly saved\n  [font=default-bold]__1__[/font] entities */
-  AssemblySaved = "bbpp.interaction.assembly-saved",
+  AssemblySaved = "b2p2.interaction.assembly-saved",
   /** Paste conflicts found after reset. */
-  FoundPasteConflicts = "bbpp.interaction.found-paste-conflicts",
+  FoundPasteConflicts = "b2p2.interaction.found-paste-conflicts",
   /** Autosave: Failed to save assembly "__1__" as it has paste conflicts. */
-  AutosaveFailedHasConflicts = "bbpp.interaction.autosave-failed-has-conflicts",
+  AutosaveFailedHasConflicts = "b2p2.interaction.autosave-failed-has-conflicts",
   /** Autosave: Failed to save assembly "__1__", as it has deleted entities from imports. */
-  AutosaveFailedHasDeletions = "bbpp.interaction.autosave-failed-has-deletions",
+  AutosaveFailedHasDeletions = "b2p2.interaction.autosave-failed-has-deletions",
   /** Autosave: "__1__" saved. */
-  AutosaveSucceeded = "bbpp.interaction.autosave-succeeded",
+  AutosaveSucceeded = "b2p2.interaction.autosave-succeeded",
   /** Not in an assembly */
-  NoAssemblyHere = "bbpp.interaction.no-assembly-here",
+  NoAssemblyHere = "b2p2.interaction.no-assembly-here",
   /** This entity has no (known) source assembly. */
-  EntityHasNoSource = "bbpp.interaction.entity-has-no-source",
+  EntityHasNoSource = "b2p2.interaction.entity-has-no-source",
   /** This entity originates from this assembly. */
-  EntityAlreadyAtSource = "bbpp.interaction.entity-already-at-source",
+  EntityAlreadyAtSource = "b2p2.interaction.entity-already-at-source",
 }
 export declare const enum L_Gui {
   /** <Unnamed assembly> */
-  UnnamedAssembly = "bbpp.gui.unnamed-assembly",
+  UnnamedAssembly = "b2p2.gui.unnamed-assembly",
   /** Current assembly: */
-  CurrentAssembly = "bbpp.gui.current-assembly",
+  CurrentAssembly = "b2p2.gui.current-assembly",
   /** <None> */
-  None = "bbpp.gui.none",
+  None = "b2p2.gui.none",
   /** All assemblies */
-  AllAssemblies = "bbpp.gui.all-assemblies",
+  AllAssemblies = "b2p2.gui.all-assemblies",
   /** No assemblies */
-  NoAssemblies = "bbpp.gui.no-assemblies",
+  NoAssemblies = "b2p2.gui.no-assemblies",
   /** New assembly */
-  NewAssembly = "bbpp.gui.new-assembly",
+  NewAssembly = "b2p2.gui.new-assembly",
   /** Rename assembly */
-  RenameAssembly = "bbpp.gui.rename-assembly",
+  RenameAssembly = "b2p2.gui.rename-assembly",
   /** Cancel rename */
-  CancelRenameAssembly = "bbpp.gui.cancel-rename-assembly",
+  CancelRenameAssembly = "b2p2.gui.cancel-rename-assembly",
   /** Teleport to assembly */
-  TeleportToAssembly = "bbpp.gui.teleport-to-assembly",
+  TeleportToAssembly = "b2p2.gui.teleport-to-assembly",
   /** Save */
-  Save = "bbpp.gui.save",
+  Save = "b2p2.gui.save",
   /** Save the current assembly and reset the area. */
-  SaveButtonTooltip = "bbpp.gui.save-button-tooltip",
+  SaveButtonTooltip = "b2p2.gui.save-button-tooltip",
   /** There are paste conflicts in this assembly.\nSome entities may not save as expected.\nAre you sure you want to save? */
-  ConfirmSaveWithPasteConflicts = "bbpp.gui.confirm-save-with-paste-conflicts",
+  ConfirmSaveWithPasteConflicts = "b2p2.gui.confirm-save-with-paste-conflicts",
   /** Some entities from imports have been deleted.\nThese will be re-added when resetting the assembly.\nAre you sure you want to save? */
-  ConfirmSaveWithDeletions = "bbpp.gui.confirm-save-with-deletions",
+  ConfirmSaveWithDeletions = "b2p2.gui.confirm-save-with-deletions",
   /** Reset */
-  Reset = "bbpp.gui.reset",
+  Reset = "b2p2.gui.reset",
   /** Reset the current assembly. [font=default-bold]Shift-click[/font] to skip confirmation dialog. */
-  ResetButtonTooltip = "bbpp.gui.reset-button-tooltip",
+  ResetButtonTooltip = "b2p2.gui.reset-button-tooltip",
   /** Are you sure you want to reset this assembly? Any unsaved changes will be lost. */
-  ConfirmResetAssembly = "bbpp.gui.confirm-reset-assembly",
+  ConfirmResetAssembly = "b2p2.gui.confirm-reset-assembly",
   /** Delete assembly */
-  DeleteAssembly = "bbpp.gui.delete-assembly",
+  DeleteAssembly = "b2p2.gui.delete-assembly",
   /** Are you sure you want to delete the assembly "__1__"? */
-  DeleteAssemblyConfirmation = "bbpp.gui.delete-assembly-confirmation",
+  DeleteAssemblyConfirmation = "b2p2.gui.delete-assembly-confirmation",
   /** Imports */
-  Imports = "bbpp.gui.imports",
+  Imports = "b2p2.gui.imports",
   /** Add import */
-  AddImport = "bbpp.gui.add-import",
+  AddImport = "b2p2.gui.add-import",
   /** Choose import source */
-  ChooseImportSource = "bbpp.gui.choose-import-source",
+  ChooseImportSource = "b2p2.gui.choose-import-source",
   /** There are no importable assemblies. */
-  NoSourceAssemblies = "bbpp.gui.no-source-assemblies",
+  NoSourceAssemblies = "b2p2.gui.no-source-assemblies",
   /** [font=default-bold]Click[/font] to highlight the import.\n[font=default-bold]Control click[/font] to teleport to import source.\n[font=default-bold]Shift click[/font] to move up.\n[font=default-bold]Control-shift click[/font] to move down. */
-  ImportItemTooltip = "bbpp.gui.import-item-tooltip",
+  ImportItemTooltip = "b2p2.gui.import-item-tooltip",
   /** Delete import */
-  DeleteImport = "bbpp.gui.delete-import",
+  DeleteImport = "b2p2.gui.delete-import",
   /** Are you sure you want to delete the import from "__1__"? */
-  DeleteImportConfirmation = "bbpp.gui.delete-import-confirmation",
+  DeleteImportConfirmation = "b2p2.gui.delete-import-confirmation",
   /** This import no longer exists. */
-  ImportNoLongerExists = "bbpp.gui.import-no-longer-exists",
+  ImportNoLongerExists = "b2p2.gui.import-no-longer-exists",
   /** Additional settings */
-  LayerAdditionalSettings = "bbpp.gui.layer-additional-settings",
+  LayerAdditionalSettings = "b2p2.gui.layer-additional-settings",
   /** Additional settings: __1__  >  __2__ */
-  LayerAdditionalSettingsTitle = "bbpp.gui.layer-additional-settings-title",
+  LayerAdditionalSettingsTitle = "b2p2.gui.layer-additional-settings-title",
   /** Allow upgrades [img=info] */
-  LayerAllowUpgrades = "bbpp.gui.layer-allow-upgrades",
+  LayerAllowUpgrades = "b2p2.gui.layer-allow-upgrades",
   /** Allow upgrades/fast-replace to be affected by blueprinting. */
-  LayerAllowUpgradesTooltip = "bbpp.gui.layer-allow-upgrades-tooltip",
+  LayerAllowUpgradesTooltip = "b2p2.gui.layer-allow-upgrades-tooltip",
   /** Toggle active */
-  ToggleImport = "bbpp.gui.toggle-import",
+  ToggleImport = "b2p2.gui.toggle-import",
   /** Diagnostics */
-  Diagnostics = "bbpp.gui.diagnostics",
+  Diagnostics = "b2p2.gui.diagnostics",
   /** Diagnostics [img=warning-white] */
-  DiagnosticsWithConflicts = "bbpp.gui.diagnostics-with-conflicts",
+  DiagnosticsWithConflicts = "b2p2.gui.diagnostics-with-conflicts",
   /** Import: __1__ */
-  ImportLabel = "bbpp.gui.import-label",
+  ImportLabel = "b2p2.gui.import-label",
   /** <Own contents> */
-  OwnContents = "bbpp.gui.own-contents",
+  OwnContents = "b2p2.gui.own-contents",
   /** No diagnostics */
-  NoDiagnostics = "bbpp.gui.no-diagnostics",
+  NoDiagnostics = "b2p2.gui.no-diagnostics",
   /** Assemblies */
-  AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
+  AssemblyOverviewTitle = "b2p2.gui.assembly-overview-title",
   /** All assemblies [img=info] */
-  AssemblyOverviewCaption = "bbpp.gui.assembly-overview-caption",
+  AssemblyOverviewCaption = "b2p2.gui.assembly-overview-caption",
   /** [font=default-bold]Click[/font] to open.\n[font=default-bold]Control-click[/font] to teleport to assembly. */
-  AssemblyOverviewCaptionTooltip = "bbpp.gui.assembly-overview-caption-tooltip",
+  AssemblyOverviewCaptionTooltip = "b2p2.gui.assembly-overview-caption-tooltip",
   /** Assembly: */
-  AssemblyManagerTitle = "bbpp.gui.assembly-manager-title",
+  AssemblyManagerTitle = "b2p2.gui.assembly-manager-title",
 }

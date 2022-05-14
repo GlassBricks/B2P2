@@ -1,16 +1,16 @@
 {
-  "name": "bbpp",
-  "version": "0.2.0",
-  "title": "Big BluePrint Planning",
-  "description": "Tools and framework to design BIG blueprints, especially those used in 100% speedruns.",
+  "name": "b2p2",
+  "version": "0.1.0",
+  "title": "Big BluePrint Planning, v2",
+  "description": "Tooling to design BIG and staged blueprints, especially those used in 100% speedruns.",
   "author": "GlassBricks",
   "factorio_version": "1.1",
   "package": {
     "scripts": {
-      "prepackage": "yarn run build"
+      "prepackage": "yarn run prepare-package"
     },
     "git_publish_branch": "main",
-    "ignore": ["readme.md"],
+    "ignore": ["readme.md", "*-test.lua"],
     "no_git_tag": true,
     "removeZipAfterPackage": true
   }

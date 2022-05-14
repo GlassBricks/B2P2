@@ -1,31 +1,31 @@
 export const enum Settings {
-  Autosave = "bbpp:auto-save",
+  Autosave = "b2p2:auto-save",
 }
 
 export const enum Inputs {
-  TeleportToSource = "bbpp:teleport-to-source",
-  TeleportForward = "bbpp:teleport-forward",
-  TeleportBackward = "bbpp:teleport-backward",
+  TeleportToSource = "b2p2:teleport-to-source",
+  TeleportForward = "b2p2:teleport-forward",
+  TeleportBackward = "b2p2:teleport-backward",
 }
 
 export const enum Prototypes {
-  AssemblyCreationTool = "bbpp:assembly-creation-tool",
-  ImportPreview = "bbpp:import-preview",
-  ImportPreviewPositionMarker = "bbpp:import-preview-position-marker",
-  ImportPreviewBoundaryTile = "bbpp:import-preview-boundary-tile",
-  CreateAssembly = "bbpp:create-assembly",
-  OverlappedGhost = "bbpp:overlapped-ghost",
+  AssemblyCreationTool = "b2p2:assembly-creation-tool",
+  ImportPreview = "b2p2:import-preview",
+  ImportPreviewPositionMarker = "b2p2:import-preview-position-marker",
+  ImportPreviewBoundaryTile = "b2p2:import-preview-boundary-tile",
+  CreateAssembly = "b2p2:create-assembly",
+  OverlappedGhost = "b2p2:overlapped-ghost",
 }
 
 export const enum Styles {
-  ListBoxButton = "bbpp:listbox-button",
-  ScrollPaneFakeListbox = "bbpp:scrollpane-fake-listbox",
-  AMListScrollPane = "bbpp:bare-scrollpane",
+  ListBoxButton = "b2p2:listbox-button",
+  ScrollPaneFakeListbox = "b2p2:scrollpane-fake-listbox",
+  AMListScrollPane = "b2p2:bare-scrollpane",
 }
 
 export const enum Sprites {
-  TeleportBlack = "bbpp:teleport-black",
-  TeleportWhite = "bbpp:teleport-white",
+  TeleportBlack = "b2p2:teleport-black",
+  TeleportWhite = "b2p2:teleport-white",
 }
 
 export const enum GuiConstants {

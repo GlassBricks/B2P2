@@ -10,8 +10,8 @@ const assemblyCreationTool = {
   type: "selection-tool",
   name: Prototypes.AssemblyCreationTool,
   subgroup: "tool",
-  order: "c[bbpp]-[assembly-creation-tool]",
-  icon: "__bbpp__/graphics/add-assembly.png",
+  order: "c[b2p2]-[assembly-creation-tool]",
+  icon: "__b2p2__/graphics/add-assembly.png",
   icon_size: 64,
   flags: ["only-in-cursor", "hidden", "not-stackable", "spawnable"],
   stack_size: 1,
@@ -87,7 +87,7 @@ const createAssemblyShortcut: PRecord<string, any> = {
   name: Prototypes.CreateAssembly,
   style: "default",
   item_to_spawn: Prototypes.AssemblyCreationTool,
-  order: "c[bbpp]-[create-assembly]",
+  order: "c[b2p2]-[create-assembly]",
   associated_control_input: Prototypes.CreateAssembly,
 }
 delete createAssemblyShortcut.technology_to_unlock

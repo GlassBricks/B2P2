@@ -1,13 +1,13 @@
 import { L_Interaction } from "../locale"
 
-export type UserError = ["bbpp:_user_error", LocalisedString, "print" | "flying-text"]
+export type UserError = ["b2p2:_user_error", LocalisedString, "print" | "flying-text"]
 
 export function raiseUserError(message: LocalisedString, reportMethod: "print" | "flying-text"): never {
-  throw ["bbpp:_user_error", message, reportMethod]
+  throw ["b2p2:_user_error", message, reportMethod]
 }
 
 export function isUserError(obj: unknown): obj is UserError {
-  return Array.isArray(obj) && obj[0] === "bbpp:_user_error" && obj.length === 3
+  return Array.isArray(obj) && obj[0] === "b2p2:_user_error" && obj.length === 3
 }
 
 export type UnexpectedError = [message: string, traceback: string]

@@ -7,7 +7,7 @@ export abstract class Window extends Component<EmptyProps> {
   public static getName(this: ConcreteWindow): string {
     let name = rawget(this, "_fullName" as any)
     if (name) return name
-    name = `${script.mod_name}:bbpp:${this.name}`
+    name = `${script.mod_name}:b2p2:${this.name}`
     rawset(this, "_fullName", name)
     return name
   }
