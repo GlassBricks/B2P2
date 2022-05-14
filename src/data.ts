@@ -66,7 +66,7 @@ declare const data: Data
     stack_size: 1,
     stackable: false,
     selection_color: [250, 250, 250],
-    selection_mode: ["nothing"],
+    selection_mode: ["blueprint"],
     alt_selection_color: [250, 250, 250],
     alt_selection_mode: ["nothing"],
     selection_cursor_box_type: "entity",
