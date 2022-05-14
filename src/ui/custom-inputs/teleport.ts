@@ -46,9 +46,11 @@ Events.on(Inputs.TeleportToSource, (event) => {
 })
 
 Events.on(Inputs.TeleportForward, (event) => {
-  teleportForward(game.get_player(event.player_index)!)
+  const player = game.get_player(event.player_index)!
+  protectedAction(player, teleportForward, player)
 })
 
 Events.on(Inputs.TeleportBackward, (event) => {
-  teleportBackward(game.get_player(event.player_index)!)
+  const player = game.get_player(event.player_index)!
+  protectedAction(player, teleportBackward, player)
 })

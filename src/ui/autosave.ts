@@ -1,10 +1,10 @@
 import { Assembly } from "../assembly/Assembly"
 import { assemblyAtPlayerLocation } from "../assembly/player-tracking"
 import { Settings } from "../constants"
-import { bind, Functions, onPlayerInit } from "../lib"
+import { bind, Functions, onPlayerInit, protectedAction } from "../lib"
 import { L_Interaction } from "../locale"
 
-function attemptAutosave(this: unknown, player: LuaPlayer, _: unknown, oldAssembly: Assembly | undefined) {
+function doAutosave(oldAssembly: Assembly | undefined, player: LuaPlayer) {
   if (!oldAssembly || !oldAssembly.isValid()) return
   if (!player.mod_settings[Settings.Autosave].value) return
   const content = oldAssembly.getContent()
@@ -21,6 +21,9 @@ function attemptAutosave(this: unknown, player: LuaPlayer, _: unknown, oldAssemb
   }
   content.commitAndReset()
   player.print([L_Interaction.AutosaveSucceeded, oldAssembly.displayName.get()])
+}
+function attemptAutosave(this: unknown, player: LuaPlayer, _: unknown, oldAssembly: Assembly | undefined) {
+  protectedAction(player, doAutosave, oldAssembly, player)
 }
 Functions.registerAll({ attemptAutosave })
 
