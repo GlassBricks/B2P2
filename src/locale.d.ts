@@ -73,7 +73,7 @@ export declare const enum L_Interaction {
   AutosaveSucceeded = "bbpp.interaction.autosave-succeeded",
   /** This entity has no (known) source assembly. */
   EntityHasNoSource = "bbpp.interaction.entity-has-no-source",
-  /** This entity already originates from this assembly. */
+  /** This entity originates from this assembly. */
   EntityAlreadyAtSource = "bbpp.interaction.entity-already-at-source",
   /** This entity is not in an assembly */
   NoAssemblyHere = "bbpp.interaction.no-assembly-here",
@@ -141,7 +141,7 @@ export declare const enum L_Gui {
   NoDiagnostics = "bbpp.gui.no-diagnostics",
   /** [font=default-bold]Click[/font] to teleport to the entity. */
   DiagnosticTooltip = "bbpp.gui.diagnostic-tooltip",
-  /** [font=default-bold]Click[/font] to teleport to the entity.\n[font=default-bold]Control click[/font] to teleport to the corresponding entity at the [font=default-bold]entity source[/font]. */
+  /** [font=default-bold]Click[/font] to teleport to the entity.\n[font=default-bold]Control click[/font] to teleport to entity at the [font=default-bold]import source[/font]. */
   DiagnosticTooltipWithAltLocation = "bbpp.gui.diagnostic-tooltip-with-alt-location",
   /** Assemblies */
   AssemblyOverviewTitle = "bbpp.gui.assembly-overview-title",
