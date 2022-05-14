@@ -1,6 +1,6 @@
 import { Classes, Events, PlayerData } from "../lib"
 import { bbox } from "../lib/geometry/bounding-box"
-import { AreaIdentification, PositionIdentification } from "./AreaIdentification"
+import { AreaIdentification, highlightArea, PositionIdentification } from "./AreaIdentification"
 import center = bbox.center
 
 @Classes.register()
@@ -95,4 +95,17 @@ export function teleportBackward(player: LuaPlayer): boolean {
     return true
   }
   return false
+}
+export function teleportAndHighlight(
+  player: LuaPlayer,
+  area: AreaIdentification,
+  highlightType: CursorBoxRenderType,
+): void {
+  player.close_map()
+  teleportPlayerToArea(player, area)
+  highlightArea(area, highlightType, {
+    blink_interval: 20,
+    time_to_live: 120,
+    render_player_index: player.index,
+  })
 }

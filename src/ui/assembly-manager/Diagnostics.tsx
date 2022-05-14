@@ -1,5 +1,5 @@
-import { AreaIdentification, highlightArea } from "../../area/AreaIdentification"
-import { teleportPlayer } from "../../area/teleport-history"
+import { AreaIdentification } from "../../area/AreaIdentification"
+import { teleportAndHighlight } from "../../area/teleport-history"
 import { Assembly } from "../../assembly/Assembly"
 import { LayerPasteDiagnostics } from "../../assembly/AssemblyContent"
 import { Diagnostic, getDiagnosticCategory, getDiagnosticHighlightType } from "../../assembly/diagnostics/Diagnostic"
@@ -7,12 +7,10 @@ import { PasteDiagnosticId } from "../../assembly/paste-diagnostics"
 import { Styles } from "../../constants"
 import { bind, bound, Classes, funcRef, reg } from "../../lib"
 import { Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { bbox } from "../../lib/geometry/bounding-box"
 import { MaybeState } from "../../lib/observable"
 import { isEmpty } from "../../lib/util"
 import { L_Gui } from "../../locale"
 import { Fn } from "../components/Fn"
-import center = bbox.center
 
 @Classes.register()
 export class DiagnosticsTab extends Component<{
@@ -116,20 +114,6 @@ export class DiagnosticsTab extends Component<{
   ) {
     if (!location) return
     const player = game.get_player(event.player_index)!
-    DiagnosticsTab.createHighlight(location, boxType, player.index)
-    DiagnosticsTab.teleportPlayerToPos(player, location)
-  }
-  private static createHighlight(location: AreaIdentification, boxType: CursorBoxRenderType, playerIndex: PlayerIndex) {
-    return highlightArea(location, boxType, {
-      blink_interval: 20,
-      time_to_live: 300,
-      render_player_index: playerIndex,
-    })!
-  }
-  private static teleportPlayerToPos(player: LuaPlayer, location: AreaIdentification) {
-    const { surface, area } = location
-    const position = center(area)
-    player.close_map()
-    teleportPlayer(player, surface, position)
+    teleportAndHighlight(player, location, boxType)
   }
 }

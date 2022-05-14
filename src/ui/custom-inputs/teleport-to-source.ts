@@ -1,5 +1,4 @@
-import { highlightArea } from "../../area/AreaIdentification"
-import { teleportPlayerToArea } from "../../area/teleport-history"
+import { teleportAndHighlight } from "../../area/teleport-history"
 import { getAssemblyAtPosition } from "../../assembly/player-tracking"
 import { getEntitySourceLocation } from "../../blueprint/EntitySourceMap"
 import { Inputs } from "../../constants"
@@ -35,11 +34,8 @@ function teleportToSourceOfEntity(player: LuaPlayer, entity: LuaEntity): void {
     })
     return
   }
-  teleportPlayerToArea(player, source)
-  highlightArea(source, "copy", {
-    blink_interval: 20,
-    time_to_live: 120,
-  })
+
+  teleportAndHighlight(player, source, "copy")
 }
 
 Events.on(Inputs.TeleportToSource, (event) => {
