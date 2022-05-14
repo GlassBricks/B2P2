@@ -12,7 +12,6 @@ import {
   mapPasteConflictsToDiagnostics,
   Overlap,
   PasteDiagnosticId,
-  UnsupportedProp,
 } from "./paste-diagnostics"
 
 let entity1: FullEntity
@@ -58,11 +57,10 @@ test("overlap", () => {
 
 test("upgrade", () => {
   const conflict: BlueprintPasteConflicts = {
-    propConflicts: [
+    upgrades: [
       {
         below: entity1,
         above: entity2,
-        prop: "name",
       },
     ],
   }
@@ -72,28 +70,13 @@ test("upgrade", () => {
 
 test("items", () => {
   const conflict: BlueprintPasteConflicts = {
-    propConflicts: [
+    itemRequestChanges: [
       {
         below: entity1,
         above: entity2,
-        prop: "items",
       },
     ],
   }
   const expected = ItemsIgnored.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
-  assertSingleDiagnostic(conflict, expected)
-})
-
-test("unsupported prop", () => {
-  const conflict: BlueprintPasteConflicts = {
-    propConflicts: [
-      {
-        below: entity1,
-        above: entity2,
-        prop: "foo" as any,
-      },
-    ],
-  }
-  const expected = UnsupportedProp.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation, "foo")
   assertSingleDiagnostic(conflict, expected)
 })

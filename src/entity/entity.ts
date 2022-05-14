@@ -119,26 +119,3 @@ export const HandledProps = {
 export type HandledProp = keyof typeof HandledProps
 
 export type UpdateableProp = UnpasteableProp | PasteableProp | HandledProp
-
-const knownProps = {
-  ...IgnoredProps,
-  ...UnpasteableProps,
-  ...PasteableProps,
-} as const
-export type KnownProp = keyof typeof knownProps
-export const KnownProps = knownProps
-
-interface UnhandledProps {
-  tags: true
-}
-export type UnhandledProp = keyof UnhandledProps
-
-export function isUnhandledProp(prop: EntityProp): prop is UnhandledProp {
-  return !(prop in knownProps)
-}
-export function isKnownProp(prop: EntityProp): prop is KnownProp {
-  return prop in knownProps
-}
-
-export type ConflictingProp = UnpasteableProp | UnhandledProp
-;((_: Record<keyof PasteEntity, true>) => _)(0 as unknown as typeof knownProps & typeof PasteableProps & UnhandledProps)

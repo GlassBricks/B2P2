@@ -1,12 +1,4 @@
-import {
-  ConflictingProp,
-  Entity,
-  EntityNumber,
-  FullEntity,
-  PasteEntity,
-  PlainEntity,
-  ReferenceEntity,
-} from "../entity/entity"
+import { Entity, EntityNumber, FullEntity, PasteEntity, PlainEntity, ReferenceEntity } from "../entity/entity"
 import { findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
 import { nilIfEmpty } from "../lib"
 import { BBox, bbox, pos, Position } from "../lib/geometry"
@@ -28,15 +20,15 @@ export function findCompatibleEntity<T extends Entity>(
 
 export type Overlap = FullEntity
 
-export interface PropConflict {
+export interface EntityPair {
   readonly below: FullEntity
   readonly above: PasteEntity
-  readonly prop: ConflictingProp
 }
 
 export interface BlueprintPasteConflicts {
   readonly overlaps?: Overlap[]
-  readonly propConflicts?: PropConflict[]
+  readonly upgrades?: EntityPair[]
+  readonly itemRequestChanges?: EntityPair[]
   readonly lostReferences?: ReferenceEntity[]
 }
 
@@ -71,46 +63,49 @@ export function pasteAndFindConflicts(
     toBPEntityMap.set(luaEntity.unit_number!, belowContent.entities[entityNumber - 1])
   }
 
-  const propConflicts: PropConflict[] = []
+  // find conflicts
+
   const overlaps: Overlap[] = []
+  const upgrades: EntityPair[] = []
+  const itemRequestChanges: EntityPair[] = []
   const lostReferences: ReferenceEntity[] = []
 
-  // process not pasted entities
-  for (const bpEntity of filteredContent.entities) {
-    if (pastedBPEntities.has(bpEntity.entity_number)) {
+  for (const aboveBpEntity of filteredContent.entities) {
+    if (pastedBPEntities.has(aboveBpEntity.entity_number)) {
       // already pasted
-      if (bpEntity.changedProps) {
-        lostReferences.push(bpEntity)
+      if (aboveBpEntity.changedProps) {
+        lostReferences.push(aboveBpEntity)
       }
       continue
     }
+    // not pasted
     // try to find corresponding entity in world
-    const worldPosition = pos.add(bpEntity.position, pasteLocation)
+    const worldPosition = pos.add(aboveBpEntity.position, pasteLocation)
     const belowLuaEntity = surface
       .find_entities_filtered({ position: worldPosition })
-      .find((x) => isCompatibleEntity(x, bpEntity, worldPosition))
+      .find((x) => isCompatibleEntity(x, aboveBpEntity, worldPosition))
     if (belowLuaEntity) {
       const belowBpEntity = toBPEntityMap.get(belowLuaEntity.unit_number!)
       if (!belowBpEntity) {
-        // should not happen...
+        // should not happen
         error(`Could not find entity in blueprint: ${belowLuaEntity.name}`)
       }
-      const conflict = findEntityPasteConflictAndUpdate(belowBpEntity, bpEntity)
-      if (conflict !== undefined) {
-        propConflicts.push({
-          above: bpEntity,
-          below: belowBpEntity,
-          prop: conflict,
-        })
+      const conflict = findEntityPasteConflictAndUpdate(belowBpEntity, aboveBpEntity)
+      if (conflict === "name") {
+        upgrades.push({ below: belowBpEntity, above: aboveBpEntity })
+      } else if (conflict === "items") {
+        itemRequestChanges.push({ below: belowBpEntity, above: aboveBpEntity })
       }
     } else {
       // must intersect something
-      overlaps.push(bpEntity)
+      overlaps.push(aboveBpEntity)
     }
   }
-  const conflicts = {
+
+  const conflicts: BlueprintPasteConflicts = {
     overlaps: nilIfEmpty(overlaps),
-    propConflicts: nilIfEmpty(propConflicts),
+    upgrades: nilIfEmpty(upgrades),
+    itemRequestChanges: nilIfEmpty(itemRequestChanges),
     lostReferences: nilIfEmpty(lostReferences),
   }
   return $multi(conflicts, pastedEntities)

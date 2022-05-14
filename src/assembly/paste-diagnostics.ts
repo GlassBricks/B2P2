@@ -1,8 +1,7 @@
 import { AreaIdentification } from "../area/AreaIdentification"
 import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, getEntitySourceLocation } from "../blueprint/EntitySourceMap"
-import { describeEntity, Entity, getTileBox, isUnhandledProp } from "../entity/entity"
-import { assertNever } from "../lib"
+import { describeEntity, Entity, getTileBox } from "../entity/entity"
 import { bbox, Position } from "../lib/geometry"
 import { L_Diagnostic } from "../locale"
 import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
@@ -60,26 +59,6 @@ export const ItemsIgnored = DiagnosticCategory(
   }),
 )
 
-export const UnsupportedProp = DiagnosticCategory(
-  {
-    id: "unsupported-prop",
-    shortDescription: [L_Diagnostic.UnsupportedProp],
-    longDescription: [L_Diagnostic.UnsupportedPropDetail],
-    highlightType: "not-allowed",
-  },
-  (
-    below: Entity,
-    sourceLocation: AreaIdentification | undefined,
-    above: Entity,
-    assemblyLocation: AreaIdentification,
-    prop: string,
-  ) => ({
-    message: [L_Diagnostic.UnsupportedPropItem, describeEntity(above), prop],
-    location: assemblyLocation,
-    altLocation: sourceLocation,
-  }),
-)
-
 export function mapPasteConflictsToDiagnostics(
   conflicts: BlueprintPasteConflicts,
   surface: LuaSurface,
@@ -104,19 +83,19 @@ export function mapPasteConflictsToDiagnostics(
       addDiagnostic(diagnostics, Overlap, above, aboveArea)
     }
   }
-  if (conflicts.propConflicts)
-    for (const { prop, below, above } of conflicts.propConflicts) {
+  if (conflicts.upgrades) {
+    for (const { below, above } of conflicts.upgrades) {
       const belowArea = getSourceArea(below)
       const aboveArea = getAssemblyArea(above)
-      if (prop === "name") {
-        addDiagnostic(diagnostics, CannotUpgrade, below, belowArea, above, aboveArea)
-      } else if (prop === "items") {
-        addDiagnostic(diagnostics, ItemsIgnored, below, belowArea, above, aboveArea)
-      } else if (isUnhandledProp(prop)) {
-        addDiagnostic(diagnostics, UnsupportedProp, below, belowArea, above, aboveArea, prop)
-      } else {
-        assertNever(prop)
-      }
+      addDiagnostic(diagnostics, CannotUpgrade, below, belowArea, above, aboveArea)
     }
+  }
+  if (conflicts.itemRequestChanges) {
+    for (const { below, above } of conflicts.itemRequestChanges) {
+      const belowArea = getSourceArea(below)
+      const aboveArea = getAssemblyArea(above)
+      addDiagnostic(diagnostics, ItemsIgnored, below, belowArea, above, aboveArea)
+    }
+  }
   return diagnostics
 }

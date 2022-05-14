@@ -1,4 +1,4 @@
-import { deepCompare, isEmpty, mutate, shallowCopy } from "./util"
+import { deepCompare, isEmpty, shallowCopy } from "./util"
 
 test("shallowCopy", () => {
   const obj = {
@@ -11,22 +11,6 @@ test("shallowCopy", () => {
   const copy = shallowCopy(obj)
   assert.equal(copy.a, 1)
   assert.equal(copy.b, obj.b)
-})
-
-test("mutate", () => {
-  const obj = {
-    a: 1,
-    b: {
-      c: 2,
-      d: 3,
-    },
-  }
-  const newObj = mutate(obj, (o) => {
-    o.a = 2
-    o.b.c = 3
-  })
-  assert.equal(newObj.a, 2)
-  assert.equal(newObj.b.c, 3)
 })
 
 test("compare", () => {

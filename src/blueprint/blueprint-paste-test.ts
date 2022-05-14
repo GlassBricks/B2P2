@@ -6,7 +6,7 @@ import { BlueprintSampleName, BlueprintSampleNames, getBlueprintSample } from ".
 import { getEntitySample } from "../test/entity-sample"
 import { getWorkingArea1 } from "../test/misc"
 import { Blueprint, PasteBlueprint } from "./Blueprint"
-import { BlueprintPasteConflicts, findCompatibleEntity, pasteAndFindConflicts, PropConflict } from "./blueprint-paste"
+import { BlueprintPasteConflicts, EntityPair, findCompatibleEntity, pasteAndFindConflicts } from "./blueprint-paste"
 import { clearBuildableEntities, pasteBlueprint } from "./world"
 
 let emptyBlueprint: Blueprint
@@ -87,8 +87,7 @@ describe("pasteAndFindConflicts", () => {
     const blueprint2 = Blueprint.of(movedAssemblingMachine)
     const conflicts = testBPs(singleAssemblerBlueprint, blueprint2)[0]
     assert.same([movedAssemblingMachine], conflicts.overlaps)
-    assert.is_nil(conflicts.propConflicts)
-    assert.is_nil(conflicts.lostReferences)
+    assert.same(["overlaps"], Object.keys(conflicts), "no other conflicts")
   })
 
   it("detects entity incompatibilities", () => {
@@ -103,13 +102,11 @@ describe("pasteAndFindConflicts", () => {
         {
           below: getAssemblingMachineEntity(),
           above: asm2,
-          prop: "name",
         },
       ],
-      conflicts.propConflicts,
+      conflicts.upgrades,
     )
-    assert.is_nil(conflicts.overlaps)
-    assert.is_nil(conflicts.lostReferences)
+    assert.same(["upgrades"], Object.keys(conflicts), "no other conflicts")
   })
 
   it("detects reference entities without reference", () => {
@@ -117,8 +114,7 @@ describe("pasteAndFindConflicts", () => {
     const bp2 = Blueprint.of(asm)
     const conflicts = testBPs(emptyBlueprint, bp2)[0]
     assert.same([asm], conflicts.lostReferences)
-    assert.is_nil(conflicts.overlaps)
-    assert.is_nil(conflicts.propConflicts)
+    assert.same(["lostReferences"], Object.keys(conflicts), "no other conflicts")
   })
 
   it("updates other props to match", () => {
@@ -145,31 +141,33 @@ describe("pasteAndFindConflicts", () => {
   })
 
   function assertConflictEquivalent(expected: BlueprintPasteConflicts, actual: BlueprintPasteConflicts): void {
-    function normalizeEntity(this: unknown, entity: FullEntity) {
+    function normalizeEntity<T extends FullEntity>(this: unknown, entity: T): T {
       const result = mutableShallowCopy(entity)
       result.entity_number = 1
       delete result.connections
       return result
     }
 
-    function normalizeConflict(this: unknown, conflict: PropConflict) {
+    function normalizeConflict(this: unknown, conflict: EntityPair) {
       return {
         ...conflict,
         below: normalizeEntity(conflict.below),
         above: normalizeEntity(conflict.above),
       }
     }
-    function normalize(conflict: BlueprintPasteConflicts) {
+    function normalize(conflict: BlueprintPasteConflicts): BlueprintPasteConflicts {
       return {
         overlaps: conflict.overlaps?.map(normalizeEntity),
-        propConflicts: conflict.propConflicts?.map(normalizeConflict),
+        upgrades: conflict.upgrades?.map(normalizeConflict),
+        itemRequestChanges: conflict.itemRequestChanges?.map(normalizeConflict),
         lostReferences: conflict.lostReferences?.map((x) => normalizeEntity(x)),
-      } as BlueprintPasteConflicts
+      }
     }
     expected = normalize(expected)
     actual = normalize(actual)
     assert.same(expected.overlaps, actual.overlaps, "overlaps")
-    assert.same(expected.propConflicts, actual.propConflicts, "propConflicts")
+    assert.same(expected.upgrades, actual.upgrades, "upgrades")
+    assert.same(expected.itemRequestChanges, actual.itemRequestChanges, "itemRequestChanges")
     assert.same(expected.lostReferences, actual.lostReferences, "lostReferences")
   }
 
@@ -249,11 +247,11 @@ describe("pasteAndFindConflicts", () => {
       }
     } else if (expected.type === "upgrade") {
       expectedConflict = {
-        propConflicts: [{ below: belowEntity, above: aboveEntity, prop: "name" }],
+        upgrades: [{ below: belowEntity, above: aboveEntity }],
       }
     } else if (expected.type === "items") {
       expectedConflict = {
-        propConflicts: [{ below: belowEntity, above: aboveEntity, prop: "items" }],
+        itemRequestChanges: [{ below: belowEntity, above: aboveEntity }],
       }
     } else {
       assertNever(expected.type)

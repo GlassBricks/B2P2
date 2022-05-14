@@ -1,18 +1,15 @@
 import { deepCompare, Mutable, PRecord, shallowCopy } from "../lib"
 import { pos, Position, UP } from "../lib/geometry"
 import {
-  ConflictingProp,
   Entity,
   EntityNumber,
   FullEntity,
   IgnoredProps,
-  KnownProps,
   PlainEntity,
   ReferenceEntity,
-  UnhandledProp,
+  UnpasteableProp,
   UpdateablePasteEntity,
   UpdateableProp,
-  UpdateableReferenceEntity,
 } from "./entity"
 import { getEntityInfo } from "./entity-info"
 
@@ -26,73 +23,38 @@ export function isCompatibleEntity(a: Entity, b: Entity, bPosition: Position = b
   return aInfo.isRotationPasteable || (a.direction ?? UP) === (b.direction ?? UP)
 }
 
-function findConflictsAndUpdateReferenceEntity(
+export function findEntityPasteConflictAndUpdate(
   below: FullEntity,
-  above: UpdateableReferenceEntity,
-): ConflictingProp | undefined {
+  above: UpdateablePasteEntity,
+): UnpasteableProp | undefined {
   const { changedProps } = above
-  // set values of props not in changedProps
-  for (const [prop, value] of pairs(below)) {
-    if (!(prop in IgnoredProps || changedProps.has(prop))) {
-      above[prop] = value as never
+  if (changedProps) {
+    // is reference entity
+    // set values of props not in changedProps
+    for (const [prop, value] of pairs(below)) {
+      if (!(prop in IgnoredProps || changedProps.has(prop))) {
+        above[prop] = value as never
+      }
     }
-  }
-  for (const [prop] of pairs(above)) {
-    if (!(prop in below || prop in IgnoredProps || changedProps.has(prop))) {
-      above[prop] = undefined!
+    for (const [prop] of pairs(above)) {
+      if (!(prop in below || prop in IgnoredProps || changedProps.has(prop))) {
+        above[prop] = undefined!
+      }
     }
   }
 
   // check for conflicts
-  if (above.changedProps.has("name")) {
+  if (!changedProps || changedProps.has("name")) {
     if (below.name !== above.name) return "name"
   }
-  if (above.changedProps.has("items")) {
+  if (!changedProps || changedProps.has("items")) {
     if (!deepCompare(below.items, above.items)) return "items"
   }
-
-  for (const [prop] of above.changedProps) {
-    if (!(prop in KnownProps)) return prop as UnhandledProp
-  }
-
-  return
-}
-
-function findConflictsInPlainEntity(
-  above: FullEntity | ReferenceEntity,
-  below: FullEntity,
-): ConflictingProp | undefined {
-  if (below.name !== above.name) return "name"
-
-  if (!deepCompare(below.items, above.items)) return "items"
-
-  for (const [prop, value] of pairs(above)) {
-    if (!(prop in KnownProps || deepCompare(value, below[prop]))) {
-      return prop as UnhandledProp
-    }
-  }
-  for (const [prop] of pairs(below)) {
-    if (!(prop in above || prop in KnownProps || deepCompare(below[prop], above[prop]))) {
-      return prop as UnhandledProp
-    }
-  }
-
-  return undefined
-}
-
-export function findEntityPasteConflictAndUpdate(
-  below: FullEntity,
-  above: UpdateablePasteEntity,
-): ConflictingProp | undefined {
-  if ((above as ReferenceEntity).changedProps) {
-    return findConflictsAndUpdateReferenceEntity(below, above as ReferenceEntity)
-  }
-  return findConflictsInPlainEntity(above, below)
 }
 export const findEntityPasteConflict: (
   below: FullEntity,
   above: PlainEntity | ReferenceEntity,
-) => ConflictingProp | undefined = findEntityPasteConflictAndUpdate
+) => UnpasteableProp | undefined = findEntityPasteConflictAndUpdate
 
 export function computeEntityDiff(
   before: FullEntity,
@@ -110,8 +72,8 @@ export function computeEntityDiff(
       changedProps.add(prop as UpdateableProp)
     }
   }
-  const circuitConnections = compareBlueprintCircuitConnection(before.connections, after.connections, entityNumberMap)
 
+  const circuitConnections = compareBlueprintCircuitConnection(before.connections, after.connections, entityNumberMap)
   if (circuitConnections) {
     changedProps.add("connections")
   }

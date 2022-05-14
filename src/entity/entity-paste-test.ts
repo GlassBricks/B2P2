@@ -119,21 +119,6 @@ describe("findEntityPasteConflict", () => {
     },
   )
 
-  it("reports unhandled props", () => {
-    const entity = getEntitySample("assembling-machine-1")
-    const entity2 = mutableShallowCopy(entity) as any
-    entity2.foo = "bar"
-    assert.equal("foo", findEntityPasteConflict(entity, entity2))
-    assert.equal("foo", findEntityPasteConflict(entity2, entity))
-  })
-
-  it("does not report unhandled props if identical", () => {
-    const entity = getEntitySample("assembling-machine-1")
-    const entity2 = mutableShallowCopy(entity) as any
-    entity2.foo = "bar"
-    assert.equal(undefined, findEntityPasteConflict(entity2, entity2))
-  })
-
   it("does not report conflict for empty reference entities", () => {
     const entity1 = getEntitySample("assembling-machine-1")
     const entity2 = { ...getEntitySample("assembling-machine-2"), position: entity1.position }
@@ -141,7 +126,7 @@ describe("findEntityPasteConflict", () => {
     assert.is_nil(findEntityPasteConflict(entity1, emptyReferenceEntity))
   })
 
-  it("only cares about entities in changedProps", () => {
+  it("only cares about props in changedProps", () => {
     const entity1 = getEntitySample("assembling-machine-1")
     const entity2: BlueprintEntityRead = {
       ...getEntitySample("assembling-machine-2"),
