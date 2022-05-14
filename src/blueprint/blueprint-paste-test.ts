@@ -76,7 +76,7 @@ describe("pasteAndFindConflicts", () => {
   })
 
   it("works pasting in different location", () => {
-    const location = pos.add(area.left_top, pos(1, 1))
+    const location = pos.add(area.left_top, pos(2, 2))
     assert.same({}, testBPs(emptyBlueprint, singleAssemblerBlueprint, location)[0])
   })
 

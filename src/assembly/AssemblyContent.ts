@@ -139,7 +139,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   private getAbsolutePosition(relativePosition: MapPositionTable | undefined): MapPositionTable {
     const leftTop = this.area.left_top
-    return relativePosition ? pos.add(leftTop, relativePosition) : leftTop
+    return relativePosition ? pos.add(leftTop, pos.div(relativePosition, 2).floor().times(2)) : leftTop
   }
 
   private computeAndRenderDiagnostics(

@@ -1,5 +1,4 @@
-import { FullEntity, getTileBox } from "../entity/entity"
-import { bbox } from "../lib/geometry/bounding-box"
+import { FullEntity } from "../entity/entity"
 import { pos } from "../lib/geometry/position"
 import { isEmpty } from "../lib/util"
 import { Mutable } from "../lib/util-types"
@@ -77,21 +76,12 @@ export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: MapPositionTable,
   entities: readonly BlueprintEntityRead[],
-  areaRestriction?: BoundingBox, // todo: remove this parameter
 ): LuaEntity[] {
   if (isEmpty(entities)) return []
 
-  if (areaRestriction) {
-    const area = bbox.normalize(areaRestriction).shiftNegative(location)
-    entities = entities.filter((entity) => {
-      const entityBox = getTileBox(entity)
-      return area.contains(entityBox.left_top) && area.contains(entityBox.right_bottom)
-    })
-  }
-
   const stack = getTempItemStack()
   stack.set_stack("blueprint")
-  stack.blueprint_snap_to_grid = [1, 1]
+  stack.blueprint_snap_to_grid = [2, 2] // 2x2 so that rails can fit
   stack.blueprint_absolute_snapping = true
   stack.set_blueprint_entities(entities)
   const ghosts = stack.build_blueprint({

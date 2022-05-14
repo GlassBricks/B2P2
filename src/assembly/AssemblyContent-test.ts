@@ -106,17 +106,17 @@ describe("import", () => {
     assertNoGhosts()
     assertBlueprintsEquivalent(originalBlueprintSample, content.resultContent.get()!)
   })
-  test("adding import to blueprint adds to in world at specified location", () => {
+  test("adding import to blueprint adds to in world at nearest 2x2 grid pos", () => {
     const content = createAssemblyContent()
-    content.saveAndAddImport(mockImport(originalBlueprintSample, pos(1, 2)))
+    content.saveAndAddImport(mockImport(originalBlueprintSample, pos(2, 2)))
     assert.same({}, content.ownContents.get().entities)
     content.resetInWorld()
-    const bp = Blueprint.take(surface, bbox.shift(area, pos(1, 2)))
+    const bp = Blueprint.take(surface, bbox.shift(area, pos(2, 2)))
     assertBlueprintsEquivalent(originalBlueprintSample, bp)
     assertNoGhosts()
 
     const shiftedBlueprint = Blueprint.fromArray(
-      originalBlueprintSample.asArray().map((x) => ({ ...x, position: pos.add(x.position, pos(1, 2)) })),
+      originalBlueprintSample.asArray().map((x) => ({ ...x, position: pos.add(x.position, pos(2, 2)) })),
     )
     assertBlueprintsEquivalent(shiftedBlueprint, content.resultContent.get()!)
   })

@@ -3,12 +3,14 @@ import { Callback, Events, PlayerData, protectedAction } from "../../lib"
 import { bbox } from "../../lib/geometry/bounding-box"
 import { pos } from "../../lib/geometry/position"
 import { UP } from "../../lib/geometry/rotation"
+import { mutableShallowCopy } from "../../lib/util"
 import { Mutable } from "../../lib/util-types"
 import { L_Interaction } from "../../locale"
 import { Assembly } from "../Assembly"
 import { tryClearCursor } from "../assembly-creation"
 import { highlightImport } from "./AssemblyImport"
 import { BasicImport } from "./BasicImport"
+import max = math.max
 
 const PendingImportCreation = PlayerData<PendingImportCreation | undefined>("PendingImportCreation")
 interface PendingImportCreation {
@@ -31,21 +33,33 @@ export function startBasicImportCreation(
   const content = source.getContent()!.resultContent.get()!
 
   const stack: BlueprintItemStack = player.cursor_stack
-  stack.set_stack(Prototypes.ImportPreview)
 
   const entities = content.asArray()
-  let nextEntityNumber = maxUsedEntityNumber(entities) + 1
-  const boundaryTiles = createBoundaryTiles(bbox.size(source.area))
-  for (const boundaryTile of boundaryTiles) {
-    boundaryTile.entity_number = nextEntityNumber++
-  }
-  const markerEntity = {
-    entity_number: nextEntityNumber++,
-    name: Prototypes.ImportPreviewPositionMarker,
-    position: pos(0, 0),
+
+  const shiftAmount = bbox.size(source.area).div(4).floor().times(2) // area/2, rounded to nearest 2
+  let nextEntityNumber = 1
+  const resultEntities: BlueprintEntityRead[] = []
+  for (const [, entity] of pairs(entities as Record<number, BlueprintEntityRead>)) {
+    const newEntity = mutableShallowCopy(entity)
+    newEntity.position = pos.sub(newEntity.position, shiftAmount)
+    resultEntities.push(newEntity)
+    nextEntityNumber = max(nextEntityNumber, entity.entity_number)
   }
 
-  const resultEntities = [...entities, ...boundaryTiles, markerEntity]
+  const boundaryTiles = createBoundaryTiles(bbox.size(source.area), shiftAmount)
+  for (const boundaryTile of boundaryTiles) {
+    boundaryTile.entity_number = ++nextEntityNumber
+    resultEntities.push(boundaryTile)
+  }
+  const markerEntity = {
+    entity_number: ++nextEntityNumber,
+    name: Prototypes.ImportPreviewPositionMarker,
+    position: pos.times(shiftAmount, -1),
+  }
+  resultEntities.push(markerEntity)
+
+  stack.set_stack(Prototypes.ImportPreview)
+  stack.blueprint_snap_to_grid = [2, 2]
   stack.set_blueprint_entities(resultEntities)
 
   stack.blueprint_absolute_snapping = true
@@ -60,20 +74,22 @@ Events.on_player_cursor_stack_changed((e) => {
     delete PendingImportCreation[playerIndex]
   }
 })
-function maxUsedEntityNumber(entities: readonly BlueprintEntityRead[]): number {
-  return entities.reduce((max, entity) => Math.max(max, entity.entity_number), 0)
-}
-function createBoundaryTiles(size: MapPositionTable) {
+function createBoundaryTiles(size: MapPositionTable, shiftAmount: MapPositionTable): Mutable<BlueprintEntityRead>[] {
   const name = Prototypes.ImportPreviewBoundaryTile
   const tiles: Tile[] = []
   const { x: mx, y: my } = size
+  const { x: sx, y: sy } = shiftAmount
+  // mx -= sx + 1
+  // my -= sy + 1
+  const lx = mx - sx - 1
+  const ly = my - sy - 1
   for (let x = 0; x < mx; x++) {
-    tiles.push({ name, position: { x, y: 0 } })
-    tiles.push({ name, position: { x, y: my - 1 } })
+    tiles.push({ name, position: { x: x - sx, y: -sy } })
+    tiles.push({ name, position: { x: x - sx, y: ly } })
   }
   for (let y = 1; y < my - 1; y++) {
-    tiles.push({ name, position: { x: 0, y } })
-    tiles.push({ name, position: { x: mx - 1, y } })
+    tiles.push({ name, position: { x: -sx, y: y - sy } })
+    tiles.push({ name, position: { x: lx, y: y - sy } })
   }
   return tiles as Mutable<BlueprintEntityRead>[]
 }
