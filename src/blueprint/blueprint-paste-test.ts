@@ -6,7 +6,13 @@ import { BlueprintSampleName, BlueprintSampleNames, getBlueprintSample } from ".
 import { getEntitySample } from "../test/entity-sample"
 import { getWorkingArea1 } from "../test/misc"
 import { Blueprint, PasteBlueprint } from "./Blueprint"
-import { BlueprintPasteConflicts, EntityPair, findCompatibleEntity, pasteAndFindConflicts } from "./blueprint-paste"
+import {
+  BlueprintPasteConflicts,
+  BlueprintPasteOptions,
+  EntityPair,
+  findCompatibleEntity,
+  pasteAndFindConflicts,
+} from "./blueprint-paste"
 import { clearBuildableEntities, pasteBlueprint } from "./world"
 
 let emptyBlueprint: Blueprint
@@ -53,9 +59,14 @@ describe("pasteAndFindConflicts", () => {
   before_each(() => {
     clearBuildableEntities(surface, area)
   })
-  function testBPs(below: Blueprint, above: PasteBlueprint, pasteLocation: Position = area.left_top) {
+  function testBPs(
+    below: Blueprint,
+    above: PasteBlueprint,
+    pasteLocation: Position = area.left_top,
+    options: BlueprintPasteOptions = {},
+  ) {
     pasteBlueprint(surface, pasteLocation, below.entities)
-    return pasteAndFindConflicts(surface, area, above, pasteLocation)
+    return pasteAndFindConflicts(surface, area, above, pasteLocation, options)
   }
 
   it("pasting empty on empty produces no conflicts", () => {
@@ -222,6 +233,11 @@ describe("pasteAndFindConflicts", () => {
     "stack size change": undefined,
     original: undefined,
     "pole circuit add": undefined,
+    "inserter fast replace and control change": {
+      type: "upgrade",
+      aboveEntity: "fast-inserter",
+      belowEntity: "inserter",
+    },
   }
 
   test.each(BlueprintSampleNames, "conflicts match expected for sample: %s", (sampleName) => {
@@ -257,5 +273,22 @@ describe("pasteAndFindConflicts", () => {
       assertNever(expected.type)
     }
     assertConflictEquivalent(expectedConflict, conflicts)
+  })
+
+  test("can upgrade entities", () => {
+    const below = Blueprint.fromArray(getBlueprintSample("original"))
+    const above = Blueprint.fromArray(getBlueprintSample("inserter fast replace and control change"))
+
+    const pasteLocation: Position = area.left_top
+    pasteBlueprint(surface, pasteLocation, below.entities)
+    const inserter = surface.find_entities_filtered({ name: "inserter", area })[0]
+    assert.not_nil(inserter, "inserter below")
+    const oldControl = (inserter.get_control_behavior() as LuaInserterControlBehavior).circuit_read_hand_contents
+    pasteAndFindConflicts(surface, area, above, pasteLocation, { allowUpgrades: true })
+    const fastInserter = surface.find_entities_filtered({ name: "fast-inserter", area })[0]
+    assert.not_nil(fastInserter, "inserter was upgraded")
+    assert.false(inserter.valid, "old inserter replaced")
+    const newControl = (fastInserter.get_control_behavior() as LuaInserterControlBehavior).circuit_read_hand_contents
+    assert.not_equal(oldControl, newControl, "control behavior changed")
   })
 })

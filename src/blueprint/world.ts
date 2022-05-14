@@ -75,6 +75,7 @@ export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: Position,
   entities: readonly BlueprintEntityRead[],
+  revive: boolean = true,
 ): LuaEntity[] {
   if (isEmpty(entities)) return []
 
@@ -90,6 +91,9 @@ export function pasteBlueprint(
     force_build: true,
     skip_fog_of_war: false,
   })
+
+  if (!revive) return ghosts
+
   const resultEntities: LuaEntity[] = []
   const attemptReRevive: LuaEntity[] = []
   for (const ghost of ghosts) {
@@ -115,7 +119,7 @@ export function clearBuildableEntities(surface: SurfaceIdentification, area: BBo
     typeof surface === "object" ? surface : game.get_surface(surface) ?? error("surface not found: " + surface)
   const entities = actualSurface.find_entities_filtered({
     area,
-    collision_mask: ["ghost-layer", "object-layer", "item-layer"],
+    collision_mask: ["ghost-layer", "object-layer", "item-layer", "train-layer", "rail-layer"],
   })
   for (const entity of entities) {
     if (entity.type !== "character") entity.destroy()

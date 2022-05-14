@@ -18,11 +18,8 @@ export function findCompatibleEntity<T extends Entity>(
   return undefined
 }
 
-export type Overlap = FullEntity
-
-export interface EntityPair {
-  readonly below: FullEntity
-  readonly above: PasteEntity
+export interface BlueprintPasteOptions {
+  readonly allowUpgrades?: boolean
 }
 
 export interface BlueprintPasteConflicts {
@@ -31,12 +28,19 @@ export interface BlueprintPasteConflicts {
   readonly itemRequestChanges?: EntityPair[]
   readonly lostReferences?: ReferenceEntity[]
 }
+export type Overlap = FullEntity
+
+export interface EntityPair {
+  readonly below: FullEntity
+  readonly above: PasteEntity
+}
 
 export function pasteAndFindConflicts(
   surface: LuaSurface,
   worldArea: BBox,
   content: UpdateablePasteBlueprint,
   pasteLocation: Position,
+  options: BlueprintPasteOptions = {},
 ): LuaMultiReturn<[BlueprintPasteConflicts, LuaEntity[]]> {
   const relativeArea = bbox.shiftNegative(worldArea, pasteLocation)
   const filteredContent = Blueprint._new(filterEntitiesInArea(content.entities, relativeArea))
@@ -64,11 +68,12 @@ export function pasteAndFindConflicts(
   }
 
   // find conflicts
-
   const overlaps: Overlap[] = []
   const upgrades: EntityPair[] = []
   const itemRequestChanges: EntityPair[] = []
   const lostReferences: ReferenceEntity[] = []
+
+  let shouldRepaste = false
 
   for (const aboveBpEntity of filteredContent.entities) {
     if (pastedBPEntities.has(aboveBpEntity.entity_number)) {
@@ -93,6 +98,19 @@ export function pasteAndFindConflicts(
       const conflict = findEntityPasteConflictAndUpdate(belowBpEntity, aboveBpEntity)
       if (conflict === "name") {
         upgrades.push({ below: belowBpEntity, above: aboveBpEntity })
+        if (options.allowUpgrades) {
+          surface.create_entity({
+            name: aboveBpEntity.name,
+            position: worldPosition,
+            direction: aboveBpEntity.direction,
+            fast_replace: true,
+            force: "player",
+            spill: false,
+            create_build_effect_smoke: false,
+            move_stuck_players: true,
+          })
+          shouldRepaste = true
+        }
       } else if (conflict === "items") {
         itemRequestChanges.push({ below: belowBpEntity, above: aboveBpEntity })
       }
@@ -100,6 +118,10 @@ export function pasteAndFindConflicts(
       // must intersect something
       overlaps.push(aboveBpEntity)
     }
+  }
+
+  if (shouldRepaste) {
+    pasteBlueprint(surface, pasteLocation, filteredContent.entities)
   }
 
   const conflicts: BlueprintPasteConflicts = {
