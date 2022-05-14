@@ -71,6 +71,12 @@ export declare const enum L_Interaction {
   AutosaveFailedHasDeletions = "bbpp.interaction.autosave-failed-has-deletions",
   /** Autosave: "__1__" saved. */
   AutosaveSucceeded = "bbpp.interaction.autosave-succeeded",
+  /** This entity has no (known) source assembly. */
+  EntityHasNoSource = "bbpp.interaction.entity-has-no-source",
+  /** This entity already originates from this assembly. */
+  EntityAlreadyAtSource = "bbpp.interaction.entity-already-at-source",
+  /** This entity is not in an assembly */
+  NoAssemblyHere = "bbpp.interaction.no-assembly-here",
 }
 export declare const enum L_Gui {
   /** <Unnamed assembly> */

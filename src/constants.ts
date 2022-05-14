@@ -1,7 +1,9 @@
-export const enum Styles {
-  ListBoxButton = "bbpp:listbox-button",
-  ScrollPaneFakeListbox = "bbpp:scrollpane-fake-listbox",
-  AMListScrollPane = "bbpp:bare-scrollpane",
+export const enum Settings {
+  Autosave = "bbpp:auto-save",
+}
+
+export const enum Inputs {
+  TeleportToSource = "bbpp:teleport-to-source",
 }
 
 export const enum Prototypes {
@@ -11,8 +13,10 @@ export const enum Prototypes {
   ImportPreviewBoundaryTile = "bbpp:import-preview-boundary-tile",
 }
 
-export const enum Settings {
-  Autosave = "bbpp:auto-save",
+export const enum Styles {
+  ListBoxButton = "bbpp:listbox-button",
+  ScrollPaneFakeListbox = "bbpp:scrollpane-fake-listbox",
+  AMListScrollPane = "bbpp:bare-scrollpane",
 }
 
 export const enum Sprites {
