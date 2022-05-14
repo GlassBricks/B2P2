@@ -1,6 +1,7 @@
+import { Prototypes } from "../constants"
 import { Entity, EntityNumber, FullEntity, PasteEntity, PlainEntity, ReferenceEntity } from "../entity/entity"
 import { findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
-import { nilIfEmpty } from "../lib"
+import { Mutable, nilIfEmpty } from "../lib"
 import { BBox, bbox, pos, Position } from "../lib/geometry"
 import { Blueprint, filterEntitiesInArea, UpdateablePasteBlueprint } from "./Blueprint"
 import { pasteBlueprint } from "./world"
@@ -54,7 +55,12 @@ export function pasteAndFindConflicts(
   const pastedBPEntities = new LuaSet<EntityNumber>()
   for (const pastedEntity of pastedEntities) {
     const relativeLocation = pos.sub(pastedEntity.position, pasteLocation)
-    const corresponding = findCompatibleEntity(filteredContent, pastedEntity, relativeLocation)
+    const refEntity: Entity = {
+      name: pastedEntity.type === "entity-ghost" ? pastedEntity.ghost_name : pastedEntity.name,
+      direction: pastedEntity.direction,
+      position: relativeLocation,
+    }
+    const corresponding = findCompatibleEntity(filteredContent, refEntity, relativeLocation)
     if (corresponding === undefined) {
       error("bp entity corresponding to pasted lua entity not found")
     }
@@ -117,11 +123,22 @@ export function pasteAndFindConflicts(
     } else {
       // must intersect something
       overlaps.push(aboveBpEntity)
+      const params = {
+        ...aboveBpEntity,
+        name: Prototypes.OverlappedGhost,
+        inner_name: aboveBpEntity.name,
+        position: worldPosition,
+        force: "player",
+      } as Mutable<BlueprintEntityRead> & EntityGhostSurfaceCreateEntity
+      delete params.connections
+      delete params.neighbours
+      const entity = surface.create_entity(params)
+      pastedEntities.push(entity!)
     }
   }
 
   if (shouldRepaste) {
-    pasteBlueprint(surface, pasteLocation, filteredContent.entities)
+    pasteBlueprint(surface, pasteLocation, filteredContent.entities, false)
   }
 
   const conflicts: BlueprintPasteConflicts = {

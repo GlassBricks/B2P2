@@ -108,8 +108,9 @@ export function pasteBlueprint(
     const revived = reviveGhost(entity)
     if (revived) {
       resultEntities.push(revived)
+    } else {
+      resultEntities.push(entity)
     }
-    // todo: warning if not revived second time?
   }
   return resultEntities
 }

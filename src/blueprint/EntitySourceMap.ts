@@ -27,7 +27,7 @@ export class EntitySourceMapBuilder {
     for (const entity of entities) {
       const area = shift(computeTileBoxOfLuaEntity(entity), offset)
       this.entities.push({
-        name: entity.name,
+        name: entity.type === "entity-ghost" ? entity.ghost_name : entity.name,
         direction: entity.direction,
         position: entity.position,
         actualLocation: { surface, area },

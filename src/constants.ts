@@ -14,6 +14,7 @@ export const enum Prototypes {
   ImportPreviewPositionMarker = "bbpp:import-preview-position-marker",
   ImportPreviewBoundaryTile = "bbpp:import-preview-boundary-tile",
   CreateAssembly = "bbpp:create-assembly",
+  OverlappedGhost = "bbpp:overlapped-ghost",
 }
 
 export const enum Styles {
