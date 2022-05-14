@@ -55,8 +55,6 @@ export declare const enum L_Interaction {
   UnexpectedError = "bbpp.interaction.unexpected-error",
   /** __1__ */
   TranslateDialogueMessage = "bbpp.interaction.translate-dialogue-message",
-  /** Select an area for the new assembly */
-  SelectAreaForAssembly = "bbpp.interaction.select-area-for-assembly",
   /** This area intersects with an existing assembly: __1__ */
   IntersectsExistingAssembly = "bbpp.interaction.intersects-existing-assembly",
   /** The import does not intersect with the target assembly at this location. */
