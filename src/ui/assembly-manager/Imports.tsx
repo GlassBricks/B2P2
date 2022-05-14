@@ -83,7 +83,6 @@ class ImportItem extends Component<ImportItemProps> {
           direction="horizontal"
           styleMod={{
             vertical_align: "center",
-            vertically_stretchable: true,
           }}
         >
           {this.item && <checkbox state={this.item.active} tooltip={[L_Gui.ToggleImport]} />}
