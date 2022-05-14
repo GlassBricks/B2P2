@@ -1,6 +1,6 @@
 /** @noSelfInFile */
 
-import { pos, PositionClass } from "./position"
+import { pos, Position, PositionClass } from "./position"
 import { DOWN, LEFT, RIGHT, UP } from "./rotation"
 
 // Down is positive y, right is positive x
@@ -9,16 +9,17 @@ const floor = math.floor
 const ceil = math.ceil
 const setmetatable = globalThis.setmetatable
 
-export type BoundingBoxClass = WithMetatable<BoundingBoxRead, typeof bbox>
+export type BBox = BoundingBoxRead
+export type BoundingBoxClass = WithMetatable<BBox, typeof bbox>
 
-function bbox(left_top: MapPositionTable, right_bottom: MapPositionTable): BoundingBoxClass {
+function bbox(left_top: Position, right_bottom: Position): BoundingBoxClass {
   return setmetatable({ left_top, right_bottom }, meta)
 }
 
 namespace bbox {
   import max = math.max
   import min = math.min
-  export function from(data: BoundingBoxRead): BoundingBoxClass {
+  export function from(data: BBox): BoundingBoxClass {
     return setmetatable(
       {
         left_top: data.left_top,
@@ -27,7 +28,7 @@ namespace bbox {
       meta,
     )
   }
-  export function load(data: BoundingBoxRead): BoundingBoxClass {
+  export function load(data: BBox): BoundingBoxClass {
     return setmetatable(data, meta)
   }
 
@@ -35,7 +36,7 @@ namespace bbox {
     return bbox({ x: lx, y: ly }, { x: rx, y: ry })
   }
 
-  export function around(point: MapPositionTable, radius: number): BoundingBoxClass {
+  export function around(point: Position, radius: number): BoundingBoxClass {
     return bbox({ x: point.x - radius, y: point.y - radius }, { x: point.x + radius, y: point.y + radius })
   }
 
@@ -44,55 +45,55 @@ namespace bbox {
     return bbox(pos.normalize(box.left_top || box[1]), pos.normalize(box.right_bottom || box[2]))
   }
 
-  export function shift(box: BoundingBoxRead, amount: MapPositionTable): BoundingBoxClass {
+  export function shift(box: BBox, amount: Position): BoundingBoxClass {
     const { left_top, right_bottom } = box
     const { x: bx, y: by } = amount
     return bbox({ x: left_top.x + bx, y: left_top.y + by }, { x: right_bottom.x + bx, y: right_bottom.y + by })
   }
-  export function shiftNegative(box: BoundingBoxRead, amount: MapPositionTable): BoundingBoxClass {
+  export function shiftNegative(box: BBox, amount: Position): BoundingBoxClass {
     const { left_top, right_bottom } = box
     const { x: bx, y: by } = amount
     return bbox({ x: left_top.x - bx, y: left_top.y - by }, { x: right_bottom.x - bx, y: right_bottom.y - by })
   }
-  export function shiftToOrigin(box: BoundingBoxRead): BoundingBoxClass {
+  export function shiftToOrigin(box: BBox): BoundingBoxClass {
     const { left_top, right_bottom } = box
     const { x: bx, y: by } = left_top
     return bbox({ x: 0, y: 0 }, { x: right_bottom.x - bx, y: right_bottom.y - by })
   }
-  export function size(box: BoundingBoxRead): PositionClass {
+  export function size(box: BBox): PositionClass {
     const { left_top, right_bottom } = box
     return pos(right_bottom.x - left_top.x, right_bottom.y - left_top.y)
   }
-  export function roundTile(box: BoundingBoxRead): BoundingBoxClass {
+  export function roundTile(box: BBox): BoundingBoxClass {
     const { left_top, right_bottom } = box
     return bbox({ x: floor(left_top.x), y: floor(left_top.y) }, { x: ceil(right_bottom.x), y: ceil(right_bottom.y) })
   }
-  export function roundTileConservative(box: BoundingBoxRead, thresh: number = 0.1): BoundingBoxClass {
+  export function roundTileConservative(box: BBox, thresh: number = 0.1): BoundingBoxClass {
     const { left_top, right_bottom } = box
     return bbox(
       { x: floor(left_top.x + thresh), y: floor(left_top.y + thresh) },
       { x: ceil(right_bottom.x - thresh), y: ceil(right_bottom.y - thresh) },
     )
   }
-  export function scale(box: BoundingBoxRead, factor: number): BoundingBoxClass {
+  export function scale(box: BBox, factor: number): BoundingBoxClass {
     const { left_top, right_bottom } = box
     return bbox(
       { x: left_top.x * factor, y: left_top.y * factor },
       { x: right_bottom.x * factor, y: right_bottom.y * factor },
     )
   }
-  export function expand(box: BoundingBoxRead, amount: number): BoundingBoxClass {
+  export function expand(box: BBox, amount: number): BoundingBoxClass {
     const { left_top, right_bottom } = box
     return bbox(
       { x: left_top.x - amount, y: left_top.y - amount },
       { x: right_bottom.x + amount, y: right_bottom.y + amount },
     )
   }
-  export function center(box: BoundingBoxRead): PositionClass {
+  export function center(box: BBox): PositionClass {
     const { left_top, right_bottom } = box
     return pos((left_top.x + right_bottom.x) / 2, (left_top.y + right_bottom.y) / 2)
   }
-  export function rotateAboutOrigin(box: BoundingBoxRead, direction: defines.direction): BoundingBoxClass {
+  export function rotateAboutOrigin(box: BBox, direction: defines.direction): BoundingBoxClass {
     if (direction === UP) return bbox.from(box)
     const { left_top, right_bottom } = box
     const { x: lx, y: ly } = left_top
@@ -103,7 +104,7 @@ namespace bbox {
 
     error(`invalid direction ${defines.direction[direction]}`)
   }
-  export function intersect(box1: BoundingBoxRead, box2: BoundingBoxRead): BoundingBoxClass {
+  export function intersect(box1: BBox, box2: BBox): BoundingBoxClass {
     const { left_top, right_bottom } = box1
     const { left_top: lt2, right_bottom: rb2 } = box2
     return bbox.fromCoords(
@@ -113,7 +114,7 @@ namespace bbox {
       min(right_bottom.y, rb2.y),
     )
   }
-  export function iterateTiles(box: BoundingBoxRead): LuaIterable<LuaMultiReturn<[x: number, y: number] | []>> {
+  export function iterateTiles(box: BBox): LuaIterable<LuaMultiReturn<[x: number, y: number] | []>> {
     const { left_top, right_bottom } = box
     const startX = left_top.x
     const x2 = right_bottom.x
@@ -132,24 +133,24 @@ namespace bbox {
       return $multi(retX, retY)
     } as any
   }
-  export function equals(box1: BoundingBoxRead, box2: BoundingBoxRead): boolean {
+  export function equals(box1: BBox, box2: BBox): boolean {
     const { left_top, right_bottom } = box1
     const { left_top: lt2, right_bottom: rb2 } = box2
     return left_top.x === lt2.x && left_top.y === lt2.y && right_bottom.x === rb2.x && right_bottom.y === rb2.y
   }
-  export function isCenteredSquare(box: BoundingBoxRead): boolean {
+  export function isCenteredSquare(box: BBox): boolean {
     const { left_top, right_bottom } = box
     return left_top.x === left_top.y && right_bottom.x === right_bottom.y && left_top.x === -right_bottom.x
   }
-  export function isCenteredRectangle(box: BoundingBoxRead): boolean {
+  export function isCenteredRectangle(box: BBox): boolean {
     const { left_top, right_bottom } = box
     return left_top.x === -right_bottom.x && left_top.y === -right_bottom.y
   }
-  export function contains(box: BoundingBoxRead, point: MapPositionTable): boolean {
+  export function contains(box: BBox, point: Position): boolean {
     const { left_top, right_bottom } = box
     return point.x >= left_top.x && point.x <= right_bottom.x && point.y >= left_top.y && point.y <= right_bottom.y
   }
-  export function intersectsNonZeroArea(box: BoundingBoxRead, other: BoundingBoxRead): boolean {
+  export function intersectsNonZeroArea(box: BBox, other: BBox): boolean {
     const { left_top, right_bottom } = box
     const { left_top: otherLeft_top, right_bottom: otherRight_bottom } = other
     return (
@@ -160,13 +161,13 @@ namespace bbox {
     )
   }
 }
-export function equals(box: BoundingBoxRead, other: BoundingBoxRead): boolean {
+export function equals(box: BBox, other: BBox): boolean {
   const { left_top, right_bottom } = box
   const { left_top: lt, right_bottom: rb } = other
   return lt.x === left_top.x && lt.y === left_top.y && rb.x === right_bottom.x && rb.y === right_bottom.y
 }
 
-const meta: LuaMetatable<BoundingBoxRead, BoundingBoxClass> = {
+const meta: LuaMetatable<BBox, BoundingBoxClass> = {
   __index: bbox as any,
 }
 export { bbox }

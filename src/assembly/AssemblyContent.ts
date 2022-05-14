@@ -5,7 +5,7 @@ import { BlueprintPasteConflicts, pasteAndFindConflicts } from "../blueprint/blu
 import { EntitySourceMap, EntitySourceMapBuilder } from "../blueprint/EntitySourceMap"
 import { clearBuildableEntities, takeBlueprintWithIndex } from "../blueprint/world"
 import { Classes, funcRef, isEmpty } from "../lib"
-import { pos } from "../lib/geometry"
+import { BBox, pos, Position } from "../lib/geometry"
 import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
 import { getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
 import { AssemblyImport } from "./imports/AssemblyImport"
@@ -68,7 +68,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
   hasConflicts = this.pasteDiagnostics.map(funcRef(DefaultAssemblyContent.hasAnyConflicts))
   pendingSave: MutableState<BlueprintDiff | undefined> = state(undefined)
 
-  constructor(readonly surface: LuaSurface, readonly area: BoundingBoxRead) {
+  constructor(readonly surface: LuaSurface, readonly area: BBox) {
     const [entities, index] = takeBlueprintWithIndex(surface, area)
     const content = Blueprint._new(entities)
     this.ownContents = state(content)
@@ -126,7 +126,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
   }
   private pasteContentAndRecordSourceMap(
     content: PasteBlueprint,
-    relativePosition: MapPositionTable | undefined,
+    relativePosition: Position | undefined,
     sourceArea: AreaIdentification | undefined,
     sourceMap: EntitySourceMapBuilder,
   ) {
@@ -136,14 +136,14 @@ export class DefaultAssemblyContent implements AssemblyContent {
     return conflicts
   }
 
-  private getAbsolutePosition(relativePosition: MapPositionTable | undefined): MapPositionTable {
+  private getAbsolutePosition(relativePosition: Position | undefined): Position {
     const leftTop = this.area.left_top
     return relativePosition ? pos.add(leftTop, pos.div(relativePosition, 2).floor().times(2)) : leftTop
   }
 
   private computeAndRenderDiagnostics(
     conflicts: BlueprintPasteConflicts,
-    relativeLeftTop: MapPositionTable | undefined,
+    relativeLeftTop: Position | undefined,
     sourceMap: EntitySourceMap,
   ): PasteDiagnostics {
     const absoluteLeftTop = this.getAbsolutePosition(relativeLeftTop)
@@ -202,6 +202,6 @@ export class DefaultAssemblyContent implements AssemblyContent {
   }
 }
 
-export function createAssemblyContent(surface: LuaSurface, area: BoundingBoxRead): AssemblyContent {
+export function createAssemblyContent(surface: LuaSurface, area: BBox): AssemblyContent {
   return new DefaultAssemblyContent(surface, area)
 }

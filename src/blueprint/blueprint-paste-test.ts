@@ -1,7 +1,7 @@
 import { FullEntity, ReferenceEntity } from "../entity/entity"
 import { createReferenceOnlyEntity } from "../entity/entity-paste"
 import { assertNever, mutableShallowCopy } from "../lib"
-import { BoundingBoxClass, pos } from "../lib/geometry"
+import { BoundingBoxClass, pos, Position } from "../lib/geometry"
 import { BlueprintSampleName, BlueprintSampleNames, getBlueprintSample } from "../test/blueprint-sample"
 import { getEntitySample } from "../test/entity-sample"
 import { getWorkingArea1 } from "../test/misc"
@@ -53,7 +53,7 @@ describe("pasteAndFindConflicts", () => {
   before_each(() => {
     clearBuildableEntities(surface, area)
   })
-  function testBPs(below: Blueprint, above: PasteBlueprint, pasteLocation: MapPositionTable = area.left_top) {
+  function testBPs(below: Blueprint, above: PasteBlueprint, pasteLocation: Position = area.left_top) {
     pasteBlueprint(surface, pasteLocation, below.entities)
     return pasteAndFindConflicts(surface, area, above, pasteLocation)
   }

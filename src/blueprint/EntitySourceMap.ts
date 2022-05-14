@@ -1,7 +1,7 @@
 import { AreaIdentification } from "../area/AreaIdentification"
 import { Entity, getTileBox } from "../entity/entity"
 import { computeTileBoxOfLuaEntity } from "../entity/entity-info"
-import { bbox, pos } from "../lib/geometry"
+import { bbox, pos, Position } from "../lib/geometry"
 import { Blueprint } from "./Blueprint"
 import { findCompatibleEntity } from "./blueprint-paste"
 import shift = bbox.shift
@@ -20,7 +20,7 @@ export type EntitySourceMap = Blueprint<SourceMapEntity>
 export class EntitySourceMapBuilder {
   private entities: SourceMapEntity[] = []
 
-  addAll(entities: readonly LuaEntity[], sourceArea: AreaIdentification, pastedLeftTop: MapPositionTable): this {
+  addAll(entities: readonly LuaEntity[], sourceArea: AreaIdentification, pastedLeftTop: Position): this {
     // actualArea = location - (pastedLeftTop - sourceLeftTop)
     const offset = pos.sub(sourceArea.area.left_top, pastedLeftTop)
     const surface = sourceArea.surface
@@ -36,7 +36,7 @@ export class EntitySourceMapBuilder {
     return this
   }
 
-  addMock(entity: Entity, sourceArea: AreaIdentification, pastedLeftTop: MapPositionTable): this {
+  addMock(entity: Entity, sourceArea: AreaIdentification, pastedLeftTop: Position): this {
     const surface = sourceArea.surface
     const entitySourceArea = shift(getTileBox(entity), sourceArea.area.left_top)
     const pastedPosition = pos.add(entity.position, pastedLeftTop)
@@ -57,7 +57,7 @@ export class EntitySourceMapBuilder {
 export function getEntitySourceLocation(
   map: EntitySourceMap,
   entity: Entity,
-  relativeOffset: MapPositionTable | undefined,
+  relativeOffset: Position | undefined,
 ): AreaIdentification | undefined {
   const actualPosition = relativeOffset && pos.add(entity.position, relativeOffset)
   const mapEntity = findCompatibleEntity(map, entity, actualPosition)

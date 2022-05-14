@@ -1,6 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
 import { Mutable, mutableShallowCopy } from "../lib"
+import { BBox } from "../lib/geometry"
 import { computeTileBox } from "./entity-info"
 
 export type EntityNumber = number
@@ -9,7 +10,7 @@ export type EntityNumber = number
 export type Entity = Pick<BlueprintEntityRead, "name" | "position" | "direction">
 
 export interface FullEntity extends Entity, BlueprintEntityRead {
-  readonly tileBox?: BoundingBoxRead
+  readonly tileBox?: BBox
 }
 
 export interface PlainEntity extends FullEntity {
@@ -23,7 +24,7 @@ export type UpdateableReferenceEntity = Mutable<ReferenceEntity>
 export type PasteEntity = PlainEntity | ReferenceEntity
 export type UpdateablePasteEntity = PlainEntity | UpdateableReferenceEntity
 
-export function getTileBox(entity: Entity): BoundingBoxRead {
+export function getTileBox(entity: Entity): BBox {
   return ((entity as Mutable<FullEntity>).tileBox ||= computeTileBox(entity))
 }
 

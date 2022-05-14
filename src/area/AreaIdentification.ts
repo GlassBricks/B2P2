@@ -1,14 +1,14 @@
-import { bbox } from "../lib/geometry"
+import { BBox, bbox, Position } from "../lib/geometry"
 import center = bbox.center
 
 export interface AreaIdentification {
   readonly surface: LuaSurface
-  readonly area: BoundingBoxRead
+  readonly area: BBox
 }
 
 export interface PositionIdentification {
   readonly surface: LuaSurface
-  readonly position: MapPositionTable
+  readonly position: Position
 }
 export function highlightArea(
   location: AreaIdentification | undefined,

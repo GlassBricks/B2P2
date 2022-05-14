@@ -1,5 +1,5 @@
 import { Events, PlayerData, PRecord } from "../lib"
-import { bbox } from "../lib/geometry"
+import { bbox, Position } from "../lib/geometry"
 import { add, get, MutableMap2D, remove } from "../lib/map2d"
 import { MutableState, State, state } from "../lib/observable"
 import { Assembly, AssemblyCreated, AssemblyDeleted } from "./Assembly"
@@ -39,7 +39,7 @@ AssemblyDeleted.subscribe((assembly) => {
   }
 })
 
-export function getAssemblyAtPosition(surfaceIndex: SurfaceIndex, position: MapPositionTable): Assembly | undefined {
+export function getAssemblyAtPosition(surfaceIndex: SurfaceIndex, position: Position): Assembly | undefined {
   const assembliesByChunk = global.assembliesByChunk[surfaceIndex]
   if (!assembliesByChunk) return
   const assemblies = get(assembliesByChunk, floor(position.x / 32), floor(position.y / 32))

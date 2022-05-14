@@ -1,7 +1,7 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { Classes, raiseUserError } from "../../lib"
-import { bbox } from "../../lib/geometry"
+import { BBox, bbox, Position } from "../../lib/geometry"
 import { State } from "../../lib/observable"
 import { L_Interaction } from "../../locale"
 import { Assembly } from "../Assembly"
@@ -10,7 +10,7 @@ import { AssemblyImport } from "./AssemblyImport"
 @Classes.register()
 export class BasicImport implements AssemblyImport {
   private readonly _content: State<Blueprint | undefined>
-  private constructor(private readonly source: Assembly, readonly relativeBoundingBox: BoundingBoxRead) {
+  private constructor(private readonly source: Assembly, readonly relativeBoundingBox: BBox) {
     this._content = source.getContent()!.resultContent
   }
   name(): State<LocalisedString> {
@@ -19,17 +19,17 @@ export class BasicImport implements AssemblyImport {
   content(): State<Blueprint | undefined> {
     return this._content
   }
-  getRelativePosition(): MapPositionTable {
+  getRelativePosition(): Position {
     return this.relativeBoundingBox.left_top
   }
-  getRelativeBoundingBox(): BoundingBoxRead {
+  getRelativeBoundingBox(): BBox {
     return this.relativeBoundingBox
   }
   getSourceArea(): AreaIdentification | undefined {
     return this.source
   }
 
-  static createFor(source: Assembly, target: Assembly, relativePosition: MapPositionTable): BasicImport {
+  static createFor(source: Assembly, target: Assembly, relativePosition: Position): BasicImport {
     const sourceRelative = bbox.shiftToOrigin(source.area)
     const targetRelative = bbox.shiftToOrigin(target.area).shift(relativePosition)
     if (!bbox.intersectsNonZeroArea(sourceRelative, targetRelative))
@@ -37,7 +37,7 @@ export class BasicImport implements AssemblyImport {
     return new BasicImport(source, targetRelative)
   }
 
-  static _createUnchecked(source: Assembly, relativePosition: MapPositionTable): AssemblyImport {
+  static _createUnchecked(source: Assembly, relativePosition: Position): AssemblyImport {
     const boundingBox = bbox.shiftToOrigin(source.area).shift(relativePosition)
     return new BasicImport(source, boundingBox)
   }

@@ -1,6 +1,6 @@
 import { Entity, getTileBox, PasteEntity, PlainEntity, UpdateablePasteEntity } from "../entity/entity"
 import { Classes, isEmpty, shallowCopy } from "../lib"
-import { bbox, BoundingBoxClass } from "../lib/geometry"
+import { BBox, bbox, BoundingBoxClass, Position } from "../lib/geometry"
 import { add, get, Map2D, MutableMap2D } from "../lib/map2d"
 import { takeBlueprint, takeBlueprintWithIndex } from "./world"
 import contains = bbox.contains
@@ -24,18 +24,14 @@ export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
     return new Blueprint(entities)
   }
 
-  static take(
-    surface: SurfaceIdentification,
-    area: BoundingBoxRead,
-    worldTopLeft: MapPositionTable = area.left_top,
-  ): Blueprint {
+  static take(surface: SurfaceIdentification, area: BBox, worldTopLeft: Position = area.left_top): Blueprint {
     return new Blueprint(takeBlueprint(surface, area, worldTopLeft))
   }
 
   static takeWithSourceIndex(
     surface: SurfaceIdentification,
-    area: BoundingBoxRead,
-    worldTopLeft: MapPositionTable = area.left_top,
+    area: BBox,
+    worldTopLeft: Position = area.left_top,
   ): LuaMultiReturn<[Blueprint, Record<number, LuaEntity>]> {
     const [bp, index] = takeBlueprintWithIndex(surface, area, worldTopLeft)
     return $multi(new Blueprint(bp), index)
@@ -49,7 +45,7 @@ export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
     return get(this.getOrComputeByPosition(), x, y)
   }
 
-  getAt(pos: MapPositionTable): LuaSet<E> | undefined {
+  getAt(pos: Position): LuaSet<E> | undefined {
     return this.getAtPos(pos.x, pos.y)
   }
 
@@ -74,7 +70,7 @@ export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
     let minY = Infinity
     let maxX = -Infinity
     let maxY = -Infinity
-    function expandTo({ x, y }: MapPositionTable) {
+    function expandTo({ x, y }: Position) {
       if (x < minX) minX = x
       if (y < minY) minY = y
       if (x > maxX) maxX = x
@@ -92,7 +88,7 @@ export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
 export type PasteBlueprint = Blueprint<PasteEntity>
 export type UpdateablePasteBlueprint = Blueprint<UpdateablePasteEntity>
 
-export function filterEntitiesInArea<T extends Entity>(entities: readonly T[], area: BoundingBoxRead): T[] {
+export function filterEntitiesInArea<T extends Entity>(entities: readonly T[], area: BBox): T[] {
   return entities.filter((entity) => {
     const entityBox = getTileBox(entity)
     return contains(area, entityBox.left_top) && contains(area, entityBox.right_bottom)

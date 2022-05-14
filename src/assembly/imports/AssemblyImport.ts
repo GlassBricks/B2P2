@@ -1,7 +1,7 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { Colors } from "../../constants"
-import { bbox } from "../../lib/geometry"
+import { BBox, bbox, Position } from "../../lib/geometry"
 import { State } from "../../lib/observable"
 
 export interface AssemblyImport {
@@ -9,17 +9,12 @@ export interface AssemblyImport {
   // undefined means is not valid
   content(): State<Blueprint | undefined>
 
-  getRelativePosition(): MapPositionTable
-  getRelativeBoundingBox(): BoundingBoxRead
+  getRelativePosition(): Position
+  getRelativeBoundingBox(): BBox
   getSourceArea(): AreaIdentification | undefined
 }
 
-export function highlightImport(
-  surface: LuaSurface,
-  area: BoundingBoxRead,
-  imp: AssemblyImport,
-  forPlayer: LuaPlayer,
-): void {
+export function highlightImport(surface: LuaSurface, area: BBox, imp: AssemblyImport, forPlayer: LuaPlayer): void {
   const importArea = bbox.intersect(area, bbox.shift(imp.getRelativeBoundingBox(), area.left_top))
   rendering.draw_rectangle({
     surface,

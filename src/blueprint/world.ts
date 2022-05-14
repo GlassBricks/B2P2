@@ -1,6 +1,6 @@
 import { FullEntity } from "../entity/entity"
 import { isEmpty, Mutable } from "../lib"
-import { pos } from "../lib/geometry"
+import { BBox, pos, Position } from "../lib/geometry"
 
 declare const global: {
   __tempBlueprintInventory: LuaInventory
@@ -13,16 +13,16 @@ function getTempItemStack(): BlueprintItemStack {
 }
 export function takeBlueprint(
   surface: SurfaceIdentification,
-  area: BoundingBoxRead,
-  worldTopLeft: MapPositionTable = area.left_top,
+  area: BBox,
+  worldTopLeft: Position = area.left_top,
 ): FullEntity[] {
   const [entities] = takeBlueprintWithIndex(surface, area, worldTopLeft)
   return entities
 }
 export function takeBlueprintWithIndex(
   surface: SurfaceIdentification,
-  area: BoundingBoxRead,
-  worldTopLeft: MapPositionTable = area.left_top,
+  area: BBox,
+  worldTopLeft: Position = area.left_top,
 ): LuaMultiReturn<[FullEntity[], Record<number, LuaEntity>]> {
   const item = getTempItemStack()
   const index = item.create_blueprint({
@@ -39,7 +39,7 @@ export function takeBlueprintWithIndex(
   const offset = pos.sub(targetPos, actualPos)
   if (offset.x !== 0 || offset.y !== 0) {
     for (const entity of entities) {
-      const position = entity.position as Mutable<MapPositionTable>
+      const position = entity.position as Mutable<Position>
       position.x += offset.x
       position.y += offset.y
     }
@@ -73,7 +73,7 @@ function reviveGhost(ghost: GhostEntity): LuaEntity | undefined {
 
 export function pasteBlueprint(
   surface: SurfaceIdentification,
-  location: MapPositionTable,
+  location: Position,
   entities: readonly BlueprintEntityRead[],
 ): LuaEntity[] {
   if (isEmpty(entities)) return []
@@ -110,7 +110,7 @@ export function pasteBlueprint(
   return resultEntities
 }
 
-export function clearBuildableEntities(surface: SurfaceIdentification, area: BoundingBoxRead): void {
+export function clearBuildableEntities(surface: SurfaceIdentification, area: BBox): void {
   const actualSurface =
     typeof surface === "object" ? surface : game.get_surface(surface) ?? error("surface not found: " + surface)
   const entities = actualSurface.find_entities_filtered({

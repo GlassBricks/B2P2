@@ -1,5 +1,5 @@
 import { deepCompare, Mutable, PRecord, shallowCopy } from "../lib"
-import { pos, UP } from "../lib/geometry"
+import { pos, Position, UP } from "../lib/geometry"
 import {
   ConflictingProp,
   Entity,
@@ -16,7 +16,7 @@ import {
 } from "./entity"
 import { getEntityInfo } from "./entity-info"
 
-export function isCompatibleEntity(a: Entity, b: Entity, bPosition: MapPositionTable = b.position): boolean {
+export function isCompatibleEntity(a: Entity, b: Entity, bPosition: Position = b.position): boolean {
   if (!pos.equals(a.position, bPosition)) return false
 
   const aInfo = getEntityInfo(a.name)

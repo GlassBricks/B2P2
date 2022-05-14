@@ -1,7 +1,7 @@
 import { AreaIdentification } from "../area/AreaIdentification"
 import { Colors } from "../constants"
 import { bound, Classes, Events, raiseUserError, reg } from "../lib"
-import { bbox } from "../lib/geometry"
+import { BBox, bbox } from "../lib/geometry"
 import {
   GlobalEvent,
   MutableObservableSet,
@@ -30,7 +30,7 @@ export class Assembly implements AreaIdentification {
   private constructor(
     name: string,
     public readonly surface: LuaSurface,
-    public readonly area: BoundingBoxRead,
+    public readonly area: BBox,
     private readonly content: AssemblyContent,
   ) {
     this.name = state(name)
@@ -56,7 +56,7 @@ export class Assembly implements AreaIdentification {
     this.name.subscribe(reg(this.setName))
   }
 
-  static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
+  static create(name: string, surface: LuaSurface, area: BBox): Assembly {
     area = bbox.scale(area, 0.5).roundTile().scale(2) // round to nearest even tile, so that rails work
     assert(surface.valid)
     Assembly.checkDoesNotIntersectExistingArea(surface, area)
@@ -64,7 +64,7 @@ export class Assembly implements AreaIdentification {
     return Assembly.createUnchecked(name, surface, area)
   }
 
-  private static createUnchecked(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
+  private static createUnchecked(name: string, surface: LuaSurface, area: BBox): Assembly {
     const content = createAssemblyContent(surface, area)
     const assembly = new Assembly(name, surface, area, content)
     global.assemblies.add(assembly)
@@ -72,14 +72,14 @@ export class Assembly implements AreaIdentification {
     return assembly
   }
 
-  private static checkDoesNotIntersectExistingArea(surface: LuaSurface, area: BoundingBoxRead) {
+  private static checkDoesNotIntersectExistingArea(surface: LuaSurface, area: BBox) {
     const assembly = Assembly.findAssemblyInArea(surface, area)
     if (assembly) {
       assembly.highlightForError()
       raiseUserError([L_Interaction.IntersectsExistingAssembly, assembly.name.value], "flying-text")
     }
   }
-  private static findAssemblyInArea(surface: LuaSurface, area: BoundingBoxRead): Assembly | undefined {
+  private static findAssemblyInArea(surface: LuaSurface, area: BBox): Assembly | undefined {
     for (const [assembly] of global.assemblies) {
       if (
         assembly.isValid() &&

@@ -1,5 +1,5 @@
 import { Classes, Events, PlayerData } from "../lib"
-import { bbox } from "../lib/geometry"
+import { bbox, Position } from "../lib/geometry"
 import { AreaIdentification, highlightArea, PositionIdentification } from "./AreaIdentification"
 import center = bbox.center
 
@@ -63,7 +63,7 @@ Events.on_surface_deleted(() => {
   }
 })
 
-export function teleportPlayer(player: LuaPlayer, surface: LuaSurface, position: MapPositionTable): void {
+export function teleportPlayer(player: LuaPlayer, surface: LuaSurface, position: Position): void {
   const history = TeleportHistory[player.index]
   const currentPosition: PositionIdentification = {
     surface: player.surface,

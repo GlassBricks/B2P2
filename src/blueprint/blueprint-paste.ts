@@ -9,14 +9,14 @@ import {
 } from "../entity/entity"
 import { findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
 import { nilIfEmpty } from "../lib"
-import { bbox, pos } from "../lib/geometry"
+import { BBox, bbox, pos, Position } from "../lib/geometry"
 import { Blueprint, filterEntitiesInArea, UpdateablePasteBlueprint } from "./Blueprint"
 import { pasteBlueprint } from "./world"
 
 export function findCompatibleEntity<T extends Entity>(
   blueprint: Blueprint<T>,
   entity: Entity,
-  position: MapPositionTable = entity.position,
+  position: Position = entity.position,
 ): T | undefined {
   const entities = blueprint.getAt(position)
   if (entities === undefined) return undefined
@@ -42,9 +42,9 @@ export interface BlueprintPasteConflicts {
 
 export function pasteAndFindConflicts(
   surface: LuaSurface,
-  worldArea: BoundingBoxRead,
+  worldArea: BBox,
   content: UpdateablePasteBlueprint,
-  pasteLocation: MapPositionTable,
+  pasteLocation: Position,
 ): LuaMultiReturn<[BlueprintPasteConflicts, LuaEntity[]]> {
   const relativeArea = bbox.shiftNegative(worldArea, pasteLocation)
   const filteredContent = Blueprint._new(filterEntitiesInArea(content.entities, relativeArea))

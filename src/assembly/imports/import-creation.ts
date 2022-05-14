@@ -1,6 +1,6 @@
 import { Prototypes } from "../../constants"
 import { Callback, Events, Mutable, mutableShallowCopy, PlayerData, protectedAction } from "../../lib"
-import { bbox, pos, UP } from "../../lib/geometry"
+import { bbox, pos, Position, UP } from "../../lib/geometry"
 import { L_Interaction } from "../../locale"
 import { Assembly } from "../Assembly"
 import { tryClearCursor } from "../assembly-creation"
@@ -70,7 +70,7 @@ Events.on_player_cursor_stack_changed((e) => {
     delete PendingImportCreation[playerIndex]
   }
 })
-function createBoundaryTiles(size: MapPositionTable, shiftAmount: MapPositionTable): Mutable<BlueprintEntityRead>[] {
+function createBoundaryTiles(size: Position, shiftAmount: Position): Mutable<BlueprintEntityRead>[] {
   const name = Prototypes.ImportPreviewBoundaryTile
   const tiles: Tile[] = []
   const { x: mx, y: my } = size
@@ -90,7 +90,7 @@ function createBoundaryTiles(size: MapPositionTable, shiftAmount: MapPositionTab
   return tiles as Mutable<BlueprintEntityRead>[]
 }
 
-function tryImportCreation(player: LuaPlayer, absolutePosition: MapPositionTable) {
+function tryImportCreation(player: LuaPlayer, absolutePosition: Position) {
   const pending = PendingImportCreation[player.index]
   assert(pending, "no pending import creation when import preview was placed")
 

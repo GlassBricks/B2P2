@@ -1,8 +1,8 @@
-import { bbox } from "../lib/geometry"
+import { BBox, bbox } from "../lib/geometry"
 import { EntitySampleName, getEntitySample } from "../test/entity-sample"
 import { computeTileBox, getEntityInfo } from "./entity-info"
 
-describe.each<[EntitySampleName, BoundingBoxRead, string]>(
+describe.each<[EntitySampleName, BBox, string]>(
   [
     ["chest", bbox.fromCoords(0, 0, 1, 1), "container"],
     ["furnace", bbox.fromCoords(0, 0, 2, 2), "furnace"],

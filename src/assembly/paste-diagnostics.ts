@@ -3,7 +3,7 @@ import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, getEntitySourceLocation } from "../blueprint/EntitySourceMap"
 import { describeEntity, Entity, getTileBox, isUnhandledProp } from "../entity/entity"
 import { assertNever } from "../lib"
-import { bbox } from "../lib/geometry"
+import { bbox, Position } from "../lib/geometry"
 import { L_Diagnostic } from "../locale"
 import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
 import shift = bbox.shift
@@ -83,7 +83,7 @@ export const UnsupportedProp = DiagnosticCategory(
 export function mapPasteConflictsToDiagnostics(
   conflicts: BlueprintPasteConflicts,
   surface: LuaSurface,
-  pastedLeftTop: MapPositionTable,
+  pastedLeftTop: Position,
   sourceMap: EntitySourceMap,
 ): PasteDiagnostics {
   const diagnostics: PasteDiagnostics = {}

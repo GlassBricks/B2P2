@@ -1,12 +1,12 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
-import { bbox, pos } from "../../lib/geometry"
+import { bbox, pos, Position } from "../../lib/geometry"
 import { state } from "../../lib/observable"
 import { AssemblyImport } from "./AssemblyImport"
 
 export function mockImport(
   content: Blueprint,
-  relativePosition: MapPositionTable = pos(0, 0),
+  relativePosition: Position = pos(0, 0),
   sourceArea: AreaIdentification | undefined = undefined,
 ): AssemblyImport {
   const c = state(content)
@@ -20,7 +20,7 @@ export function mockImport(
   }
 }
 
-export function invalidMockImport(relativePosition: MapPositionTable = pos(0, 0)): AssemblyImport {
+export function invalidMockImport(relativePosition: Position = pos(0, 0)): AssemblyImport {
   const c = state(undefined)
   const name = state("")
   return {

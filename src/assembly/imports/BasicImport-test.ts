@@ -1,7 +1,7 @@
 import { Blueprint } from "../../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint } from "../../blueprint/world"
 import { isUserError } from "../../lib"
-import { bbox, pos } from "../../lib/geometry"
+import { BBox, bbox, pos } from "../../lib/geometry"
 import { assertBlueprintsEquivalent } from "../../test/blueprint"
 import { getBlueprintSample } from "../../test/blueprint-sample"
 import { getWorkingArea1 } from "../../test/misc"
@@ -10,7 +10,7 @@ import { BasicImport } from "./BasicImport"
 
 let blueprint: Blueprint
 let surface: LuaSurface
-let area: BoundingBoxRead
+let area: BBox
 before_each(() => {
   blueprint = Blueprint.fromArray(getBlueprintSample("original"))
   ;[surface, area] = getWorkingArea1()
