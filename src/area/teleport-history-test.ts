@@ -1,4 +1,4 @@
-import { pos } from "../lib/geometry/position"
+import { pos } from "../lib/geometry"
 import { getPlayer } from "../lib/test-util/misc"
 import { NavigationHistory, teleportBackward, teleportForward, teleportPlayer } from "./teleport-history"
 
@@ -76,7 +76,7 @@ describe("navigation history", () => {
     assert.is_nil(history.next())
   })
 
-  test("filter after undos", () => {
+  test("filter after undo", () => {
     history.maxSize = 10
     for (let i = 1; i < 10; i += 2) {
       history.push2(i, i + 1)

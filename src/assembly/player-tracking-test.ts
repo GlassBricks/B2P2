@@ -1,5 +1,4 @@
-import { bbox } from "../lib/geometry/bounding-box"
-import { pos } from "../lib/geometry/position"
+import { bbox, pos } from "../lib/geometry"
 import { getPlayer } from "../lib/test-util/misc"
 import { Assembly } from "./Assembly"
 import { assemblyAtPlayerLocation, getAssemblyAtPosition } from "./player-tracking"

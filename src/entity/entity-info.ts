@@ -1,5 +1,4 @@
-import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { UP } from "../lib/geometry/rotation"
+import { bbox, BoundingBoxClass, UP } from "../lib/geometry"
 import { Entity } from "./entity"
 
 export interface EntityInfo {

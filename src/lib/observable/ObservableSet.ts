@@ -63,6 +63,7 @@ class ObservableSetImpl<T> extends SingleSubscribable<ObservableSetChange<T>> im
     }
   }
 
+  // noinspection JSUnusedGlobalSymbols
   __pairs() {
     return pairs(this.set)
   }

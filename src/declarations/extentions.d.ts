@@ -37,5 +37,3 @@ declare const LuaMap: (new <TKey extends AnyNotNil, TValue>() => MutableLuaMap<T
 declare type WithMetatable<T, M> = T & {
   [P in keyof M]: M[P] extends (self: T, ...args: infer A) => infer R ? (this: T, ...args: A) => R : M[P]
 }
-
-declare const luaLength: LuaLength<object, number>

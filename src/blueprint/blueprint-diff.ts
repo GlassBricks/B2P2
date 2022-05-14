@@ -1,6 +1,6 @@
 import { EntityNumber, FullEntity, PasteEntity, PlainEntity } from "../entity/entity"
 import { computeEntityDiff, createReferenceOnlyEntity } from "../entity/entity-paste"
-import { nilIfEmpty } from "../lib/util"
+import { nilIfEmpty } from "../lib"
 import { Blueprint, PasteBlueprint } from "./Blueprint"
 import { findCompatibleEntity } from "./blueprint-paste"
 

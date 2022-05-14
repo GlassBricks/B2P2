@@ -1,6 +1,5 @@
 import { Classes, isUserError } from "../lib"
-import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { pos } from "../lib/geometry/position"
+import { bbox, BoundingBoxClass, pos } from "../lib/geometry"
 import { getWorkingArea1 } from "../test/misc"
 import { Assembly } from "./Assembly"
 

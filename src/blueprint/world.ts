@@ -1,7 +1,6 @@
 import { FullEntity } from "../entity/entity"
-import { pos } from "../lib/geometry/position"
-import { isEmpty } from "../lib/util"
-import { Mutable } from "../lib/util-types"
+import { isEmpty, Mutable } from "../lib"
+import { pos } from "../lib/geometry"
 
 declare const global: {
   __tempBlueprintInventory: LuaInventory

@@ -4,7 +4,7 @@ import { getEntitySourceLocation } from "../../blueprint/EntitySourceMap"
 import { Inputs } from "../../constants"
 import { computeTileBoxOfLuaEntity } from "../../entity/entity-info"
 import { Events, protectedAction } from "../../lib"
-import { bbox } from "../../lib/geometry/bounding-box"
+import { bbox } from "../../lib/geometry"
 import { L_Interaction } from "../../locale"
 
 function teleportToSourceOfEntity(player: LuaPlayer, entity: LuaEntity): void {

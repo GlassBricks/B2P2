@@ -42,6 +42,7 @@ export function closeParentParent(e: OnGuiClickEvent): void {
 }
 Functions.registerAll({ closeParentParent })
 
+// noinspection JSUnusedGlobalSymbols
 export function SimpleTitleBar(props: { title: MaybeState<LocalisedString> }): Spec {
   return (
     <TitleBar title={props.title}>

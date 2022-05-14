@@ -1,5 +1,4 @@
-import { bbox } from "../lib/geometry/bounding-box"
-import { pos } from "../lib/geometry/position"
+import { bbox, pos } from "../lib/geometry"
 import { highlightArea } from "./AreaIdentification"
 
 describe("highlight", () => {

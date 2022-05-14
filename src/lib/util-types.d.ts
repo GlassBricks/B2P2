@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 export type PRecord<K extends keyof any, V> = {
   [P in K]?: V
 }
@@ -10,8 +12,4 @@ export type PRRecord<K extends keyof any, V> = {
 
 export type Mutable<T> = {
   -readonly [P in keyof T]: T[P]
-}
-
-export type Brand<V, T extends string> = V & {
-  [P in `_${Uncapitalize<T>}Brand`]: void
 }

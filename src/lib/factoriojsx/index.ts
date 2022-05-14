@@ -9,6 +9,7 @@ export * from "./render"
 
 export namespace FactorioJsx {
   export const createElement = _createElement
+  // noinspection JSUnusedGlobalSymbols
   export const Fragment = "fragment"
 }
 

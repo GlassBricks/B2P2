@@ -156,6 +156,7 @@ export class ElementWrapper<T extends GuiElementType = GuiElementType> {
     return this.native.valid
   }
 
+  // noinspection JSUnusedGlobalSymbols
   __eq(other: unknown): boolean {
     return other instanceof ElementWrapper && other.native === this.native
   }

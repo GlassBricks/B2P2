@@ -1,5 +1,5 @@
 import { Classes, Events, PlayerData } from "../lib"
-import { bbox } from "../lib/geometry/bounding-box"
+import { bbox } from "../lib/geometry"
 import { AreaIdentification, highlightArea, PositionIdentification } from "./AreaIdentification"
 import center = bbox.center
 

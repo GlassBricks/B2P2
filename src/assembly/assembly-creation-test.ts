@@ -1,5 +1,5 @@
 import { Prototypes } from "../constants"
-import { bbox } from "../lib/geometry/bounding-box"
+import { bbox } from "../lib/geometry"
 import { getPlayer } from "../lib/test-util/misc"
 import { Assembly } from "./Assembly"
 import { startAssemblyCreation } from "./assembly-creation"

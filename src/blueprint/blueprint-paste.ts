@@ -8,9 +8,8 @@ import {
   ReferenceEntity,
 } from "../entity/entity"
 import { findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
-import { bbox } from "../lib/geometry/bounding-box"
-import { pos } from "../lib/geometry/position"
-import { nilIfEmpty } from "../lib/util"
+import { nilIfEmpty } from "../lib"
+import { bbox, pos } from "../lib/geometry"
 import { Blueprint, filterEntitiesInArea, UpdateablePasteBlueprint } from "./Blueprint"
 import { pasteBlueprint } from "./world"
 

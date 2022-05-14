@@ -17,6 +17,7 @@ function tryUseSourcemap(rawFile: string | undefined, line: number | undefined):
   return typeof data === "number" ? { file: fileName + ".ts", line: data } : data
 }
 
+// noinspection JSUnusedGlobalSymbols
 export function debugPrint(...values: unknown[]): void {
   const info = debug.getinfo(2, "Sl")!
   const source = tryUseSourcemap(info.source, info.currentline)

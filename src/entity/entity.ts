@@ -1,5 +1,6 @@
-import { mutableShallowCopy } from "../lib/util"
-import { Mutable } from "../lib/util-types"
+// noinspection JSUnusedGlobalSymbols
+
+import { Mutable, mutableShallowCopy } from "../lib"
 import { computeTileBox } from "./entity-info"
 
 export type EntityNumber = number

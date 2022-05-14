@@ -1,7 +1,5 @@
 import { clearBuildableEntities, pasteBlueprint } from "../../blueprint/world"
-import { bbox } from "../../lib/geometry/bounding-box"
-import { pos } from "../../lib/geometry/position"
-import { UP } from "../../lib/geometry/rotation"
+import { bbox, pos, UP } from "../../lib/geometry"
 import { getPlayer } from "../../lib/test-util/misc"
 import { getBlueprintSample } from "../../test/blueprint-sample"
 import { Assembly } from "../Assembly"

@@ -1,5 +1,5 @@
 import { FullEntity, PasteEntity, ReferenceEntity } from "../entity/entity"
-import { pos } from "../lib/geometry/position"
+import { pos } from "../lib/geometry"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { getBlueprintSample } from "../test/blueprint-sample"
 import { getEntitySample } from "../test/entity-sample"

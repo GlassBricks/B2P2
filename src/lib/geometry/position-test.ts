@@ -1,4 +1,3 @@
-import { unpair } from "./number-pair"
 import { pos } from "./position"
 import { DOWN, LEFT, RIGHT, UP } from "./rotation"
 
@@ -103,14 +102,6 @@ describe("rotateAboutOrigin", () => {
 test("length", () => {
   const position = pos(3, 4)
   assert.equal(5, position.length())
-})
-
-test("pair", () => {
-  const position = pos(3, 4)
-  const pair = position.pair()
-  const [x, y] = unpair(pair)
-  assert.equal(3, x)
-  assert.equal(4, y)
 })
 
 test("equals", () => {

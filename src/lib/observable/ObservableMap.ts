@@ -68,6 +68,7 @@ class ObservableMapImpl<K extends AnyNotNil, V>
     this.set(key, undefined!)
   }
 
+  // noinspection JSUnusedGlobalSymbols
   __pairs() {
     return pairs(this._map)
   }

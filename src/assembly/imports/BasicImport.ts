@@ -1,7 +1,7 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { Classes, raiseUserError } from "../../lib"
-import { bbox } from "../../lib/geometry/bounding-box"
+import { bbox } from "../../lib/geometry"
 import { State } from "../../lib/observable"
 import { L_Interaction } from "../../locale"
 import { Assembly } from "../Assembly"

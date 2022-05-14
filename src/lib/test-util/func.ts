@@ -7,6 +7,7 @@ class AsFunc<F extends AnyFunction> {
     this.func = func as any
   }
 
+  // noinspection JSUnusedGlobalSymbols
   protected __call(thisArg: unknown, ...args: any[]) {
     return this.func(...args)
   }

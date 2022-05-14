@@ -1,7 +1,7 @@
 import { AreaIdentification } from "../area/AreaIdentification"
 import { Colors } from "../constants"
 import { bound, Classes, Events, raiseUserError, reg } from "../lib"
-import { bbox } from "../lib/geometry/bounding-box"
+import { bbox } from "../lib/geometry"
 import {
   GlobalEvent,
   MutableObservableSet,

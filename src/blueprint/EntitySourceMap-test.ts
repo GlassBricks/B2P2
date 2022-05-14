@@ -1,6 +1,5 @@
 import { Entity } from "../entity/entity"
-import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { pos } from "../lib/geometry/position"
+import { bbox, BoundingBoxClass, pos } from "../lib/geometry"
 import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
 import { EntitySourceMapBuilder, getEntitySourceLocation } from "./EntitySourceMap"
 import { clearBuildableEntities } from "./world"

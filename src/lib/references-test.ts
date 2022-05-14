@@ -94,7 +94,7 @@ describe("functions", () => {
     })
   })
 
-  test("func ref urvives reload", () => {
+  test("func ref survives reload", () => {
     global.__ref = funcRef(func)
     global.__boundRef = bind(func2, 2)
     global.__boundRef2 = bind(func2, 2, 1)

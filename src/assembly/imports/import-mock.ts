@@ -1,7 +1,6 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
-import { bbox } from "../../lib/geometry/bounding-box"
-import { pos } from "../../lib/geometry/position"
+import { bbox, pos } from "../../lib/geometry"
 import { state } from "../../lib/observable"
 import { AssemblyImport } from "./AssemblyImport"
 

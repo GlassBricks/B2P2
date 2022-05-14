@@ -1,4 +1,4 @@
-import { bbox } from "../lib/geometry/bounding-box"
+import { bbox } from "../lib/geometry"
 import center = bbox.center
 
 export interface AreaIdentification {

@@ -1,8 +1,7 @@
-import { Events, PlayerData } from "../lib"
-import { bbox } from "../lib/geometry/bounding-box"
+import { Events, PlayerData, PRecord } from "../lib"
+import { bbox } from "../lib/geometry"
 import { add, get, MutableMap2D, remove } from "../lib/map2d"
 import { MutableState, State, state } from "../lib/observable"
-import { PRecord } from "../lib/util-types"
 import { Assembly, AssemblyCreated, AssemblyDeleted } from "./Assembly"
 import contains = bbox.contains
 import floor = math.floor

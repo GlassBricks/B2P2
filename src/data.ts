@@ -1,7 +1,7 @@
 import { Data } from "typed-factorio/data/types"
 import * as util from "util"
 import { GuiConstants, Inputs, Prototypes, Sprites, Styles } from "./constants"
-import { PRecord } from "./lib/util-types"
+import { PRecord } from "./lib"
 import deepcopy = util.table.deepcopy
 
 declare const data: Data
@@ -97,7 +97,7 @@ declare const data: Data
     collision_mask: [],
   }
 
-  const ippmItem = {
+  const importPreviewPositionItem = {
     type: "item",
     name: Prototypes.ImportPreviewPositionMarker,
     icon: "__core__/graphics/spawn-flag.png",
@@ -123,7 +123,7 @@ declare const data: Data
     flags: ["hidden", "player-creation"],
   }
 
-  const ipemItem = {
+  const importPreviewTileItem = {
     type: "item",
     name: Prototypes.ImportPreviewBoundaryTile,
     icon: labWhite,
@@ -150,9 +150,9 @@ declare const data: Data
     assemblyCreationTool,
     importPreview,
     importPreviewPositionMarker,
-    ippmItem,
+    importPreviewPositionItem,
     etherealWhiteTile,
-    ipemItem,
+    importPreviewTileItem,
     createAssemblyShortcut,
   ])
 }

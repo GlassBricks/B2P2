@@ -1,7 +1,7 @@
 import { get_area } from "__testorio__/testUtil/areas"
 import { takeBlueprint } from "../blueprint/world"
-import { bbox } from "../lib/geometry/bounding-box"
-import { shallowCopy } from "../lib/util"
+import { shallowCopy } from "../lib"
+import { bbox } from "../lib/geometry"
 
 const entitySamples = {
   chest: true,

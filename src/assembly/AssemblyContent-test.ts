@@ -3,8 +3,7 @@ import { getEntitySourceLocation } from "../blueprint/EntitySourceMap"
 import { clearBuildableEntities, pasteBlueprint } from "../blueprint/world"
 import { getTileBox } from "../entity/entity"
 import { Classes } from "../lib"
-import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
-import { pos } from "../lib/geometry/position"
+import { bbox, BoundingBoxClass, pos } from "../lib/geometry"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
 import { BlueprintSampleName, getBlueprintSample } from "../test/blueprint-sample"
 import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
@@ -183,8 +182,8 @@ describe("paste conflicts", () => {
     content.saveAndAddImport(mockImport(Blueprint.fromArray(below)))
     const conflictingEntity = above.find((x) => x.name === "inserter")!
     const conflictingPosition = pos.add(conflictingEntity.position, area.left_top)
-    const higlightbox = surface.find_entity("highlight-box", conflictingPosition)
-    assert.not_nil(higlightbox)
+    const highlightBox = surface.find_entity("highlight-box", conflictingPosition)
+    assert.not_nil(highlightBox)
   })
 })
 

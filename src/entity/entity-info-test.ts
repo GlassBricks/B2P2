@@ -1,4 +1,4 @@
-import { bbox } from "../lib/geometry/bounding-box"
+import { bbox } from "../lib/geometry"
 import { EntitySampleName, getEntitySample } from "../test/entity-sample"
 import { computeTileBox, getEntityInfo } from "./entity-info"
 

@@ -1,7 +1,5 @@
-import { pos } from "../lib/geometry/position"
-import { UP } from "../lib/geometry/rotation"
-import { deepCompare, shallowCopy } from "../lib/util"
-import { Mutable, PRecord } from "../lib/util-types"
+import { deepCompare, Mutable, PRecord, shallowCopy } from "../lib"
+import { pos, UP } from "../lib/geometry"
 import {
   ConflictingProp,
   Entity,

@@ -8,14 +8,3 @@ export const HorizontalPusher = (): Spec => (
     }}
   />
 )
-
-export const HorizontalSpacer = (props: { width: number }): Spec => (
-  <empty-widget
-    styleMod={{
-      width: props.width,
-      height: 0,
-      horizontally_stretchable: false,
-      horizontally_squashable: false,
-    }}
-  />
-)

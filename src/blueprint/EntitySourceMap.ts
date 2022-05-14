@@ -1,8 +1,7 @@
 import { AreaIdentification } from "../area/AreaIdentification"
 import { Entity, getTileBox } from "../entity/entity"
 import { computeTileBoxOfLuaEntity } from "../entity/entity-info"
-import { bbox } from "../lib/geometry/bounding-box"
-import { pos } from "../lib/geometry/position"
+import { bbox, pos } from "../lib/geometry"
 import { Blueprint } from "./Blueprint"
 import { findCompatibleEntity } from "./blueprint-paste"
 import shift = bbox.shift

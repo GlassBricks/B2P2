@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 interface BlueprintEntity {
   readonly recipe?: string
   readonly override_stack_size?: number

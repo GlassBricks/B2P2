@@ -1,5 +1,4 @@
-import { mutableShallowCopy, shallowCopy } from "../lib/util"
-import { Mutable } from "../lib/util-types"
+import { Mutable, mutableShallowCopy, shallowCopy } from "../lib"
 import { EntitySampleName, getEntitySample } from "../test/entity-sample"
 import { EntityNumber, ReferenceEntity } from "./entity"
 import {

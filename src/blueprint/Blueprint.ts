@@ -1,8 +1,7 @@
 import { Entity, getTileBox, PasteEntity, PlainEntity, UpdateablePasteEntity } from "../entity/entity"
-import { Classes } from "../lib"
-import { bbox, BoundingBoxClass } from "../lib/geometry/bounding-box"
+import { Classes, isEmpty, shallowCopy } from "../lib"
+import { bbox, BoundingBoxClass } from "../lib/geometry"
 import { add, get, Map2D, MutableMap2D } from "../lib/map2d"
-import { isEmpty, shallowCopy } from "../lib/util"
 import { takeBlueprint, takeBlueprintWithIndex } from "./world"
 import contains = bbox.contains
 import fromCorners = bbox.fromCoords

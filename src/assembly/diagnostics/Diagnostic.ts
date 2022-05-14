@@ -1,5 +1,5 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
-import { Mutable } from "../../lib/util-types"
+import { Mutable } from "../../lib"
 
 export interface DiagnosticCategory<Id extends string> {
   readonly id: Id

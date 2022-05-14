@@ -1,4 +1,4 @@
-import { bound, Classes, Func, reg } from "../../lib"
+import { assertNever, bound, Classes, Func, reg } from "../../lib"
 import {
   Component,
   destroy,
@@ -10,7 +10,6 @@ import {
   Tracker,
 } from "../../lib/factoriojsx"
 import { ObservableList, ObservableListChange, Unsubscribe } from "../../lib/observable"
-import { assertNever } from "../../lib/util"
 
 export type ListProps<T, U extends GuiElementType> = {
   uses: U

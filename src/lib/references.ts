@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import Events from "./Events"
 import { Registry } from "./registry"
 
