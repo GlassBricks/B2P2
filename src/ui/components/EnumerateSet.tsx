@@ -32,7 +32,7 @@ export class EnumerateSet<T, U extends GuiElementType> extends Component<Enumera
   element!: BaseGuiElement
   associated = new LuaMap<T, BaseGuiElement>()
 
-  onMount(element: BaseGuiElement, tracker: Tracker): void {
+  override onMount(element: BaseGuiElement, tracker: Tracker): void {
     this.element = element
     const { of, map, ifEmpty } = this
     if (of.size() === 0) {

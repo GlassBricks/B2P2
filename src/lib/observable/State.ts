@@ -130,7 +130,7 @@ class MappedState<T, U> extends State<U> {
       return this(newMappedValue, oldMappedValue)
     }
   }
-  subscribe(observer: ChangeListener<U>): Callback {
+  override subscribe(observer: ChangeListener<U>): Callback {
     return this.source.subscribe(bind(MappedState.mappedObserver, observer, this.mapper, { oldValueSet: false }))
   }
 }

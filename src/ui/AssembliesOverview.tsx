@@ -52,7 +52,7 @@ export class AssembliesOverview extends Window {
   }
 
   element!: BaseGuiElement
-  onMount(element: BaseGuiElement): void {
+  override onMount(element: BaseGuiElement): void {
     this.element = element
   }
 

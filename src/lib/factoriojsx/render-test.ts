@@ -360,12 +360,12 @@ describe("Class component", () => {
       }
     }
 
-    onMount(element: BaseGuiElement) {
+    override onMount(element: BaseGuiElement) {
       results.push("mount")
       results.push(element?.type ?? error("no element in onMount"))
     }
 
-    onDestroy() {
+    override onDestroy() {
       results.push("destroyed")
     }
   }
@@ -386,12 +386,12 @@ describe("Class component", () => {
       }
     }
 
-    onMount(element: BaseGuiElement) {
+    override onMount(element: BaseGuiElement) {
       results.push("mount2")
       results.push((element?.type ?? error("no element in onMount")) + "2")
     }
 
-    onDestroy() {
+    override onDestroy() {
       results.push("destroyed2")
     }
   }

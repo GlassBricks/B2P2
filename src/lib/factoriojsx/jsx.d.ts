@@ -38,10 +38,10 @@ declare global {
     export type Element = Spec
 
     export interface ElementAttributesProperty {
-      _props
+      _props: any
     }
     export interface ElementChildrenAttribute {
-      children
+      children: any
     }
 
     export interface IntrinsicElements {

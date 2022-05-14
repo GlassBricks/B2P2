@@ -26,9 +26,9 @@
     "testorio": "^1.2.0",
     "testorio-tools": "^0.3.4",
     "ts-node": "^10.7.0",
-    "typed-factorio": "^1.0.0",
-    "typescript": "^4.6.3",
-    "typescript-to-lua": "1.4.3",
+    "typed-factorio": "^1.1.0",
+    "typescript": "^4.6.4",
+    "typescript-to-lua": "^1.4.4",
     "typescript-tstl-plugin": "^0.3.2"
   },
   "scripts": {
