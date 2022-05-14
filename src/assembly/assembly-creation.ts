@@ -1,5 +1,5 @@
 import { Prototypes } from "../constants"
-import { Events, protectedAction } from "../lib"
+import { Events, Functions, protectedAction } from "../lib"
 import { Assembly } from "./Assembly"
 
 export function tryClearCursor(player: LuaPlayer): player is LuaPlayer & { cursor_stack: LuaItemStack } {
@@ -19,3 +19,9 @@ Events.on_player_selected_area((event) => {
     player.clear_cursor()
   }
 })
+
+export function startAssemblyCreationFromEvent(event: OnGuiClickEvent): void {
+  const player = game.players[event.player_index]
+  if (player) startAssemblyCreation(player)
+}
+Functions.registerAll({ startAssemblyCreationFromEvent })

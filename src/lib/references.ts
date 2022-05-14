@@ -48,11 +48,12 @@ Events.onAll({
   on_load() {
     setmetatable(global.__classes, { __mode: "k" })
     for (const [table, className] of pairs(global.__classes)) {
-      const type = Classes.get(className)
+      const type = Classes.getOrNil(className)
       if (!type) {
         error(
           `Could not find a class with the name "${className}". Check that the class was registered properly, and/or migrations are correct.`,
         )
+        // continue
       }
       setmetatable(table, type.prototype as LuaMetatable<object>)
     }

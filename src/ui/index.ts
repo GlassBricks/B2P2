@@ -1,3 +1,3 @@
 import "./autosave"
+import "./CurrentAssemblyFrame"
 import "./custom-inputs"
-import "./mod-frame-and-gui"

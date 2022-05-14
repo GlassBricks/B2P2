@@ -13,6 +13,7 @@ export const enum Prototypes {
   ImportPreview = "bbpp:import-preview",
   ImportPreviewPositionMarker = "bbpp:import-preview-position-marker",
   ImportPreviewBoundaryTile = "bbpp:import-preview-boundary-tile",
+  CreateAssembly = "bbpp:create-assembly",
 }
 
 export const enum Styles {

@@ -1,6 +1,8 @@
 import { Data } from "typed-factorio/data/types"
 import * as util from "util"
 import { GuiConstants, Inputs, Prototypes, Sprites, Styles } from "./constants"
+import { PRecord } from "./lib/util-types"
+import deepcopy = util.table.deepcopy
 
 declare const data: Data
 
@@ -58,11 +60,11 @@ declare const data: Data
   const assemblyCreationTool = {
     type: "selection-tool",
     name: Prototypes.AssemblyCreationTool,
-    // subgroup: "tool",
-    order: "z[bbpp]-[assembly-creation-tool]",
+    subgroup: "tool",
+    order: "c[bbpp]-[assembly-creation-tool]",
     icon: "__bbpp__/graphics/add-assembly.png",
     icon_size: 64,
-    flags: ["only-in-cursor", "hidden", "not-stackable"],
+    flags: ["only-in-cursor", "hidden", "not-stackable", "spawnable"],
     stack_size: 1,
     stackable: false,
     selection_color: [250, 250, 250],
@@ -74,7 +76,7 @@ declare const data: Data
   }
 
   const importPreview = {
-    ...util.table.deepcopy(data.raw.blueprint.blueprint),
+    ...deepcopy(data.raw.blueprint.blueprint),
     name: Prototypes.ImportPreview,
     flags: ["only-in-cursor", "hidden"],
   }
@@ -131,7 +133,28 @@ declare const data: Data
     flags: ["hidden"],
   }
 
-  data.extend([assemblyCreationTool, importPreview, importPreviewPositionMarker, ippmItem, etherealWhiteTile, ipemItem])
+  const blueprintShortcut = deepcopy(data.raw.shortcut["give-blueprint"])
+
+  const createAssemblyShortcut: PRecord<string, any> = {
+    ...blueprintShortcut,
+    name: Prototypes.CreateAssembly,
+    style: "default",
+    item_to_spawn: Prototypes.AssemblyCreationTool,
+    order: "c[bbpp]-[create-assembly]",
+    associated_control_input: Prototypes.CreateAssembly,
+  }
+  delete createAssemblyShortcut.technology_to_unlock
+  delete createAssemblyShortcut.localised_name
+
+  data.extend([
+    assemblyCreationTool,
+    importPreview,
+    importPreviewPositionMarker,
+    ippmItem,
+    etherealWhiteTile,
+    ipemItem,
+    createAssemblyShortcut,
+  ])
 }
 
 // inputs
@@ -154,7 +177,15 @@ declare const data: Data
     alternative_key_sequence: "CONTROL + mouse-button-4",
   }
 
-  data.extend([teleportToSource, teleportForward, teleportBackward])
+  const createNewAssembly = {
+    type: "custom-input",
+    name: Prototypes.CreateAssembly,
+    action: "spawn-item",
+    item_to_spawn: Prototypes.AssemblyCreationTool,
+    key_sequence: "", // no default
+  }
+
+  data.extend([teleportToSource, teleportForward, teleportBackward, createNewAssembly])
 }
 
 // sprites

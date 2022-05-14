@@ -49,6 +49,9 @@ export abstract class Registry<T, N extends string> {
   get<V extends T>(name: N): V {
     return (this.nameToItem[name] as V) || error(`could not find ${this.itemName} with name ${name}`)
   }
+  getOrNil<V extends T>(name: N): V | undefined {
+    return this.nameToItem[name] as V | undefined
+  }
 
   nameOf(item: T): N {
     return (

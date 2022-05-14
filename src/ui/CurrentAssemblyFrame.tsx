@@ -1,48 +1,16 @@
 import * as mod_gui from "mod-gui"
 import { Assembly } from "../assembly/Assembly"
+import { startAssemblyCreationFromEvent } from "../assembly/assembly-creation"
 import { assemblyAtPlayerLocation } from "../assembly/player-tracking"
-import { bound, Callback, Classes, funcOn, funcRef, Functions, onPlayerInit, reg } from "../lib"
+import { bound, Callback, Classes, funcOn, funcRef, onPlayerInit, reg } from "../lib"
 import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../lib/factoriojsx"
-import { State, state } from "../lib/observable"
+import { state } from "../lib/observable"
 import { L_Gui } from "../locale"
 import { AssembliesOverview } from "./AssembliesOverview"
 import { openAssemblyManager } from "./assembly-manager"
 import { TitleBar } from "./components/TitleBar"
 
-const modButtonName = `${script.mod_name}:assemblies-overview`
 const modFrameName = `${script.mod_name}:current-assembly`
-
-function toggleAssembliesOverview(event: OnGuiClickEvent) {
-  const player = game.players[event.player_index]
-  AssembliesOverview.toggle(player)
-}
-
-function nameOfAssembly(assembly: Assembly | undefined): State<LocalisedString> | LocalisedString {
-  if (!assembly) return L_Gui.None
-  return assembly.displayName
-}
-
-Functions.registerAll({ toggleAssembliesOverview, nameOfAssembly })
-
-onPlayerInit((player) => {
-  const buttonFlow = mod_gui.get_button_flow(player)
-  destroy(buttonFlow[modButtonName])
-  render(
-    buttonFlow,
-    <button
-      style={mod_gui.button_style}
-      caption="B2P2"
-      tooltip={[L_Gui.ShowAllAssemblies]}
-      on_gui_click={funcRef(toggleAssembliesOverview)}
-      name={modButtonName}
-    />,
-  )
-
-  const frameFlow = mod_gui.get_frame_flow(player)
-  destroy(frameFlow[modFrameName])
-  render(frameFlow, <CurrentAssembly player={player} />)
-})
-
 @Classes.register()
 class CurrentAssembly extends Component<{ player: LuaPlayer }> {
   currentName = state<LocalisedString>("")
@@ -55,7 +23,7 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
     tracker.onDestroy(unsub)
 
     return (
-      <frame style={mod_gui.frame_style} name={modFrameName}>
+      <frame style={mod_gui.frame_style} name={modFrameName} direction="vertical">
         <TitleBar title={[L_Gui.CurrentAssembly]}>
           <button
             style="list_box_item"
@@ -64,6 +32,10 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
             enabled={assemblyState.truthy()}
           />
         </TitleBar>
+        <flow direction="horizontal">
+          <button caption={[L_Gui.AllAssemblies]} on_gui_click={reg(this.openAssemblyList)} />
+          <button caption={[L_Gui.NewAssembly]} on_gui_click={funcRef(startAssemblyCreationFromEvent)} />
+        </flow>
       </frame>
     )
   }
@@ -86,4 +58,17 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
     const assembly = assemblyAtPlayerLocation(this.player.index).get()
     if (assembly && assembly.isValid()) openAssemblyManager(this.player, assembly)
   }
+
+  @bound
+  private openAssemblyList() {
+    AssembliesOverview.toggle(this.player)
+  }
 }
+export function renderCurrentAssemblyFrame(player: LuaPlayer): void {
+  const frameFlow = mod_gui.get_frame_flow(player)
+  destroy(frameFlow[modFrameName])
+  render(frameFlow, <CurrentAssembly player={player} />)
+}
+onPlayerInit((player) => {
+  renderCurrentAssemblyFrame(player)
+})

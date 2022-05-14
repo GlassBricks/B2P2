@@ -1,6 +1,6 @@
 import { teleportPlayerToArea } from "../area/teleport-history"
 import { Assembly } from "../assembly/Assembly"
-import { startAssemblyCreation } from "../assembly/assembly-creation"
+import { startAssemblyCreationFromEvent } from "../assembly/assembly-creation"
 import { bound, Classes, funcRef, reg } from "../lib"
 import { destroy, FactorioJsx, Spec } from "../lib/factoriojsx"
 import { L_Gui } from "../locale"
@@ -33,7 +33,7 @@ export class AssembliesOverview extends Window {
             />
             <AssembliesList onSelect={reg(this.assemblyButtonClick)} />
             <flow direction="horizontal">
-              <button caption={[L_Gui.NewAssembly]} on_gui_click={reg(this.newAssembly)} />
+              <button caption={[L_Gui.NewAssembly]} on_gui_click={funcRef(startAssemblyCreationFromEvent)} />
             </flow>
           </flow>
         </frame>
@@ -49,11 +49,6 @@ export class AssembliesOverview extends Window {
     } else {
       openAssemblyManager(player, assembly)
     }
-  }
-
-  @bound
-  private newAssembly(event: OnGuiClickEvent) {
-    startAssemblyCreation(game.players[event.player_index])
   }
 
   element!: BaseGuiElement

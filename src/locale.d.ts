@@ -23,17 +23,23 @@ export declare const enum L_Controls {
   BbppTeleportForward = "controls.bbpp:teleport-forward",
   /** Teleport to entity at source assembly */
   BbppTeleportToSource = "controls.bbpp:teleport-to-source",
+  /** Create new assembly */
+  BbppCreateAssembly = "controls.bbpp:create-assembly",
+}
+export declare const enum L_ShortcutName {
+  /** BBPP: New assembly */
+  BbppCreateAssembly = "shortcut-name.bbpp:create-assembly",
 }
 export declare const enum L_Diagnostic {
   /** [color=red]Collisions:[/color] */
   Overlap = "bbpp.diagnostic.overlap",
   /** __1__ could not be pasted */
   OverlapItem = "bbpp.diagnostic.overlap-item",
-  /** [color=purple]Upgrades[img=info]:[/color] */
+  /** [color=purple]Upgrades:[/color] [img=info] */
   CannotUpgrade = "bbpp.diagnostic.cannot-upgrade",
   /** Upgrades/fast-replace cannot be affected by blueprinting. Better support for this may be implemented in the future. */
   CannotUpgradeDetail = "bbpp.diagnostic.cannot-upgrade-detail",
-  /** __1__; upgraded from __2__ */
+  /** __1__: upgraded from __2__ */
   CannotUpgradeItem = "bbpp.diagnostic.cannot-upgrade-item",
   /** [color=yellow]Item requests changes:[/color] */
   ItemsIgnored = "bbpp.diagnostic.items-ignored",
@@ -91,8 +97,12 @@ export declare const enum L_Gui {
   CurrentAssembly = "bbpp.gui.current-assembly",
   /** <None> */
   None = "bbpp.gui.none",
-  /** Show all assemblies */
-  ShowAllAssemblies = "bbpp.gui.show-all-assemblies",
+  /** All assemblies */
+  AllAssemblies = "bbpp.gui.all-assemblies",
+  /** No assemblies */
+  NoAssemblies = "bbpp.gui.no-assemblies",
+  /** New assembly */
+  NewAssembly = "bbpp.gui.new-assembly",
   /** Rename assembly */
   RenameAssembly = "bbpp.gui.rename-assembly",
   /** Cancel rename */
@@ -155,10 +165,6 @@ export declare const enum L_Gui {
   AssemblyOverviewCaption = "bbpp.gui.assembly-overview-caption",
   /** [font=default-bold]Click[/font] to open.\n[font=default-bold]Control-click[/font] to teleport to assembly. */
   AssemblyOverviewCaptionTooltip = "bbpp.gui.assembly-overview-caption-tooltip",
-  /** No assemblies */
-  NoAssemblies = "bbpp.gui.no-assemblies",
-  /** New assembly */
-  NewAssembly = "bbpp.gui.new-assembly",
   /** Assembly: */
   AssemblyManagerTitle = "bbpp.gui.assembly-manager-title",
 }
