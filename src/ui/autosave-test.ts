@@ -20,7 +20,7 @@ before_all(() => {
   }
   player = getPlayer()
   oldAutosaveSetting = player.mod_settings[Settings.Autosave].value as boolean
-  assembly = Assembly.create("test", game.surfaces[1], bbox.fromCoords(1, 1, 20, 20))
+  assembly = Assembly.create("test", game.surfaces[1], bbox.fromCoords(0, 0, 10, 10))
   const content = assembly.getContent()!
   rawset(content, "commitAndReset", content.commitAndReset)
   saved = spy.on(content, "commitAndReset")
@@ -42,7 +42,7 @@ function teleportIn() {
   player.teleport(pos(1.5, 1.5))
 }
 function teleportOut() {
-  player.teleport(pos(0, 0))
+  player.teleport(pos(-1, -1))
 }
 
 test("autosave works", () => {

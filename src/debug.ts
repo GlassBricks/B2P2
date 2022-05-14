@@ -7,6 +7,14 @@ declare function __getTestFiles(): string[]
 declare let global: unknown
 
 if (script.active_mods.testorio) {
+  function reinit() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    global = {}
+    Events.raiseFakeEventNamed("on_init", undefined)
+  }
+
+  commands.add_command("reinit", "", reinit)
+
   let testsStarted = false
   Events.on_game_created_from_scenario(() => {
     testsStarted = true
@@ -25,9 +33,7 @@ if (script.active_mods.testorio) {
   require("__testorio__/init")(__getTestFiles(), {
     tag_blacklist: tagBlacklist,
     before_test_run() {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      global = {}
-      Events.raiseFakeEventNamed("on_init", undefined)
+      reinit()
       const force = game.forces.player
       force.enable_all_recipes()
     },

@@ -57,7 +57,7 @@ export class Assembly implements AreaIdentification {
   }
 
   static create(name: string, surface: LuaSurface, area: BoundingBoxRead): Assembly {
-    area = bbox.roundTile(area)
+    area = bbox.scale(area, 0.5).roundTile().scale(2) // round to nearest even tile, so that rails work
     assert(surface.valid)
     Assembly.checkDoesNotIntersectExistingArea(surface, area)
 

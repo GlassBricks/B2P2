@@ -17,10 +17,11 @@ test("create", () => {
   assert.true(startAssemblyCreation(player))
   assert.equal(Prototypes.AssemblyCreationTool, player.cursor_stack?.name)
 
+  const area = bbox.fromCoords(0, 0, 2, 2)
   script.get_event_handler(defines.events.on_player_selected_area)!({
     name: defines.events.on_player_selected_area,
     player_index: player.index,
-    area: bbox.fromCoords(0, 0, 1, 1),
+    area,
     entities: [],
     tiles: [],
     item: player.cursor_stack!.name,
@@ -34,5 +35,5 @@ test("create", () => {
   assert.not_nil(assembly, "assembly created")
   assert.equal("", assembly.name.get())
   assert.equal(player.surface, assembly.surface)
-  assert.same(bbox.fromCoords(0, 0, 1, 1), assembly.area)
+  assert.same(area, assembly.area)
 })
