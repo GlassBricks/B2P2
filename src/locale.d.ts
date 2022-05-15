@@ -96,7 +96,7 @@ export declare const enum L_Interaction {
   EntityAlreadyAtSource = "b2p2.interaction.entity-already-at-source",
 }
 export declare const enum L_Gui {
-  /** <Unnamed assembly> */
+  /** <Unnamed assembly __1__> */
   UnnamedAssembly = "b2p2.gui.unnamed-assembly",
   /** Current assembly: */
   CurrentAssembly = "b2p2.gui.current-assembly",
@@ -206,7 +206,7 @@ export declare const enum L_TipsAndTricksItemDescription {
   Introduction = "tips-and-tricks-item-description.b2p2:introduction",
   /** Assemblies are the main element of this mod. An assembly is an in-world area that holds a blueprint or part of a blueprint.\nAssemblies can import any number of other assemblies (see the 'imports' section), and have their own content.\n\nTo create an assembly, use the 'New Assembly' shortcut button (in the same location as the create blueprint button).\nYou can edit the contents of an assembly directly in-world. Remember to save your changes! */
   Assemblies = "tips-and-tricks-item-description.b2p2:assemblies",
-  /** The window below the map editor shows the assembly at your current position, if any. You can click on the name of the assembly to open the Assembly Management window.\nYou can also open an assembly by navigating the 'All Assemblies' window. */
+  /** While in the map editor, a window in the top left shows the assembly at your current position. You can click on the name of the assembly to open the Assembly Management window.\nYou can also open an assembly by navigating the 'All Assemblies' window. */
   AssemblyManagement = "tips-and-tricks-item-description.b2p2:assembly-management",
   /** Assemblies can import the content of other assemblies.\n\nTo add an import, click the 'Add Import' button in the 'Imports' tab of the Assembly Management window.\nThe assembly is created by pasting the imports from top to bottom in the imports list, with the assembly's own contents being last.\n\nNote: in order for changes in imports to take effect, the imported (source) assembly must first be saved, then the current (target) assembly must be resetted or saved. (This behavior may change in the near future!) */
   Imports = "tips-and-tricks-item-description.b2p2:imports",

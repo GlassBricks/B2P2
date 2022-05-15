@@ -1,7 +1,8 @@
 import { AreaIdentification } from "../area/AreaIdentification"
 import { Colors } from "../constants"
-import { bound, Classes, Events, raiseUserError, reg } from "../lib"
+import { bound, Classes, Events, Mutable, raiseUserError, reg } from "../lib"
 import { BBox, bbox } from "../lib/geometry"
+import { versionStrLess } from "../lib/migration"
 import {
   GlobalEvent,
   MutableObservableSet,
@@ -20,6 +21,7 @@ export const AssemblyDeleted = new GlobalEvent<Assembly>()
 @Classes.register()
 export class Assembly implements AreaIdentification {
   readonly name: MutableState<string>
+  readonly id?: number
   readonly displayName: State<LocalisedString>
 
   private readonly boxRenderId: number
@@ -67,6 +69,7 @@ export class Assembly implements AreaIdentification {
   private static createUnchecked(name: string, surface: LuaSurface, area: BBox): Assembly {
     const content = createAssemblyContent(surface, area)
     const assembly = new Assembly(name, surface, area, content)
+    ;(assembly as Mutable<Assembly>).id = global.nextAssemblyId++
     global.assemblies.add(assembly)
     AssemblyCreated.raise(assembly)
     return assembly
@@ -112,7 +115,7 @@ export class Assembly implements AreaIdentification {
 
   @bound
   private unnamedIfEmpty(name: string): LocalisedString {
-    return name === "" ? [L_Gui.UnnamedAssembly] : name
+    return name === "" ? [L_Gui.UnnamedAssembly, this.id] : name
   }
 
   isValid(): boolean {
@@ -143,9 +146,11 @@ export class Assembly implements AreaIdentification {
 
 declare const global: {
   assemblies: MutableObservableSet<Assembly>
+  nextAssemblyId: number
 }
 Events.on_init(() => {
   global.assemblies = observableSet()
+  global.nextAssemblyId = 1
 })
 Events.on_surface_deleted(() => {
   if (global.assemblies)
@@ -154,4 +159,19 @@ Events.on_surface_deleted(() => {
         assembly.delete()
       }
     }
+})
+
+// todo: proper migration stuff
+Events.on_configuration_changed((data) => {
+  const changed = data.mod_changes[script.mod_name]
+  if (!changed) return
+  if (versionStrLess(changed.old_version, "0.1.2")) {
+    global.nextAssemblyId ??= 1
+    if (global.assemblies) {
+      for (const [assembly] of global.assemblies) {
+        ;(assembly as Mutable<Assembly>).id = global.nextAssemblyId++
+        assembly.name.forceUpdate()
+      }
+    }
+  }
 })

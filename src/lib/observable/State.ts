@@ -58,6 +58,8 @@ export interface MutableState<T> extends State<T> {
   setValueFn(value: T): Callback
 
   toggleFn(this: MutableState<boolean>): Callback
+
+  forceUpdate(): void
 }
 
 @Classes.register("State")
@@ -78,6 +80,12 @@ class MutableStateImpl<T> extends State<T> implements MutableState<T> {
     if (oldValue !== value) {
       this.listeners.fire(value, oldValue)
     }
+  }
+
+  public forceUpdate(value: T = this.value): void {
+    const oldValue = this.value
+    this.value = value
+    this.listeners.fire(value, oldValue)
   }
 
   private static setValueFn(this: MutableStateImpl<any>, value: unknown) {
