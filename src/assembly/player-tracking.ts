@@ -53,9 +53,10 @@ const LastAssembly = PlayerData<MutableState<Assembly | undefined>>("lastAssembl
 
 function computeAssemblyAtPlayerLocation(player: LuaPlayer) {
   const index = player.index
+  const lastAssemblyState = LastAssembly[index]
+  if (!lastAssemblyState) return // bug workaround
   const position = player.position
   const surface = player.surface
-  const lastAssemblyState = LastAssembly[index]
   const lastAssembly = lastAssemblyState.get()
   if (
     lastAssembly &&
