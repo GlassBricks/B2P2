@@ -3,33 +3,33 @@
 
 export declare const enum L_ItemName {
   /** Assembly Creation Tool */
-  B2p2AssemblyCreationTool = "item-name.b2p2:assembly-creation-tool",
+  AssemblyCreationTool = "item-name.b2p2:assembly-creation-tool",
   /** Import Preview blueprint */
-  B2p2ImportPreview = "item-name.b2p2:import-preview",
+  ImportPreview = "item-name.b2p2:import-preview",
   /** Import Preview metadata */
-  B2p2ImportPreviewPositionMarker = "item-name.b2p2:ImportPreviewPositionMarker",
+  ImportPreviewPositionMarker = "item-name.b2p2:import-preview-position-marker",
 }
 export declare const enum L_ModSettingName {
   /** Auto-save assemblies [img=info] */
-  B2p2AutoSave = "mod-setting-name.b2p2:auto-save",
+  AutoSave = "mod-setting-name.b2p2:auto-save",
 }
 export declare const enum L_ModSettingDescription {
   /** Automatically attempt to save when leaving an assembly. */
-  B2p2AutoSave = "mod-setting-description.b2p2:auto-save",
+  AutoSave = "mod-setting-description.b2p2:auto-save",
 }
 export declare const enum L_Controls {
   /** Teleport backward */
-  B2p2TeleportBackward = "controls.b2p2:teleport-backward",
+  TeleportBackward = "controls.b2p2:teleport-backward",
   /** Teleport forward */
-  B2p2TeleportForward = "controls.b2p2:teleport-forward",
+  TeleportForward = "controls.b2p2:teleport-forward",
   /** Teleport to entity at source assembly */
-  B2p2TeleportToSource = "controls.b2p2:teleport-to-source",
+  TeleportToSource = "controls.b2p2:teleport-to-source",
   /** Create new assembly */
-  B2p2CreateAssembly = "controls.b2p2:create-assembly",
+  CreateAssembly = "controls.b2p2:create-assembly",
 }
 export declare const enum L_ShortcutName {
   /** b2p2: New assembly */
-  B2p2CreateAssembly = "shortcut-name.b2p2:create-assembly",
+  CreateAssembly = "shortcut-name.b2p2:create-assembly",
 }
 export declare const enum L_B2p2 {
   /** [entity=__1__] */
@@ -176,4 +176,52 @@ export declare const enum L_Gui {
   AssemblyOverviewCaptionTooltip = "b2p2.gui.assembly-overview-caption-tooltip",
   /** Assembly: */
   AssemblyManagerTitle = "b2p2.gui.assembly-manager-title",
+}
+export declare const enum L_TipsAndTricksItemName {
+  /** Big Blueprint Planning */
+  Introduction = "tips-and-tricks-item-name.b2p2:introduction",
+  /** Assemblies */
+  Assemblies = "tips-and-tricks-item-name.b2p2:assemblies",
+  /** Management window */
+  AssemblyManagement = "tips-and-tricks-item-name.b2p2:assembly-management",
+  /** Imports */
+  Imports = "tips-and-tricks-item-name.b2p2:imports",
+  /** Reference entities */
+  ImportsReferenceEntities = "tips-and-tricks-item-name.b2p2:imports-reference-entities",
+  /** Paste diagnostics */
+  Diagnostics = "tips-and-tricks-item-name.b2p2:diagnostics",
+  /** Overlap */
+  DiagnosticsOverlap = "tips-and-tricks-item-name.b2p2:diagnostics-overlap",
+  /** Upgrades */
+  DiagnosticsUpgrades = "tips-and-tricks-item-name.b2p2:diagnostics-upgrades",
+  /** Item request changes */
+  DiagnosticsItemRequests = "tips-and-tricks-item-name.b2p2:diagnostics-item-requests",
+  /** Navigation */
+  Navigation = "tips-and-tricks-item-name.b2p2:navigation",
+  /** Feedback */
+  Feedback = "tips-and-tricks-item-name.b2p2:feedback",
+}
+export declare const enum L_TipsAndTricksItemDescription {
+  /** Welcome to Big Blueprint Planning, v2! This is a quick overview of the features of the mod.\nNote: this mod is intended to be used with the map editor. */
+  Introduction = "tips-and-tricks-item-description.b2p2:introduction",
+  /** Assemblies are the main element of this mod. An assembly is an in-world area that holds a blueprint or part of a blueprint.\nAssemblies can import any number of other assemblies (see the 'imports' section), and have their own content.\n\nTo create an assembly, use the 'New Assembly' shortcut button (in the same location as the create blueprint button).\nYou can edit the contents of an assembly directly in-world. Remember to save your changes! */
+  Assemblies = "tips-and-tricks-item-description.b2p2:assemblies",
+  /** The window below the map editor shows the assembly at your current position, if any. You can click on the name of the assembly to open the Assembly Management window.\nYou can also open an assembly by navigating the 'All Assemblies' window. */
+  AssemblyManagement = "tips-and-tricks-item-description.b2p2:assembly-management",
+  /** Assemblies can import the content of other assemblies.\n\nTo add an import, click the 'Add Import' button in the 'Imports' tab of the Assembly Management window.\nThe assembly is created by pasting the imports from top to bottom in the imports list, with the assembly's own contents being last.\n\nNote: in order for changes in imports to take effect, the imported (source) assembly must first be saved, then the current (target) assembly must be resetted or saved. (This behavior may change in the near future!) */
+  Imports = "tips-and-tricks-item-description.b2p2:imports",
+  /** If you change the settings of an imported entity (recipe, control behavior, filters, etc.), this creates a reference entity, where ONLY the changed properties are saved. This way, if other properties in the source assembly are changed, they will be reflected in the target assembly.\n\nExample: Build B imports Build A, which has an [entity=assembling-machine-1]. Build B changes the recipe of the assembling machine, which is then saved.\nLater, the assembly machine in Build A is upgraded to an [entity=assembling-machine-2]. When Build B is resetted, the imported assembly machine is also upgraded, but contains the same recipe change.\n\nCircuit wire connections to imported entities are also handled; only ADDED wires are saved.\nPOWER connections are not handled (the built-in blueprint-paste system is used instead). */
+  ImportsReferenceEntities = "tips-and-tricks-item-description.b2p2:imports-reference-entities",
+  /** When pasting the imports of an assembly, there may be issues. These issues are shown in the 'Diagnostics' tab of the Assembly Manager window, and corresponding entities are highlighted in-world.\n\nYou can click on a diagnostic in the diagnostic list to teleport to the entity.\nFor appropriate diagnostics, you can control-click on the diagnostic to teleport to the entity at the import source. */
+  Diagnostics = "tips-and-tricks-item-description.b2p2:diagnostics",
+  /** Overlap: An entity overlaps with an imported entity (higher on the import list). These are highlighted in red, and an entity-ghost is created.\nWARNING: if an overlapped entity is not fixed, but the assembly is saved, the entity may not be saved properly; Use 'reset' instead of 'save'.\nThe 'Navigation' section may contain helpful tools for resolving overlaps. */
+  DiagnosticsOverlap = "tips-and-tricks-item-description.b2p2:diagnostics-overlap",
+  /** Upgrades: An entity is upgraded from a previous import. These are highlighted in green.\nUpgrades cannot be affected by pasting blueprints. However, sometimes this change may be desired. If so, to ignore this diagnostic, check the 'Allow upgrades' option in the Additional settings of the import (the ... button in the 'Imports' tab). */
+  DiagnosticsUpgrades = "tips-and-tricks-item-description.b2p2:diagnostics-upgrades",
+  /** Item requests: An entity has item-requests different from a below imported entity. These are highlighted in yellow. */
+  DiagnosticsItemRequests = "tips-and-tricks-item-description.b2p2:diagnostics-item-requests",
+  /** There are various controls to help you navigate around assemblies.\n__ALT_CONTROL__1__b2p2:teleport-to-source__ while hovering over an imported entity in an assembly to teleport to the corresponding entity in the import source assembly.\nA navigation history is maintained every time you teleport. Use __CONTROL__b2p2:teleport-backward__ and __CONTROL__b2p2:teleport-forward__ to navigate backward and forward in history. */
+  Navigation = "tips-and-tricks-item-description.b2p2:navigation",
+  /** Feedback is greatly appreciated! Please report any issues or suggestions on the mod home page (https://mods.factorio.com/mod/b2p2/discussion). */
+  Feedback = "tips-and-tricks-item-description.b2p2:feedback",
 }

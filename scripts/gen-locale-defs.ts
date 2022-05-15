@@ -42,8 +42,8 @@ const enumDeclarations: ts.EnumDeclaration[] = []
 for (const [section, items] of Object.entries(config)) {
   const statements: ts.EnumMember[] = []
   for (const [key, value] of Object.entries(items)) {
-    const propName = toPascalCase(key)
     const valueName = `${section}.${key}`
+    const propName = toPascalCase(key.slice(key.indexOf(":") + 1))
     const member = ts.factory.createEnumMember(propName, ts.factory.createStringLiteral(valueName))
     ts.addSyntheticLeadingComment(member, ts.SyntaxKind.MultiLineCommentTrivia, `* ${value} `, true)
     statements.push(member)
