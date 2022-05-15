@@ -1,8 +1,8 @@
 {
   "name": "b2p2",
-  "version": "0.1.2",
-  "title": "Big BluePrint Planning, v2",
-  "description": "Tooling to design BIG and staged blueprints, especially those used in 100% speedruns.",
+  "version": "0.2.0",
+  "title": "Big BluePrint Planning v2",
+  "description": "Tools for designing BIG and staged blueprints, especially those used in 100% speedruns.",
   "author": "GlassBricks",
   "factorio_version": "1.1",
   "package": {

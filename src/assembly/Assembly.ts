@@ -165,7 +165,7 @@ Events.on_surface_deleted(() => {
 Events.on_configuration_changed((data) => {
   const changed = data.mod_changes[script.mod_name]
   if (!changed) return
-  if (versionStrLess(changed.old_version, "0.1.2")) {
+  if (versionStrLess(changed.old_version, "0.2.0")) {
     global.nextAssemblyId ??= 1
     if (global.assemblies) {
       for (const [assembly] of global.assemblies) {
