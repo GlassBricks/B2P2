@@ -33,6 +33,9 @@ test("getAssemblyAtPlayerLocation", () => {
   const assembly = Assembly.create("test", surface, area)
 
   const player = getPlayer()
+  if (player.controller_type !== defines.controllers.editor) {
+    player.toggle_map_editor()
+  }
 
   const state = assemblyAtPlayerLocation(player.index)
   for (const [x, y] of area.expand(1).iterateTiles()) {
@@ -46,4 +49,10 @@ test("getAssemblyAtPlayerLocation", () => {
       assert.is_nil(assemblyAtPosition)
     }
   }
+
+  // sets to undefined when editor mode disabled
+  player.teleport(pos(0, 0), surface)
+  assert.not_nil(state.get())
+  player.toggle_map_editor()
+  assert.is_nil(state.get())
 })

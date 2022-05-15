@@ -69,8 +69,17 @@ function computeAssemblyAtPlayerLocation(player: LuaPlayer) {
   lastAssemblyState.set(newAssembly)
 }
 
+const editorMode = defines.controllers.editor
 Events.on_player_changed_position((e) => {
-  computeAssemblyAtPlayerLocation(game.get_player(e.player_index)!)
+  const player = game.get_player(e.player_index)!
+  if (player.controller_type === editorMode) computeAssemblyAtPlayerLocation(player!)
+})
+
+Events.on_player_toggled_map_editor((e) => {
+  const player = game.get_player(e.player_index)!
+  const isEditor = player.controller_type === editorMode
+  if (isEditor) computeAssemblyAtPlayerLocation(player!)
+  else LastAssembly[player.index].set(undefined)
 })
 
 AssemblyDeleted.subscribe((assembly) => {
@@ -83,7 +92,11 @@ AssemblyCreated.subscribe((assembly) => {
   for (const [index, a] of LastAssembly) {
     if (a.get() === undefined) {
       const player = game.players[index]
-      if (player.surface === assembly.surface && contains(assembly.area, player.position)) {
+      if (
+        player.controller_type === editorMode &&
+        player.surface === assembly.surface &&
+        contains(assembly.area, player.position)
+      ) {
         a.set(assembly)
       }
     }

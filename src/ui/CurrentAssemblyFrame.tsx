@@ -1,8 +1,7 @@
 import * as mod_gui from "mod-gui"
 import { Assembly } from "../assembly/Assembly"
-import { startAssemblyCreationFromEvent } from "../assembly/assembly-creation"
 import { assemblyAtPlayerLocation } from "../assembly/player-tracking"
-import { bound, Callback, Classes, funcOn, funcRef, onPlayerInit, reg } from "../lib"
+import { bound, Callback, Classes, Events, funcOn, onPlayerInit, reg } from "../lib"
 import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../lib/factoriojsx"
 import { state } from "../lib/observable"
 import { L_Gui } from "../locale"
@@ -34,7 +33,6 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
         </TitleBar>
         <flow direction="horizontal">
           <button caption={[L_Gui.AllAssemblies]} on_gui_click={reg(this.openAssemblyList)} />
-          <button caption={[L_Gui.NewAssembly]} on_gui_click={funcRef(startAssemblyCreationFromEvent)} />
         </flow>
       </frame>
     )
@@ -68,5 +66,32 @@ function renderCurrentAssemblyFrame(player: LuaPlayer): void {
   const frameFlow = mod_gui.get_frame_flow(player)
   destroy(frameFlow[modFrameName])
   render(frameFlow, <CurrentAssembly player={player} />)
+
+  // hacky fix for editor window blocking
+  player.gui.left.style.left_margin ??= 474
 }
-onPlayerInit(renderCurrentAssemblyFrame)
+function destroyCurrentAssemblyFrame(player: LuaPlayer): void {
+  const frameFlow = mod_gui.get_frame_flow(player)
+  destroy(frameFlow[modFrameName])
+}
+
+function setFrame(player: LuaPlayer) {
+  const isEditor = player.controller_type === defines.controllers.editor
+  if (isEditor) {
+    renderCurrentAssemblyFrame(player)
+  } else {
+    destroyCurrentAssemblyFrame(player)
+  }
+}
+Events.onAll({
+  on_player_toggled_map_editor(event) {
+    setFrame(game.get_player(event.player_index)!)
+  },
+  on_configuration_changed(data) {
+    if (data.mod_changes[script.mod_name]?.old_version)
+      for (const [, player] of game.players) {
+        setFrame(player)
+      }
+  },
+})
+onPlayerInit(setFrame)

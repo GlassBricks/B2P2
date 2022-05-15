@@ -75,7 +75,7 @@ class ImportItem extends Component<ImportItemProps> {
       <frame
         style="bordered_frame"
         styleMod={{
-          padding: [0, 5],
+          padding: [2, 5],
           height: GuiConstants.ImportItemHeight,
         }}
       >

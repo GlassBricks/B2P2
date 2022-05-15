@@ -18,6 +18,9 @@ before_all(() => {
     assembly.delete()
   }
   player = getPlayer()
+  if (player.controller_type !== defines.controllers.editor) {
+    player.toggle_map_editor()
+  }
   oldAutosaveSetting = player.mod_settings[Settings.Autosave].value as boolean
   assembly = Assembly.create("test", game.surfaces[1], bbox.fromCoords(0, 0, 10, 10))
   const content = assembly.getContent()!
