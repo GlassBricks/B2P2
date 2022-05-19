@@ -2,7 +2,7 @@ import { AreaIdentification } from "../area/AreaIdentification"
 import { Colors } from "../constants"
 import { bound, Classes, Events, Mutable, raiseUserError, reg } from "../lib"
 import { BBox, bbox } from "../lib/geometry"
-import { versionStrLess } from "../lib/migration"
+import { Migration } from "../lib/migration"
 import {
   GlobalEvent,
   MutableObservableSet,
@@ -162,16 +162,13 @@ Events.on_surface_deleted(() => {
 })
 
 // todo: proper migration stuff
-Events.on_configuration_changed((data) => {
-  const changed = data.mod_changes[script.mod_name]
-  if (!changed) return
-  if (versionStrLess(changed.old_version, "0.2.0")) {
-    global.nextAssemblyId ??= 1
-    if (global.assemblies) {
-      for (const [assembly] of global.assemblies) {
-        ;(assembly as Mutable<Assembly>).id = global.nextAssemblyId++
-        assembly.name.forceUpdate()
-      }
-    }
+Migration.since("0.2.0", () => {
+  global.nextAssemblyId = 1
+})
+Migration.fromBefore("0.2.0", () => {
+  if (!global.assemblies) return
+  for (const [assembly] of global.assemblies) {
+    ;(assembly as Mutable<Assembly>).id = global.nextAssemblyId++
+    assembly.name.forceUpdate()
   }
 })
