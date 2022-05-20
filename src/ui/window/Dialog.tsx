@@ -26,8 +26,8 @@ class Dialog extends Component<
 > {
   private element!: FrameGuiElementMembers
 
-  private onBackFn?: (data: any) => void
-  private onConfirmFn?: (data: any) => void
+  private onBackFn?: Func<(player: LuaPlayer) => void>
+  private onConfirmFn?: Func<(player: LuaPlayer) => void>
   private redConfirm?: boolean
 
   render(props: DialogueProps & { translated: string }): Spec {

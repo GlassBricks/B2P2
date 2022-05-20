@@ -1,6 +1,6 @@
 // this could maybe be moved to shared lib in the future
 
-import { bound, Classes, reg } from "../../lib"
+import { bound, Classes, Func, reg } from "../../lib"
 import {
   Component,
   destroyChildren,
@@ -14,14 +14,14 @@ import { State } from "../../lib/observable"
 
 export type IfProps = {
   condition: State<boolean>
-  then: () => Spec | undefined
-  else?: () => Spec | undefined
+  then: Func<() => Spec | undefined>
+  else?: Func<() => Spec | undefined>
 } & ElemProps<"flow">
 
 @Classes.register()
 export class If extends Component<IfProps> {
-  then!: () => Spec | undefined
-  else?: () => Spec | undefined
+  then!: Func<() => Spec | undefined>
+  else?: Func<() => Spec | undefined>
   element!: FlowGuiElementMembers
 
   render(props: IfProps, tracker: Tracker): Spec {
