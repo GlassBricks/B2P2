@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["*-test.ts", "src/debug.ts"],
+  "exclude": ["**/*-test.ts", "src/debug.ts", "src/test"],
   "tstl": {
     "luaTarget": "5.2",
     "noResolvePaths": ["__testorio__/init"],
