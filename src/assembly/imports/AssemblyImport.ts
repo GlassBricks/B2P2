@@ -1,7 +1,7 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { Colors } from "../../constants"
-import { BBox, bbox, Position } from "../../lib/geometry"
+import { BBox, bbox } from "../../lib/geometry"
 import { State } from "../../lib/observable"
 
 export interface AssemblyImport {
@@ -9,7 +9,6 @@ export interface AssemblyImport {
   // undefined means is not valid
   content(): State<Blueprint | undefined>
 
-  getRelativePosition(): Position
   getRelativeBoundingBox(): BBox
   getSourceArea(): AreaIdentification | undefined
 }

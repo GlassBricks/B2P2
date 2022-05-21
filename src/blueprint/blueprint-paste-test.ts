@@ -1,7 +1,7 @@
 import { FullEntity, ReferenceEntity } from "../entity/entity"
 import { createReferenceOnlyEntity } from "../entity/entity-paste"
 import { assertNever, mutableShallowCopy } from "../lib"
-import { BoundingBoxClass, pos, Position } from "../lib/geometry"
+import { bbox, BoundingBoxClass, pos, Position } from "../lib/geometry"
 import { BlueprintSampleName, BlueprintSampleNames, getBlueprintSample } from "../test/blueprint-sample"
 import { getEntitySample } from "../test/entity-sample"
 import { getWorkingArea1 } from "../test/misc"
@@ -66,7 +66,8 @@ describe("pasteAndFindConflicts", () => {
     options: BlueprintPasteOptions = {},
   ) {
     pasteBlueprint(surface, pasteLocation, below.entities)
-    return pasteAndFindConflicts(surface, area, above, pasteLocation, options)
+    const pasteArea = bbox.shiftToOrigin(area).shift(pasteLocation)
+    return pasteAndFindConflicts(surface, area, above, pasteArea, options)
   }
 
   it("pasting empty on empty produces no conflicts", () => {
@@ -284,7 +285,7 @@ describe("pasteAndFindConflicts", () => {
     const inserter = surface.find_entities_filtered({ name: "inserter", area })[0]
     assert.not_nil(inserter, "inserter below")
     const oldControl = (inserter.get_control_behavior() as LuaInserterControlBehavior).circuit_read_hand_contents
-    pasteAndFindConflicts(surface, area, above, pasteLocation, { allowUpgrades: true })
+    pasteAndFindConflicts(surface, area, above, area, { allowUpgrades: true })
     const fastInserter = surface.find_entities_filtered({ name: "fast-inserter", area })[0]
     assert.not_nil(fastInserter, "inserter was upgraded")
     assert.false(inserter.valid, "old inserter replaced")

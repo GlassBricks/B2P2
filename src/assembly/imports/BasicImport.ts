@@ -19,9 +19,6 @@ export class BasicImport implements AssemblyImport {
   content(): State<Blueprint | undefined> {
     return this._content
   }
-  getRelativePosition(): Position {
-    return this.relativeBoundingBox.left_top
-  }
   getRelativeBoundingBox(): BBox {
     return this.relativeBoundingBox
   }

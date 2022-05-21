@@ -60,6 +60,10 @@ namespace bbox {
     const { x: bx, y: by } = left_top
     return bbox({ x: 0, y: 0 }, { x: right_bottom.x - bx, y: right_bottom.y - by })
   }
+  export function shiftTo(box: BBox, leftTop: MapPositionTable): BoundingBoxClass {
+    const { left_top, right_bottom } = box
+    return bbox(leftTop, { x: right_bottom.x - left_top.x + leftTop.x, y: right_bottom.y - left_top.y + leftTop.y })
+  }
   export function size(box: BBox): PositionClass {
     const { left_top, right_bottom } = box
     return pos(right_bottom.x - left_top.x, right_bottom.y - left_top.y)
@@ -93,8 +97,8 @@ namespace bbox {
     const { left_top, right_bottom } = box
     return pos((left_top.x + right_bottom.x) / 2, (left_top.y + right_bottom.y) / 2)
   }
-  export function rotateAboutOrigin(box: BBox, direction: defines.direction): BoundingBoxClass {
-    if (direction === UP) return bbox.from(box)
+  export function rotateAboutOrigin(box: BBox, direction: defines.direction | undefined): BoundingBoxClass {
+    if (direction === undefined || direction === UP) return bbox.from(box)
     const { left_top, right_bottom } = box
     const { x: lx, y: ly } = left_top
     const { x: rx, y: ry } = right_bottom
@@ -102,7 +106,8 @@ namespace bbox {
     if (direction === LEFT) return bbox({ x: ly, y: -rx }, { x: ry, y: -lx })
     if (direction === RIGHT) return bbox({ x: -ry, y: lx }, { x: -ly, y: rx })
 
-    error(`invalid direction ${defines.direction[direction]}`)
+    // diagonal, not yet supported, just assume not rotated
+    return bbox.from(box)
   }
   export function intersect(box1: BBox, box2: BBox): BoundingBoxClass {
     const { left_top, right_bottom } = box1

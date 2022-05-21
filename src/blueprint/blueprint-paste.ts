@@ -1,10 +1,13 @@
 import { Prototypes } from "../constants"
-import { Entity, EntityNumber, FullEntity, PasteEntity, PlainEntity, ReferenceEntity } from "../entity/entity"
+import { Entity, FullEntity, PasteEntity, PlainEntity, ReferenceEntity } from "../entity/entity"
 import { findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
 import { Mutable, nilIfEmpty } from "../lib"
 import { BBox, bbox, pos, Position } from "../lib/geometry"
 import { Blueprint, filterEntitiesInArea, UpdateablePasteBlueprint } from "./Blueprint"
 import { pasteBlueprint } from "./world"
+import add = pos.add
+import floor = pos.floor
+import sub = pos.sub
 
 export function findCompatibleEntity<T extends Entity>(
   blueprint: Blueprint<T>,
@@ -38,23 +41,25 @@ export interface EntityPair {
 
 export function pasteAndFindConflicts(
   surface: LuaSurface,
-  worldArea: BBox,
+  pasteBounds: BBox,
   content: UpdateablePasteBlueprint,
-  pasteLocation: Position,
+  contentBounds: BBox,
   options: BlueprintPasteOptions = {},
 ): LuaMultiReturn<[BlueprintPasteConflicts, LuaEntity[]]> {
-  const relativeArea = bbox.shiftNegative(worldArea, pasteLocation)
-  const filteredContent = Blueprint._new(filterEntitiesInArea(content.entities, relativeArea))
+  const actualBounds = bbox.intersect(pasteBounds, contentBounds).roundTile()
+  const relativeBounds = bbox.shiftNegative(actualBounds, contentBounds.left_top)
 
-  const actualCoveredArea = bbox.shift(filteredContent.computeBoundingBox(), pasteLocation)
-  const [belowContent, belowIndex] = Blueprint.takeWithSourceIndex(surface, actualCoveredArea, pasteLocation)
+  const filteredContent = Blueprint._new(filterEntitiesInArea(content.entities, relativeBounds))
+
+  const pasteLocation = floor(contentBounds.left_top)
+  const [belowContent, belowIndex] = Blueprint.takeWithSourceIndex(surface, actualBounds, pasteLocation)
 
   const pastedEntities = pasteBlueprint(surface, pasteLocation, filteredContent.entities)
 
   // find pasted blueprint entities
-  const pastedBPEntities = new LuaSet<EntityNumber>()
+  const pastedBPEntities = new LuaSet<Entity>()
   for (const pastedEntity of pastedEntities) {
-    const relativeLocation = pos.sub(pastedEntity.position, pasteLocation)
+    const relativeLocation = sub(pastedEntity.position, pasteLocation)
     const refEntity: Entity = {
       name: pastedEntity.type === "entity-ghost" ? pastedEntity.ghost_name : pastedEntity.name,
       direction: pastedEntity.direction,
@@ -64,7 +69,7 @@ export function pasteAndFindConflicts(
     if (corresponding === undefined) {
       error("bp entity corresponding to pasted lua entity not found")
     }
-    pastedBPEntities.add(corresponding.entity_number)
+    pastedBPEntities.add(corresponding)
   }
 
   // build luaEntity -> blueprint entity map
@@ -82,7 +87,7 @@ export function pasteAndFindConflicts(
   let shouldRepaste = false
 
   for (const aboveBpEntity of filteredContent.entities) {
-    if (pastedBPEntities.has(aboveBpEntity.entity_number)) {
+    if (pastedBPEntities.has(aboveBpEntity)) {
       // already pasted
       if (aboveBpEntity.changedProps) {
         lostReferences.push(aboveBpEntity)
@@ -91,7 +96,7 @@ export function pasteAndFindConflicts(
     }
     // not pasted
     // try to find corresponding entity in world
-    const worldPosition = pos.add(aboveBpEntity.position, pasteLocation)
+    const worldPosition = add(aboveBpEntity.position, pasteLocation)
     const belowLuaEntity = surface
       .find_entities_filtered({ position: worldPosition })
       .find((x) => isCompatibleEntity(x, aboveBpEntity, worldPosition))
@@ -114,7 +119,6 @@ export function pasteAndFindConflicts(
             force: "player",
             spill: false,
             create_build_effect_smoke: false,
-            move_stuck_players: true,
           })
         }
       } else if (conflict === "items") {

@@ -1,7 +1,7 @@
 import { Blueprint } from "../blueprint/Blueprint"
 import { getEntitySourceLocation } from "../blueprint/EntitySourceMap"
 import { clearBuildableEntities, pasteBlueprint } from "../blueprint/world"
-import { getTileBox } from "../entity/entity"
+import { computeTileBox } from "../entity/entity-info"
 import { Classes } from "../lib"
 import { bbox, BoundingBoxClass, pos } from "../lib/geometry"
 import { assertBlueprintsEquivalent } from "../test/blueprint"
@@ -122,7 +122,7 @@ describe("import", () => {
 
   test("inactive import does not add in world", () => {
     const content = createAssemblyContent()
-    content.saveAndAddImport(mockImport(originalBlueprintSample, pos(1, 2)))
+    content.saveAndAddImport(mockImport(originalBlueprintSample, pos(2, 2)))
     content.imports.get(0).active.set(false)
     content.resetInWorld()
     const bp = Blueprint.take(surface, area)
@@ -214,7 +214,7 @@ describe("sourceMap", () => {
     assert.not_nil(map)
     for (const entity of blueprintSample) {
       const box = getEntitySourceLocation(map, entity, area.left_top)?.area
-      assert.same(shift(getTileBox(entity), area.left_top), box)
+      assert.same(shift(computeTileBox(entity), area.left_top), box)
     }
   })
 
@@ -231,12 +231,12 @@ describe("sourceMap", () => {
     assert.not_nil(map)
     for (const entity of importContent) {
       const box = getEntitySourceLocation(map, entity, area.left_top)?.area
-      assert.same(shift(getTileBox(entity), area2.left_top), box, "imported entity maps to source location")
+      assert.same(shift(computeTileBox(entity), area2.left_top), box, "imported entity maps to source location")
     }
     for (const entity of ownContent) {
       if (entity.name === "iron-chest") {
         const box = getEntitySourceLocation(map, entity, area.left_top)?.area
-        assert.same(shift(getTileBox(entity), area.left_top), box, "own chest maps to own location")
+        assert.same(shift(computeTileBox(entity), area.left_top), box, "own chest maps to own location")
       }
     }
   })

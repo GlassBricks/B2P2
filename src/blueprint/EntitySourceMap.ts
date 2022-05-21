@@ -1,6 +1,6 @@
 import { AreaIdentification } from "../area/AreaIdentification"
-import { Entity, getTileBox } from "../entity/entity"
-import { computeTileBoxOfLuaEntity } from "../entity/entity-info"
+import { Entity } from "../entity/entity"
+import { computeTileBox, computeTileBoxOfLuaEntity } from "../entity/entity-info"
 import { bbox, pos, Position } from "../lib/geometry"
 import { Blueprint } from "./Blueprint"
 import { findCompatibleEntity } from "./blueprint-paste"
@@ -38,7 +38,7 @@ export class EntitySourceMapBuilder {
 
   addMock(entity: Entity, sourceArea: AreaIdentification, pastedLeftTop: Position): this {
     const surface = sourceArea.surface
-    const entitySourceArea = shift(getTileBox(entity), sourceArea.area.left_top)
+    const entitySourceArea = shift(computeTileBox(entity), sourceArea.area.left_top)
     const pastedPosition = pos.add(entity.position, pastedLeftTop)
     this.entities.push({
       name: entity.name,

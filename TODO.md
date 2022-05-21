@@ -1,8 +1,3 @@
-## Now
-
-- document
-- Test with real blueprints
-
 ## Next
 
 - Lazy properties, make simpler

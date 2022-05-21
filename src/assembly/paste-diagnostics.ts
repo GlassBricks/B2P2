@@ -2,7 +2,8 @@ import { AreaIdentification } from "../area/AreaIdentification"
 import { BlueprintPasteConflicts, BlueprintPasteOptions } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, getEntitySourceLocation } from "../blueprint/EntitySourceMap"
 import { describeEntity, describeItems } from "../entity/describe-entity"
-import { Entity, FullEntity, getTileBox } from "../entity/entity"
+import { Entity, FullEntity } from "../entity/entity"
+import { computeTileBox } from "../entity/entity-info"
 import { bbox, Position } from "../lib/geometry"
 import { L_Diagnostic } from "../locale"
 import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
@@ -80,7 +81,7 @@ export function mapPasteConflictsToDiagnostics(
   function getAssemblyArea(entity: Entity): AreaIdentification {
     return {
       surface,
-      area: shift(getTileBox(entity), pastedLeftTop),
+      area: shift(computeTileBox(entity), pastedLeftTop),
     }
   }
 

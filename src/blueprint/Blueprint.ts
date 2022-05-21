@@ -1,10 +1,9 @@
-import { Entity, getTileBox, PasteEntity, PlainEntity, UpdateablePasteEntity } from "../entity/entity"
-import { Classes, isEmpty, shallowCopy } from "../lib"
-import { BBox, bbox, BoundingBoxClass, Position } from "../lib/geometry"
+import { Entity, PasteEntity, PlainEntity, UpdateablePasteEntity } from "../entity/entity"
+import { Classes, shallowCopy } from "../lib"
+import { BBox, bbox, Position } from "../lib/geometry"
 import { add, get, Map2D, MutableMap2D } from "../lib/map2d"
 import { takeBlueprint, takeBlueprintWithIndex } from "./world"
 import contains = bbox.contains
-import fromCorners = bbox.fromCoords
 
 @Classes.register("Blueprint")
 export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
@@ -61,36 +60,11 @@ export class Blueprint<E extends Entity = PlainEntity> implements Blueprint<E> {
     }
     return result
   }
-
-  computeBoundingBox(): BoundingBoxClass {
-    if (isEmpty(this.entities)) {
-      return fromCorners(0, 0, 0, 0)
-    }
-    let minX = Infinity
-    let minY = Infinity
-    let maxX = -Infinity
-    let maxY = -Infinity
-    function expandTo({ x, y }: Position) {
-      if (x < minX) minX = x
-      if (y < minY) minY = y
-      if (x > maxX) maxX = x
-      if (y > maxY) maxY = y
-    }
-    for (const entity of this.entities) {
-      const tileBox = getTileBox(entity)
-      expandTo(tileBox.left_top)
-      expandTo(tileBox.right_bottom)
-    }
-    return fromCorners(minX, minY, maxX, maxY)
-  }
 }
 
 export type PasteBlueprint = Blueprint<PasteEntity>
 export type UpdateablePasteBlueprint = Blueprint<UpdateablePasteEntity>
 
 export function filterEntitiesInArea<T extends Entity>(entities: readonly T[], area: BBox): T[] {
-  return entities.filter((entity) => {
-    const entityBox = getTileBox(entity)
-    return contains(area, entityBox.left_top) && contains(area, entityBox.right_bottom)
-  })
+  return entities.filter((entity) => contains(area, entity.position))
 }

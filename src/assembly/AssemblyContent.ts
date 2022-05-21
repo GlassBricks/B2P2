@@ -5,7 +5,7 @@ import { BlueprintPasteConflicts, BlueprintPasteOptions, pasteAndFindConflicts }
 import { EntitySourceMap, EntitySourceMapBuilder } from "../blueprint/EntitySourceMap"
 import { clearBuildableEntities, takeBlueprintWithIndex } from "../blueprint/world"
 import { Classes, funcRef, isEmpty } from "../lib"
-import { BBox, pos, Position } from "../lib/geometry"
+import { bbox, BBox } from "../lib/geometry"
 import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
 import { getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
 import { AssemblyImport } from "./imports/AssemblyImport"
@@ -108,7 +108,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
         diagnostics: this.computeAndRenderDiagnostics(
           conflict,
           imp ?? this.ownOptions,
-          imp?.import.getRelativePosition(),
+          imp?.import.getRelativeBoundingBox(),
           sourceMap,
         ),
       }
@@ -125,11 +125,12 @@ export class DefaultAssemblyContent implements AssemblyContent {
     const content = imp.content().get()
     if (!content) return {}
 
-    const relativePosition = imp.getRelativePosition()
+    const relativeBBox = imp.getRelativeBoundingBox()
+    const absoluteBBox = DefaultAssemblyContent.roundBBoxTo2x2(bbox.shift(relativeBBox, this.area.left_top))
     const sourceArea = imp.getSourceArea()
     return this.pasteContentAndRecordSourceMap(
       content,
-      relativePosition,
+      absoluteBBox,
       sourceArea,
       sourceMap,
       DefaultAssemblyContent.getPasteOptions(item),
@@ -140,7 +141,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
     const ownContents = this.ownContents.get()
     return this.pasteContentAndRecordSourceMap(
       ownContents,
-      undefined,
+      this.area,
       this,
       sourceMap,
       DefaultAssemblyContent.getPasteOptions(this.ownOptions),
@@ -149,34 +150,32 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   private pasteContentAndRecordSourceMap(
     content: PasteBlueprint,
-    relativePosition: Position | undefined,
+    contentBounds: BBox,
     sourceArea: AreaIdentification | undefined,
     sourceMap: EntitySourceMapBuilder,
     pasteOptions: BlueprintPasteOptions,
   ) {
-    const topLeft = this.getAbsolutePosition(relativePosition)
-    const [conflicts, entities] = pasteAndFindConflicts(this.surface, this.area, content, topLeft, pasteOptions)
-    if (sourceArea) sourceMap.addAll(entities, sourceArea, topLeft)
+    const [conflicts, entities] = pasteAndFindConflicts(this.surface, this.area, content, contentBounds, pasteOptions)
+    if (sourceArea) sourceMap.addAll(entities, sourceArea, contentBounds.left_top)
     return conflicts
   }
 
-  private getAbsolutePosition(relativePosition: Position | undefined): Position {
-    const leftTop = this.area.left_top
-    return relativePosition ? pos.add(leftTop, pos.div(relativePosition, 2).floor().times(2)) : leftTop
+  private static roundBBoxTo2x2(box: BBox): BBox {
+    return bbox.scale(box, 0.5).roundTile().scale(2)
   }
 
   private computeAndRenderDiagnostics(
     conflicts: BlueprintPasteConflicts,
     options: LayerOptions,
-    relativeLeftTop: Position | undefined,
+    relativeBBox: BBox | undefined,
     sourceMap: EntitySourceMap,
   ): PasteDiagnostics {
-    const absoluteLeftTop = this.getAbsolutePosition(relativeLeftTop)
+    const absoluteBBox = relativeBBox ? bbox.shift(relativeBBox, this.area.left_top) : this.area
     const diagnostics = mapPasteConflictsToDiagnostics(
       conflicts,
       DefaultAssemblyContent.getPasteOptions(options),
       this.surface,
-      absoluteLeftTop,
+      absoluteBBox.left_top,
       sourceMap,
     )
     DefaultAssemblyContent.renderDiagnosticHighlights(diagnostics)

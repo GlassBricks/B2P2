@@ -14,8 +14,20 @@ export function mockImport(
   return {
     content: () => c,
     name: () => name,
-    getRelativePosition: () => relativePosition,
-    getRelativeBoundingBox: () => content.computeBoundingBox().shift(relativePosition),
+    getRelativeBoundingBox: () => {
+      let maxX = 0
+      let maxY = 0
+      for (const entity of content.entities) {
+        maxX = Math.max(maxX, entity.position.x)
+        maxY = Math.max(maxY, entity.position.y)
+      }
+      return bbox.fromCoords(
+        relativePosition.x,
+        relativePosition.y,
+        relativePosition.x + maxX,
+        relativePosition.y + maxY,
+      )
+    },
     getSourceArea: () => sourceArea,
   }
 }
@@ -26,8 +38,7 @@ export function invalidMockImport(relativePosition: Position = pos(0, 0)): Assem
   return {
     content: () => c,
     name: () => name,
-    getRelativePosition: () => relativePosition,
-    getRelativeBoundingBox: () => bbox.fromCoords(0, 0, 0, 0),
+    getRelativeBoundingBox: () => ({ left_top: relativePosition, right_bottom: relativePosition }),
     getSourceArea: () => undefined,
   }
 }

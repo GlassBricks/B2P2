@@ -1,5 +1,4 @@
-import { FullEntity, getTileBox, remapEntityNumbersInArrayPosition } from "./entity"
-import { computeTileBox } from "./entity-info"
+import { FullEntity, remapEntityNumbersInArrayPosition } from "./entity"
 
 const mockEntity: FullEntity = {
   name: "iron-chest",
@@ -11,12 +10,6 @@ const mockEntity2: FullEntity = {
   position: { x: 1.5, y: 2.5 },
   entity_number: 2,
 }
-
-test("getTileBox matches computeTileBox", () => {
-  const tileBox = getTileBox(mockEntity)
-  const expected = computeTileBox(mockEntity)
-  assert.same(expected, tileBox)
-})
 
 test("remapEntityNumbersInArrayPosition", () => {
   const connections2: BlueprintCircuitConnection = {

@@ -1,7 +1,8 @@
 import { AreaIdentification } from "../area/AreaIdentification"
 import { BlueprintPasteConflicts, BlueprintPasteOptions } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, EntitySourceMapBuilder } from "../blueprint/EntitySourceMap"
-import { FullEntity, getTileBox } from "../entity/entity"
+import { FullEntity } from "../entity/entity"
+import { computeTileBox } from "../entity/entity-info"
 import { bbox } from "../lib/geometry"
 import { getEntitySample } from "../test/entity-sample"
 import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
@@ -36,8 +37,8 @@ before_all(() => {
 
   sourceMap = new EntitySourceMapBuilder().addMock(entity1, area1, area2.area.left_top).build()
 
-  entity1SourceLocation = { surface, area: bbox.load(getTileBox(entity1)).shift(area1.area.left_top) }
-  entity2AssemblyLocation = { surface, area: bbox.load(getTileBox(entity2)).shift(area2.area.left_top) }
+  entity1SourceLocation = { surface, area: bbox.load(computeTileBox(entity1)).shift(area1.area.left_top) }
+  entity2AssemblyLocation = { surface, area: bbox.load(computeTileBox(entity2)).shift(area2.area.left_top) }
 })
 
 function assertSingleDiagnostic(

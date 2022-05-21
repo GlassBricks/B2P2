@@ -30,7 +30,7 @@ test("creation", () => {
   assert.same("test", im.name().get())
   const content = im.content().get()!
   assertBlueprintsEquivalent(blueprint, content)
-  assert.same(pos(0, 0), im.getRelativePosition())
+  assert.same(bbox.load(area).shiftToOrigin(), im.getRelativeBoundingBox())
 })
 
 test("create for", () => {
