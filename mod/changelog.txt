@@ -1,7 +1,12 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.1
 Date: ????
-  Changes:
+  Bugfixes:
+    - Fixed crash when working with entities that can have diagonal orientations (rails).
+    - Fixed diagnostics still being reported when allowUpgrades is set.
+  Optimizations:
+    - Slightly improved performance of assembly save/reset.
+
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2022-05-15
