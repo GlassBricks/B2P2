@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.1
-Date: ????
+Date: 2022-05-21
   Bugfixes:
     - Fixed crash when working with entities that can have diagonal orientations (rails).
     - Fixed diagnostics still being reported when allowUpgrades is set.
