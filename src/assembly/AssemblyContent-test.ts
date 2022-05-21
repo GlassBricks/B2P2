@@ -188,16 +188,38 @@ describe("paste conflicts", () => {
     )
   })
 
-  it("highlights conflicts", () => {
-    const below = getBlueprintSample("original")
-    const above = getBlueprintSample("inserter rotate")
+  function testBlueprints(above: BlueprintEntityRead[], below: BlueprintEntityRead[]) {
     pasteBlueprint(surface, area.left_top, above)
     const content = createAssemblyContent()
     content.saveAndAddImport(mockImport(Blueprint.fromArray(below)))
+    return content
+  }
+  it("highlights conflicts", () => {
+    const below = getBlueprintSample("original")
+    const above = getBlueprintSample("inserter rotate")
+    testBlueprints(above, below)
     const conflictingEntity = above.find((x) => x.name === "inserter")!
     const conflictingPosition = pos.add(conflictingEntity.position, area.left_top)
     const highlightBox = surface.find_entity("highlight-box", conflictingPosition)
     assert.not_nil(highlightBox)
+  })
+
+  test("allowUpgrades", () => {
+    const below = getBlueprintSample("original")
+    const above = getBlueprintSample("inserter fast replace")
+    const content = testBlueprints(above, below)
+    let diagnostics = content.pasteDiagnostics.get()![1].diagnostics
+    assert.same(["cannot-upgrade"], Object.keys(diagnostics))
+    assert.falsy(diagnostics["cannot-upgrade"]!.highlightOnly)
+    assert.true(content.hasConflicts.get())
+
+    content.ownOptions.allowUpgrades.set(true)
+    content.resetInWorld()
+
+    diagnostics = content.pasteDiagnostics.get()![1].diagnostics
+    assert.same(["cannot-upgrade"], Object.keys(diagnostics))
+    assert.true(diagnostics["cannot-upgrade"]!.highlightOnly)
+    assert.false(content.hasConflicts.get(), "does not have conflicts if allowUpgrades")
   })
 })
 

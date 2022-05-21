@@ -4,7 +4,7 @@ import { BlueprintDiff, computeBlueprintDiff } from "../blueprint/blueprint-diff
 import { BlueprintPasteConflicts, BlueprintPasteOptions, pasteAndFindConflicts } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, EntitySourceMapBuilder } from "../blueprint/EntitySourceMap"
 import { clearBuildableEntities, takeBlueprintWithIndex } from "../blueprint/world"
-import { Classes, funcRef, isEmpty } from "../lib"
+import { Classes, funcRef } from "../lib"
 import { bbox, BBox } from "../lib/geometry"
 import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
 import { getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
@@ -197,7 +197,12 @@ export class DefaultAssemblyContent implements AssemblyContent {
   }
 
   private static hasAnyConflicts(this: void, conflicts: readonly LayerDiagnostics[]): boolean {
-    return conflicts.some((conflict) => !isEmpty(conflict.diagnostics))
+    return conflicts.some((conflict) => {
+      for (const [, d] of pairs(conflict.diagnostics)) {
+        if (!d.highlightOnly) return true
+      }
+      return false
+    })
   }
 
   prepareSave(): BlueprintDiff {
