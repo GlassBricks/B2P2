@@ -165,7 +165,7 @@ Events.on_surface_deleted(() => {
 Migration.since("0.2.0", () => {
   global.nextAssemblyId = 1
 })
-Migration.fromBefore("0.2.0", () => {
+Migration.from("0.2.0", () => {
   if (!global.assemblies) return
   for (const [assembly] of global.assemblies) {
     ;(assembly as Mutable<Assembly>).id = global.nextAssemblyId++

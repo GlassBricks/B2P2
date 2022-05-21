@@ -1,16 +1,15 @@
 import Events from "./Events"
 
-export function formatVersion(version: string): string {
+export type VersionString = string & {
+  _versionStringBrand: void
+}
+
+export function formatVersion(version: string): VersionString {
   const parts: string[] = []
   for (const [v] of string.gmatch(version, "%d+")) {
     parts.push(string.format("%02d", v))
   }
-  return parts.join(".")
-}
-
-export function versionLess(a: string | undefined, b: string): boolean {
-  if (!a) return true
-  return formatVersion(a) < formatVersion(b)
+  return parts.join(".") as VersionString
 }
 
 /** @noSelf */
@@ -27,48 +26,69 @@ interface Versions {
 }
 
 export class _MigrationHandler {
-  private migrations: Record<string, (() => void)[]> = {}
+  private preLoadMigrations: Record<VersionString, (() => void)[]> = {}
+  private postLoadMigrations: Record<VersionString, (() => void)[]> = {}
+  private lateOnLoadFuncs: (() => void)[] = []
 
   /** Runs a function when migrating from earlier than the given version. Does not run on_init. */
-  fromBefore(version: string, func: () => void): void {
-    ;(this.migrations[formatVersion(version)] ||= []).push(func)
+  from(version: string, func: () => void): void {
+    ;(this.postLoadMigrations[formatVersion(version)] ||= []).push(func)
   }
 
   /** Runs a function either during on_init or migrating from an earlier version. */
   since(version: string, func: () => void): void {
     this.events.on_init(func)
-    this.fromBefore(version, func)
+    this.from(version, func)
   }
 
-  private afterMigrateFuncs: (() => void)[] = []
-  /** Runs a function either during on_load, or after migrating from an earlier version. */
+  /** Runs a function either during on_load, or after before-load migrations. */
   onLoadOrMigrate(func: () => void): void {
     this.events.on_load(() => {
-      if (!this.prepareMigrations(this.versions.getOldVersion())) func()
+      if (!this.preparePreLoadMigrations(this.versions.getOldVersion())) {
+        func()
+      } else {
+        this.lateOnLoadFuncs.push(func)
+      }
     })
-    this.afterMigrateFuncs.push(func)
   }
 
-  private getMigrationsToRun(oldVersion: string | undefined): (() => void)[] {
-    const versions = Object.keys(this.migrations).filter((v) => versionLess(oldVersion, v))
+  /** Runs a function when migrating from earlier than the given version, before on_load. */
+  fromBeforeLoad(version: string, func: () => void): void {
+    ;(this.preLoadMigrations[formatVersion(version)] ||= []).push(func)
+  }
+
+  private getMigrationsToRun(
+    oldVersion: string | undefined,
+    migrations: Record<VersionString, (() => void)[]>,
+  ): (() => void)[] {
+    const formattedOldVersion = oldVersion && formatVersion(oldVersion)
+    let versions = Object.keys(migrations) as VersionString[]
+    if (formattedOldVersion) {
+      versions = versions.filter((v) => formattedOldVersion < v)
+    }
     table.sort(versions)
-    return versions.flatMap((v) => this.migrations[v])
+    return versions.flatMap((v) => migrations[v])
   }
 
-  private toRun: (() => void)[] | undefined
-  private prepareMigrations(oldVersion: string | undefined): boolean {
-    this.toRun ??= this.getMigrationsToRun(oldVersion)
-    return this.toRun.length > 0
+  private preLoadToRun: (() => void)[] | undefined
+  private preparePreLoadMigrations(oldVersion: string | undefined): boolean {
+    this.preLoadToRun ??= this.getMigrationsToRun(oldVersion, this.preLoadMigrations)
+    return this.preLoadToRun.length > 0
   }
 
-  constructor(private events: Events, private versions: Versions) {
+  constructor(private events: Events, private versions: Versions) {}
+
+  _init(): void {
     this.events.on_configuration_changed(() => {
       const oldVersion = this.versions.getOldVersion()
-      if (this.prepareMigrations(oldVersion)) {
-        for (const func of this.toRun!) func()
+      if (this.preparePreLoadMigrations(oldVersion)) {
+        for (const func of this.preLoadToRun!) func()
       }
-      this.toRun = undefined
-      for (const func of this.afterMigrateFuncs) func()
+      this.preLoadToRun = undefined
+      for (const func of this.lateOnLoadFuncs) func()
+      this.lateOnLoadFuncs = []
+      for (const func of this.getMigrationsToRun(oldVersion, this.postLoadMigrations)) func()
+
       this.versions.setOldVersion(script.active_mods[script.mod_name])
     })
 
@@ -87,3 +107,4 @@ export const Migration = new _MigrationHandler(Events, {
     global.oldVersion = version
   },
 })
+Migration._init()
