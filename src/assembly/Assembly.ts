@@ -2,7 +2,7 @@ import { AreaIdentification } from "../area/AreaIdentification"
 import { Colors } from "../constants"
 import { bound, Classes, Events, Mutable, raiseUserError, reg } from "../lib"
 import { BBox, bbox } from "../lib/geometry"
-import { Migration } from "../lib/migration"
+import { Migrations } from "../lib/migration"
 import {
   GlobalEvent,
   MutableObservableSet,
@@ -162,10 +162,10 @@ Events.on_surface_deleted(() => {
 })
 
 // todo: proper migration stuff
-Migration.since("0.2.0", () => {
+Migrations.since("0.2.0", () => {
   global.nextAssemblyId = 1
 })
-Migration.from("0.2.0", () => {
+Migrations.from("0.2.0", () => {
   if (!global.assemblies) return
   for (const [assembly] of global.assemblies) {
     ;(assembly as Mutable<Assembly>).id = global.nextAssemblyId++

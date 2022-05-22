@@ -19,6 +19,9 @@ before_all(() => {
 let setupHookCalled = false
 onSetupReset(() => {
   setupHookCalled = true
+  assert.is_nil(global)
+  assert.is_nil(game)
+  assert.not_equal(oldScript, script)
 })
 
 test("setup hook called during mock", () => {

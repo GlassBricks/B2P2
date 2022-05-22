@@ -1,4 +1,13 @@
-import { _MigrationHandler, formatVersion } from "./migration"
+import { formatVersion, Migrations } from "./migration"
+import {
+  getMockGlobal,
+  mockSetupInTest,
+  simulateConfigChangedModUpdate,
+  simulateModUpdated,
+  simulateOnConfigurationChanged,
+  simulateOnInit,
+  simulateOnLoad,
+} from "./setup-mock"
 
 test("formatVersion", () => {
   assert.same("01.02.03", formatVersion("1.2.3"))
@@ -20,140 +29,111 @@ test.each<[string, string, boolean]>(
   },
 )
 
-class MockMigrationHandler extends _MigrationHandler {
+declare const global: {
   oldVersion: string | undefined
-  onLoadFuncs: (() => void)[] = []
-  onInitFuncs: (() => void)[] = []
-  onConfigurationChangedFuncs: (() => void)[] = []
-  constructor() {
-    super(
-      {
-        on_load: (func) => this.onLoadFuncs.push(func),
-        on_init: (func) => this.onInitFuncs.push(func),
-        on_configuration_changed: (func) => this.onConfigurationChangedFuncs.push(func),
-      },
-      {
-        getOldVersion: () => this.oldVersion,
-        setOldVersion: (version) => (this.oldVersion = version),
-      },
-    )
-    this._init()
-  }
-
-  runOnInit() {
-    for (const func of this.onInitFuncs) func()
-  }
-  runOnLoad() {
-    for (const func of this.onLoadFuncs) func()
-  }
-  runOnConfigurationChanged() {
-    for (const func of this.onConfigurationChangedFuncs) func()
-  }
-  runUpdate() {
-    this.runOnLoad()
-    this.runOnConfigurationChanged()
-  }
 }
-
-describe("_MigrationHandler", () => {
-  let handler: MockMigrationHandler
+describe("Migrations", () => {
   let run: string[]
   before_each(() => {
-    handler = new MockMigrationHandler()
     run = []
+    mockSetupInTest()
   })
 
   test("sets oldVersion to current on_init", () => {
-    handler.runOnInit()
-    assert.equal(script.active_mods[script.mod_name], handler.oldVersion)
+    simulateOnInit()
+    assert.equal(script.active_mods[script.mod_name], global.oldVersion)
   })
 
   test("sets oldVersion to current on_config_changed", () => {
-    handler.runOnConfigurationChanged()
-    assert.equal(script.active_mods[script.mod_name], handler.oldVersion)
+    simulateOnConfigurationChanged({
+      migration_applied: false,
+      mod_changes: {},
+      mod_startup_settings_changed: false,
+    })
+    assert.equal(script.active_mods[script.mod_name], global.oldVersion)
   })
+
+  function simulateUpdate() {
+    simulateModUpdated("1.2.3", "1.2.5")
+  }
 
   describe("from", () => {
     before_each(() => {
       for (const version of ["1.2.5", "1.2.4", "1.2.3"]) {
-        handler.from(version, () => {
+        Migrations.from(version, () => {
           run.push(version)
         })
       }
-      handler.oldVersion = "1.2.3"
+      getMockGlobal().oldVersion = "1.2.3"
     })
+
     test("does not run on_init", () => {
-      handler.runOnInit()
+      simulateOnInit()
       assert.same([], run)
     })
     test("only runs later versions on config changed, in sorted order", () => {
-      handler.runUpdate()
+      simulateUpdate()
       assert.same(["1.2.4", "1.2.5"], run)
     })
     test("runs all if oldVersion is undefined, in sorted order", () => {
-      handler.oldVersion = undefined
-      handler.runUpdate()
+      getMockGlobal().oldVersion = undefined
+      simulateUpdate()
       assert.same(["1.2.3", "1.2.4", "1.2.5"], run)
-    })
-
-    after_each(() => {
-      assert.equal(script.active_mods[script.mod_name], handler.oldVersion)
-      handler.runUpdate()
     })
   })
 
   describe("since", () => {
     before_each(() => {
       for (const version of ["1.2.5", "1.2.4", "1.2.3"]) {
-        handler.since(version, () => {
+        Migrations.since(version, () => {
           run.push(version)
         })
       }
-      handler.oldVersion = "1.2.3"
+      getMockGlobal().oldVersion = "1.2.3"
     })
     test("runs all on_init in given order", () => {
-      handler.runOnInit()
+      simulateOnInit()
       assert.same(["1.2.5", "1.2.4", "1.2.3"], run)
     })
     test("only runs later versions on config changed in sorted order", () => {
-      handler.runUpdate()
+      simulateUpdate()
       assert.same(["1.2.4", "1.2.5"], run)
     })
   })
 
   describe("onLoadOrMigrate", () => {
     before_each(() => {
-      handler.fromBeforeLoad("1.2.3", () => {
+      Migrations.fromBeforeLoad("1.2.3", () => {
         run.push("fromBeforeLoad")
       })
-      handler.onLoadOrMigrate(() => {
+      Migrations.onLoadOrMigrate(() => {
         run.push("onLoadOrMigrate")
       })
     })
     test("does nothing on_init", () => {
-      handler.runOnInit()
+      simulateOnInit()
       assert.same([], run)
     })
     test("runs on_load if no migrations", () => {
-      handler.oldVersion = "1.2.3"
-      handler.runOnLoad()
+      getMockGlobal().oldVersion = "1.2.3"
+      simulateOnLoad()
       assert.same(["onLoadOrMigrate"], run)
     })
     test("only runs after if there are migrations", () => {
-      handler.oldVersion = "1.2.0"
-      handler.runOnLoad()
+      getMockGlobal().oldVersion = "1.2.0"
+      simulateOnLoad()
       assert.same([], run)
-      handler.runOnConfigurationChanged()
+      simulateConfigChangedModUpdate("1.2.0", "1.2.3")
       assert.same(["fromBeforeLoad", "onLoadOrMigrate"], run)
     })
     test("normal migrations run after on_load", () => {
-      handler.from("1.2.3", () => {
+      Migrations.from("1.2.3", () => {
         run.push("from")
       })
-      handler.oldVersion = "1.2.0"
-      handler.runOnLoad()
+      getMockGlobal().oldVersion = "1.2.0"
+      simulateOnLoad()
       assert.same([], run)
-      handler.runOnConfigurationChanged()
+      simulateConfigChangedModUpdate("1.2.0", "1.2.3")
       assert.same(["fromBeforeLoad", "onLoadOrMigrate", "from"], run)
     })
   })

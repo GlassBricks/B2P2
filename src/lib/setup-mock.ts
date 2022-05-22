@@ -9,17 +9,17 @@ export interface MockScript extends LuaBootstrap {
   simulateOnConfigurationChanged(data: ConfigurationChangedData): void
   revert(): void
   _isMockSetup: true
+  mockGlobal: any
 }
 
 declare const global: unknown
-/** @noSelf */
 function MockSetup(): MockScript {
   if (rawget(script as MockScript, "_isMockSetup")) error("Already in mock setup.")
+  log("Mocking setup")
   const oldScript = script
   const oldGame = game
   const oldGlobal = global
   const mockGlobal = {}
-  for (const hook of _getSetupHooks()) hook()
 
   function cannotRunInMock(): never {
     error("This function cannot be run in mock setup mode.")
@@ -52,6 +52,7 @@ function MockSetup(): MockScript {
     register_on_entity_destroyed: cannotRunInMock,
     set_event_filter: cannotRunInMock,
 
+    mockGlobal,
     on_init(f: (() => void) | undefined) {
       onInitHook = f
     },
@@ -89,6 +90,7 @@ function MockSetup(): MockScript {
   ;(_G as any).global = undefined
   ;(_G as any).script = result
   ;(_G as any).game = undefined
+  for (const hook of _getSetupHooks()) hook()
   return result
 }
 
@@ -119,4 +121,28 @@ export function simulateOnLoad(): void {
 export function simulateOnConfigurationChanged(data: ConfigurationChangedData): void {
   assertInMockSetup(script)
   script.simulateOnConfigurationChanged(data)
+}
+export function simulateConfigChangedModUpdate(fromVersion: string, toVersion: string): void {
+  assertInMockSetup(script)
+  script.simulateOnConfigurationChanged({
+    mod_changes: {
+      [script.mod_name]: {
+        old_version: fromVersion,
+        new_version: toVersion,
+      },
+    },
+    migration_applied: false,
+    mod_startup_settings_changed: false,
+  })
+}
+
+export function getMockGlobal(): any {
+  assertInMockSetup(script)
+  return script.mockGlobal
+}
+
+export function simulateModUpdated(fromVersion: string, toVersion: string): void {
+  assertInMockSetup(script)
+  script.simulateOnLoad()
+  simulateConfigChangedModUpdate(fromVersion, toVersion)
 }

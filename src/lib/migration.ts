@@ -1,4 +1,5 @@
 import Events from "./Events"
+import { onSetupReset } from "./setup"
 
 export type VersionString = string & {
   _versionStringBrand: void
@@ -12,52 +13,67 @@ export function formatVersion(version: string): VersionString {
   return parts.join(".") as VersionString
 }
 
-/** @noSelf */
-interface Events {
-  on_load(func: () => void): void
-  on_init(func: () => void): void
-  on_configuration_changed(func: () => void): void
+declare const global: {
+  oldVersion: string | undefined
 }
 
-/** @noSelf */
-interface Versions {
-  getOldVersion(): string | undefined
-  setOldVersion(version: string): void
-}
+export namespace Migrations {
+  let preLoadMigrations: Record<VersionString, (() => void)[]> = {}
+  let postLoadMigrations: Record<VersionString, (() => void)[]> = {}
 
-export class _MigrationHandler {
-  private preLoadMigrations: Record<VersionString, (() => void)[]> = {}
-  private postLoadMigrations: Record<VersionString, (() => void)[]> = {}
-  private lateOnLoadFuncs: (() => void)[] = []
+  let preLoadFuncs: (() => void)[] | undefined
+  let loadFuncs: (() => void)[] = []
+  // postLoadFuncs not stored
 
-  /** Runs a function when migrating from earlier than the given version. Does not run on_init. */
-  from(version: string, func: () => void): void {
-    ;(this.postLoadMigrations[formatVersion(version)] ||= []).push(func)
+  function init() {
+    preLoadMigrations = {}
+    postLoadMigrations = {}
+    loadFuncs = []
+    preLoadFuncs = undefined
+    Events.on_configuration_changed(() => {
+      const oldVersion = global.oldVersion
+      if (preparePreLoadMigrations(oldVersion)) {
+        for (const func of preLoadFuncs!) func()
+      }
+      preLoadFuncs = undefined
+      for (const func of loadFuncs) func()
+      loadFuncs = []
+      for (const func of getMigrationsToRun(oldVersion, postLoadMigrations)) func()
+
+      global.oldVersion = script.active_mods[script.mod_name]
+    })
+
+    Events.on_init(() => {
+      global.oldVersion = script.active_mods[script.mod_name]
+    })
+  }
+  init()
+  onSetupReset(init)
+
+  export function from(version: string, func: () => void): void {
+    ;(postLoadMigrations[formatVersion(version)] ||= []).push(func)
   }
 
-  /** Runs a function either during on_init or migrating from an earlier version. */
-  since(version: string, func: () => void): void {
-    this.events.on_init(func)
-    this.from(version, func)
+  export function since(version: string, func: () => void): void {
+    Events.on_init(func)
+    from(version, func)
   }
 
-  /** Runs a function either during on_load, or after before-load migrations. */
-  onLoadOrMigrate(func: () => void): void {
-    this.events.on_load(() => {
-      if (!this.preparePreLoadMigrations(this.versions.getOldVersion())) {
+  export function onLoadOrMigrate(func: () => void): void {
+    Events.on_load(() => {
+      if (!preparePreLoadMigrations(global.oldVersion)) {
         func()
       } else {
-        this.lateOnLoadFuncs.push(func)
+        loadFuncs.push(func)
       }
     })
   }
 
-  /** Runs a function when migrating from earlier than the given version, before on_load. */
-  fromBeforeLoad(version: string, func: () => void): void {
-    ;(this.preLoadMigrations[formatVersion(version)] ||= []).push(func)
+  export function fromBeforeLoad(version: string, func: () => void): void {
+    ;(preLoadMigrations[formatVersion(version)] ||= []).push(func)
   }
 
-  private getMigrationsToRun(
+  function getMigrationsToRun(
     oldVersion: string | undefined,
     migrations: Record<VersionString, (() => void)[]>,
   ): (() => void)[] {
@@ -70,41 +86,8 @@ export class _MigrationHandler {
     return versions.flatMap((v) => migrations[v])
   }
 
-  private preLoadToRun: (() => void)[] | undefined
-  private preparePreLoadMigrations(oldVersion: string | undefined): boolean {
-    this.preLoadToRun ??= this.getMigrationsToRun(oldVersion, this.preLoadMigrations)
-    return this.preLoadToRun.length > 0
-  }
-
-  constructor(private events: Events, private versions: Versions) {}
-
-  _init(): void {
-    this.events.on_configuration_changed(() => {
-      const oldVersion = this.versions.getOldVersion()
-      if (this.preparePreLoadMigrations(oldVersion)) {
-        for (const func of this.preLoadToRun!) func()
-      }
-      this.preLoadToRun = undefined
-      for (const func of this.lateOnLoadFuncs) func()
-      this.lateOnLoadFuncs = []
-      for (const func of this.getMigrationsToRun(oldVersion, this.postLoadMigrations)) func()
-
-      this.versions.setOldVersion(script.active_mods[script.mod_name])
-    })
-
-    this.events.on_init(() => {
-      this.versions.setOldVersion(script.active_mods[script.mod_name])
-    })
+  function preparePreLoadMigrations(oldVersion: string | undefined): boolean {
+    preLoadFuncs ??= getMigrationsToRun(oldVersion, preLoadMigrations)
+    return preLoadFuncs.length > 0
   }
 }
-
-declare const global: {
-  oldVersion: string | undefined
-}
-export const Migration = new _MigrationHandler(Events, {
-  getOldVersion: () => global.oldVersion,
-  setOldVersion: (version) => {
-    global.oldVersion = version
-  },
-})
-Migration._init()
