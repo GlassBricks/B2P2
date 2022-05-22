@@ -1,5 +1,6 @@
 /** @noSelfInFile */
 
+import { onSetupReset } from "./setup"
 import { PRecord } from "./util-types"
 
 export interface ScriptEvents {
@@ -61,7 +62,11 @@ type AnyHandler = (data?: any) => void
 // number -- event id
 // string -- custom input handler
 // symbol -- script event
-const registeredHandlers: PRecord<keyof any, AnyHandler[]> = {}
+let registeredHandlers: PRecord<keyof any, AnyHandler[]> = {}
+
+onSetupReset(() => {
+  registeredHandlers = {}
+})
 
 function registerInternal(id: keyof any, handler: AnyHandler) {
   let handlers = registeredHandlers[id]

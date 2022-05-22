@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /** @noSelfInFile */
 import Events from "./Events"
+import { mockSetupInTest, simulateOnLoad } from "./setup-mock"
 
 const eventId = defines.events.script_raised_set_tiles
 after_each(() => {
@@ -43,13 +44,45 @@ test("Object register", () => {
   assert.equal(func, script.get_event_handler(eventId))
 })
 
-let loaded = false
-Events.on_load(() => {
-  loaded = true
+let outsideLoad = false
+function setLoaded() {
+  outsideLoad = true
+}
+Events.onAll({
+  on_load: setLoaded,
+  on_init: setLoaded,
+  on_configuration_changed: setLoaded,
 })
-Events.on_init(() => {
-  loaded = true
-})
-test("on_load", () => {
-  assert(loaded)
+
+describe("mock load", () => {
+  // see also: setup-mock.ts, setup-test.ts
+  let loaded = false
+  before_each(() => {
+    loaded = false
+    outsideLoad = false
+    mockSetupInTest()
+    function setLoaded() {
+      loaded = true
+    }
+    Events.onAll({
+      on_load: setLoaded,
+      on_init: setLoaded,
+      on_configuration_changed: setLoaded,
+    })
+  })
+  test("on_load", () => {
+    simulateOnLoad()
+    assert.true(loaded)
+    assert.false(outsideLoad)
+  })
+  test("on_init", () => {
+    simulateOnLoad()
+    assert.true(loaded)
+    assert.false(outsideLoad)
+  })
+  test("on_configuration_changed", () => {
+    simulateOnLoad()
+    assert.true(loaded)
+    assert.false(outsideLoad)
+  })
 })
