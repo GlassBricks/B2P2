@@ -1,5 +1,11 @@
-import { onSetupReset } from "./setup"
-import { mockSetupInTest, simulateOnConfigurationChanged, simulateOnInit, simulateOnLoad } from "./setup-mock"
+import { addSetupHook } from "./setup"
+import {
+  _endSetupMock,
+  mockSetupInTest,
+  simulateOnConfigurationChanged,
+  simulateOnInit,
+  simulateOnLoad,
+} from "./setup-mock"
 
 let actions: string[] = []
 before_each(() => {
@@ -17,17 +23,27 @@ before_all(() => {
 })
 
 let setupHookCalled = false
-onSetupReset(() => {
+addSetupHook(() => {
   setupHookCalled = true
   assert.is_nil(global)
   assert.is_nil(game)
   assert.not_equal(oldScript, script)
 })
 
+let setupRestored = false
+addSetupHook({
+  reset: () => "store",
+  restore(value) {
+    setupRestored = value === "store"
+  },
+})
+
 test("setup hook called during mock", () => {
   setupHookCalled = false
   mockSetupInTest()
   assert.true(setupHookCalled)
+  _endSetupMock()
+  assert.true(setupRestored)
 })
 
 test("script, game, global mocked on setup", () => {

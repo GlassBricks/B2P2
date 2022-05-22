@@ -1,5 +1,5 @@
 import { table } from "util"
-import { _getSetupHooks } from "./setup"
+import { _getSetupHooks, SetupHook } from "./setup"
 import deepcopy = table.deepcopy
 
 /** @noSelf */
@@ -27,6 +27,11 @@ function MockSetup(): MockScript {
   let onInitHook: (() => void) | undefined
   let onLoadHook: (() => void) | undefined
   let onConfigChangedHook: ((data: ConfigurationChangedData) => void) | undefined
+
+  const resets: {
+    hook: SetupHook<any>
+    storedValue: any
+  }[] = []
   const result: MockScript = {
     active_mods: oldScript.active_mods,
     level: oldScript.level,
@@ -84,17 +89,25 @@ function MockSetup(): MockScript {
       ;(_G as any).script = oldScript
       ;(_G as any).game = oldGame
       ;(_G as any).global = oldGlobal
+      for (const { hook, storedValue } of resets) {
+        hook.restore!.call(hook, storedValue)
+      }
     },
     _isMockSetup: true,
   }
   ;(_G as any).global = undefined
   ;(_G as any).script = result
   ;(_G as any).game = undefined
-  for (const hook of _getSetupHooks()) hook()
+  for (const hook of _getSetupHooks()) {
+    const storedValue = hook.reset()
+    if (hook.restore) {
+      resets.push({ hook, storedValue })
+    }
+  }
   return result
 }
 
-function _endSetupMock(): void {
+export function _endSetupMock(): void {
   if (!rawget(script as MockScript, "_isMockSetup")) return
   ;(script as MockScript).revert()
 }

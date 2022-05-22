@@ -1,5 +1,5 @@
 import Events from "./Events"
-import { onSetupReset } from "./setup"
+import { addSetupHook } from "./setup"
 
 export type VersionString = string & {
   _versionStringBrand: void
@@ -48,7 +48,7 @@ export namespace Migrations {
     })
   }
   init()
-  onSetupReset(init)
+  addSetupHook(init)
 
   export function from(version: string, func: () => void): void {
     ;(postLoadMigrations[formatVersion(version)] ||= []).push(func)

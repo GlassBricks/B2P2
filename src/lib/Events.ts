@@ -1,6 +1,6 @@
 /** @noSelfInFile */
 
-import { onSetupReset } from "./setup"
+import { addSetupHook } from "./setup"
 import { PRecord } from "./util-types"
 
 export interface ScriptEvents {
@@ -64,7 +64,7 @@ type AnyHandler = (data?: any) => void
 // symbol -- script event
 let registeredHandlers: PRecord<keyof any, AnyHandler[]> = {}
 
-onSetupReset(() => {
+addSetupHook(() => {
   registeredHandlers = {}
 })
 

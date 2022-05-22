@@ -4,18 +4,24 @@ export function checkIsBeforeLoad(): void {
   }
 }
 
-export type SetupHook = () => void
+export type SetupHook<T> = {
+  reset(): T
+  restore?(value: T): void
+}
 
 let hooksFinalized = false
 
-const setupHooks: SetupHook[] = []
-export function onSetupReset(hook: SetupHook): void {
+const setupHooks: SetupHook<any>[] = []
+export function addSetupHook(hook: SetupHook<any> | (() => void)): void {
   checkIsBeforeLoad()
   if (hooksFinalized) error("Cannot add setup hooks at this time.")
+  if (typeof hook === "function") {
+    hook = { reset: hook }
+  }
   setupHooks.push(hook)
 }
 
-export function _getSetupHooks(): readonly SetupHook[] {
+export function _getSetupHooks(): readonly SetupHook<any>[] {
   hooksFinalized = true
   return setupHooks
 }
