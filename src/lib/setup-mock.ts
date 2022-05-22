@@ -1,15 +1,15 @@
-import { table } from "util"
-import { _getSetupHooks, SetupHook } from "./setup"
-import deepcopy = table.deepcopy
+import { _getSetupHooks, _setInSetupMock, SetupHook } from "./setup"
+import { deepCopy } from "./util"
 
 /** @noSelf */
 export interface MockScript extends LuaBootstrap {
   simulateOnInit(): void
+  simulateReload(): void
   simulateOnLoad(): void
   simulateOnConfigurationChanged(data: ConfigurationChangedData): void
+  getMockGlobal(): any
   revert(): void
   _isMockSetup: true
-  mockGlobal: any
 }
 
 declare const global: unknown
@@ -19,7 +19,7 @@ function MockSetup(): MockScript {
   const oldScript = script
   const oldGame = game
   const oldGlobal = global
-  const mockGlobal = {}
+  let mockGlobal = {}
 
   function cannotRunInMock(): never {
     error("This function cannot be run in mock setup mode.")
@@ -56,8 +56,7 @@ function MockSetup(): MockScript {
     raise_script_set_tiles: cannotRunInMock,
     register_on_entity_destroyed: cannotRunInMock,
     set_event_filter: cannotRunInMock,
-
-    mockGlobal,
+    getMockGlobal: () => mockGlobal,
     on_init(f: (() => void) | undefined) {
       onInitHook = f
     },
@@ -72,9 +71,15 @@ function MockSetup(): MockScript {
       ;(_G as any).global = mockGlobal
       onInitHook?.()
     },
+    simulateReload() {
+      ;(_G as any).global = undefined
+      ;(_G as any).game = undefined
+      mockGlobal = deepCopy(mockGlobal)
+    },
     simulateOnLoad(): void {
       ;(_G as any).global = mockGlobal
-      const oldGlobal = deepcopy(mockGlobal)
+      ;(_G as any).game = undefined
+      const oldGlobal = deepCopy(mockGlobal)
       onLoadHook?.()
       ;(_G as any).game = oldGame // AFTER onLoadHook
       collectgarbage()
@@ -89,6 +94,7 @@ function MockSetup(): MockScript {
       ;(_G as any).script = oldScript
       ;(_G as any).game = oldGame
       ;(_G as any).global = oldGlobal
+      _setInSetupMock(false)
       for (const { hook, storedValue } of resets) {
         hook.restore!.call(hook, storedValue)
       }
@@ -98,6 +104,7 @@ function MockSetup(): MockScript {
   ;(_G as any).global = undefined
   ;(_G as any).script = result
   ;(_G as any).game = undefined
+  _setInSetupMock(true)
   for (const hook of _getSetupHooks()) {
     const storedValue = hook.reset()
     if (hook.restore) {
@@ -117,26 +124,36 @@ export function mockSetupInTest(): void {
   MockSetup()
 }
 
-function assertInMockSetup(script: LuaBootstrap): asserts script is MockScript {
-  if (!rawget(script as MockScript, "_isMockSetup")) error("Not in mock setup.")
+function getMockScript(): MockScript {
+  const s = script as MockScript
+  if (!rawget(s, "_isMockSetup")) error("Not in mock setup.")
+  return s
 }
 
 export function simulateOnInit(): void {
-  assertInMockSetup(script)
-  script.simulateOnInit()
+  getMockScript().simulateOnInit()
 }
 
-export function simulateOnLoad(): void {
-  assertInMockSetup(script)
+export function simulateReload(): void {
+  getMockScript().simulateReload()
+}
+
+export function simulateFullReload(): void {
+  const script = getMockScript()
+  script.simulateReload()
   script.simulateOnLoad()
 }
 
-export function simulateOnConfigurationChanged(data: ConfigurationChangedData): void {
-  assertInMockSetup(script)
-  script.simulateOnConfigurationChanged(data)
+export function simulateOnLoad(): void {
+  getMockScript().simulateOnLoad()
 }
+
+export function simulateOnConfigurationChanged(data: ConfigurationChangedData): void {
+  getMockScript().simulateOnConfigurationChanged(data)
+}
+
 export function simulateConfigChangedModUpdate(fromVersion: string, toVersion: string): void {
-  assertInMockSetup(script)
+  const script = getMockScript()
   script.simulateOnConfigurationChanged({
     mod_changes: {
       [script.mod_name]: {
@@ -150,12 +167,11 @@ export function simulateConfigChangedModUpdate(fromVersion: string, toVersion: s
 }
 
 export function getMockGlobal(): any {
-  assertInMockSetup(script)
-  return script.mockGlobal
+  return getMockScript().getMockGlobal()
 }
 
 export function simulateModUpdated(fromVersion: string, toVersion: string): void {
-  assertInMockSetup(script)
+  const script = getMockScript()
   script.simulateOnLoad()
   simulateConfigChangedModUpdate(fromVersion, toVersion)
 }

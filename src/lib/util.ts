@@ -9,6 +9,23 @@ export function shallowCopy<T extends object>(obj: T): T {
 }
 export const mutableShallowCopy: <T extends object>(obj: T) => Mutable<T> = shallowCopy
 
+// does NOT copy metatables
+export function deepCopy<T extends object>(obj: T): T {
+  const seen = new LuaMap()
+  function copy(value: any): any {
+    if (type(value) !== "table") return value
+    if (type(value.__self) === "userdata") return value
+    if (seen.has(value)) return seen.get(value)
+    const result: any = {}
+    seen.set(value, result)
+    for (const [k, v] of pairs(value as Record<any, any>)) {
+      result[copy(k)] = copy(v)
+    }
+    return result
+  }
+  return copy(obj)
+}
+
 export function deepCompare<T>(a: T, b: T): boolean {
   if (a === b) return true
   if (typeof a !== "object" || typeof b !== "object") return false

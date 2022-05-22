@@ -1,4 +1,5 @@
 import { bind, bindN, bound, Classes, ContextualFun, Func, funcOn, funcRef, Functions, reg } from "./references"
+import { getCurrentFile } from "./registry"
 
 declare const global: {
   __tbl: object
@@ -6,6 +7,7 @@ declare const global: {
   __boundRef: Func<ContextualFun>
   __boundRef2: Func<ContextualFun>
 }
+
 describe("classes", () => {
   @Classes.register("Foo")
   class TestClass {
@@ -21,7 +23,8 @@ describe("classes", () => {
     for (const [key, value] of pairs(TestClass.prototype)) {
       if (type(key) === "table") {
         // Class name symbol
-        assert.equal("lib/references-test::Foo", value)
+        const fileName = getCurrentFile()
+        assert.equal(fileName + "::Foo", value)
         return
       }
     }
@@ -32,7 +35,7 @@ describe("classes", () => {
     assert.error(() => {
       @Classes.register()
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      class TestClass {}
+      class TestClass2 {}
     })
   })
 
@@ -53,14 +56,25 @@ describe("functions", () => {
   function func(...args: any) {
     return args
   }
-  Functions.register("test func 1")(func)
 
   function func2(this: unknown, ...args: unknown[]) {
     return [this, ...args]
   }
-  Functions.register("test func 2")(func2)
 
-  test("Func ref on instance", () => {
+  function funcN(this: unknown, ...args: unknown[]) {
+    return args
+  }
+  Functions.register("test func 1")(func)
+  Functions.register("test func 2")(func2)
+  Functions.register("test func 3: N")(funcN)
+
+  test("funcRef", () => {
+    const ref = funcRef(func)
+    assert.not_function(ref)
+    assert.same(["hi"], ref("hi"))
+  })
+
+  test("funcOn", () => {
     const obj = {
       func() {
         return "func called"
@@ -69,11 +83,6 @@ describe("functions", () => {
     const ref = funcOn(obj, "func")
     assert.equal("func called", ref())
   })
-
-  function funcN(this: unknown, ...args: unknown[]) {
-    return args
-  }
-  Functions.register("test func 3: N")(funcN)
 
   describe.each(["func", "funcRef", "funcOn", "custom"], "bound func ref with type %s", (type) => {
     test.each([0, 1, 2, 3, 4, 5, 10], "%d args", (n) => {

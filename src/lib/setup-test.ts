@@ -1,10 +1,12 @@
 import { addSetupHook } from "./setup"
 import {
   _endSetupMock,
+  getMockGlobal,
   mockSetupInTest,
   simulateOnConfigurationChanged,
   simulateOnInit,
   simulateOnLoad,
+  simulateReload,
 } from "./setup-mock"
 
 let actions: string[] = []
@@ -83,6 +85,23 @@ test("on_load mock", () => {
   simulateOnLoad()
   assert.same(["on_load"], actions)
   assert.same(game, oldGame)
+})
+
+test("reload mock", () => {
+  mockSetupInTest()
+  simulateOnInit()
+  const table = setmetatable({ foo: "bar" }, {})
+  global.foo = table
+
+  simulateReload()
+  assert.is_nil(game)
+  assert.is_nil(global)
+
+  const newGlobal = getMockGlobal()
+  // global
+  assert.not_equal(table, newGlobal.foo)
+  assert.same(table, newGlobal.foo)
+  assert.is_nil(getmetatable(newGlobal.foo))
 })
 
 test("error when changed on_load", () => {

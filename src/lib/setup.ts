@@ -25,3 +25,11 @@ export function _getSetupHooks(): readonly SetupHook<any>[] {
   hooksFinalized = true
   return setupHooks
 }
+
+let inSetupMock = false
+export function isInSetupMock(): boolean {
+  return inSetupMock
+}
+export function _setInSetupMock(value: boolean): void {
+  inSetupMock = value
+}
