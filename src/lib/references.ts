@@ -1,6 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
 import Events from "./Events"
+import { Migrations } from "./migration"
 import { Registry } from "./registry"
 import { isInSetupMock } from "./setup"
 
@@ -44,27 +45,26 @@ declare const global: {
   // __nextInstanceId: InstanceId
 }
 
-Events.onAll({
-  on_init() {
-    global.__classes = setmetatable({}, { __mode: "k" })
-  },
-  on_load() {
-    if (isInSetupMock() && !global.__classes) return
-    setmetatable(global.__classes, { __mode: "k" })
-    for (const [table, className] of pairs(global.__classes)) {
-      const type = Classes.getOrNil(className)
-      if (!type) {
-        error(
-          `Could not find a class with the name "${className}". Check that the class was registered properly, and/or migrations are correct.`,
-        )
-        // continue
-      }
-      setmetatable(table, type.prototype as LuaMetatable<object>)
+Events.on_init(() => {
+  global.__classes = setmetatable({}, { __mode: "k" })
+})
+
+Migrations.onLoadOrMigrate(() => {
+  if (isInSetupMock() && !global.__classes) return
+  setmetatable(global.__classes, { __mode: "k" })
+  for (const [table, className] of pairs(global.__classes)) {
+    const type = Classes.getOrNil(className)
+    if (!type) {
+      error(
+        `Could not find a class with the name "${className}". Check that the class was registered properly, and/or migrations are correct.`,
+      )
+      // continue
     }
-    for (const [table] of pairs(global.__classes)) {
-      table[OnLoad]?.()
-    }
-  },
+    setmetatable(table, type.prototype as LuaMetatable<object>)
+  }
+  for (const [table] of pairs(global.__classes)) {
+    table[OnLoad]?.()
+  }
 })
 
 function processRegisteredClass(item: RClass, name: ClassName) {
@@ -124,6 +124,16 @@ export const Classes = new Registry<Class<any>, ClassName>(
   (item) => serpent.block(item),
   processRegisteredClass,
 )
+
+/** Intended to be used with migrations. */
+export function getAllInstances<T>(type: Class<T>): T[] {
+  const typeName = Classes.nameOf(type)
+  const result: T[] = []
+  for (const [instance, name] of pairs(global.__classes)) {
+    if (name === typeName) result.push(instance as any)
+  }
+  return result
+}
 
 // -- functions --
 

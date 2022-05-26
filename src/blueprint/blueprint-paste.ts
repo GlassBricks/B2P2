@@ -3,18 +3,20 @@ import { Entity, FullEntity, PasteEntity, PlainEntity, ReferenceEntity } from ".
 import { findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
 import { Mutable, nilIfEmpty } from "../lib"
 import { BBox, bbox, pos, Position } from "../lib/geometry"
-import { Blueprint, filterEntitiesInArea, UpdateablePasteBlueprint } from "./Blueprint"
-import { pasteBlueprint } from "./world"
+import { get, Map2D } from "../lib/map2d"
+import { createEntityMap } from "./Blueprint"
+import { filterEntitiesInArea, LuaBlueprint, UpdateablePasteBlueprint } from "./LuaBlueprint"
+import { pasteBlueprint, takeBlueprintWithIndex } from "./world"
 import add = pos.add
 import floor = pos.floor
 import sub = pos.sub
 
 export function findCompatibleEntity<T extends Entity>(
-  blueprint: Blueprint<T>,
+  positionMap: Map2D<T>,
   entity: Entity,
   position: Position = entity.position,
 ): T | undefined {
-  const entities = blueprint.getAt(position)
+  const entities = get(positionMap, position.x, position.y)
   if (entities === undefined) return undefined
   for (const [e] of entities) {
     if (isCompatibleEntity(e, entity, position)) return e
@@ -49,12 +51,13 @@ export function pasteAndFindConflicts(
   const actualBounds = bbox.intersect(pasteBounds, contentBounds).roundTile()
   const relativeBounds = bbox.shiftNegative(actualBounds, contentBounds.left_top)
 
-  const filteredContent = Blueprint._new(filterEntitiesInArea(content.entities, relativeBounds))
+  const filteredContent = LuaBlueprint._new(filterEntitiesInArea(content.getEntities(), relativeBounds))
+  const filteredContentMap = createEntityMap(filteredContent.getEntities())
 
   const pasteLocation = floor(contentBounds.left_top)
-  const [belowContent, belowIndex] = Blueprint.takeWithSourceIndex(surface, actualBounds, pasteLocation)
+  const [belowContent, belowIndex] = takeBlueprintWithIndex(surface, actualBounds, pasteLocation)
 
-  const pastedEntities = pasteBlueprint(surface, pasteLocation, filteredContent.entities)
+  const pastedEntities = pasteBlueprint(surface, pasteLocation, filteredContent)
 
   // find pasted blueprint entities
   const pastedBPEntities = new LuaSet<Entity>()
@@ -65,7 +68,7 @@ export function pasteAndFindConflicts(
       direction: pastedEntity.direction,
       position: relativeLocation,
     }
-    const corresponding = findCompatibleEntity(filteredContent, refEntity, relativeLocation)
+    const corresponding = findCompatibleEntity(filteredContentMap, refEntity, relativeLocation)
     if (corresponding === undefined) {
       error("bp entity corresponding to pasted lua entity not found")
     }
@@ -75,7 +78,7 @@ export function pasteAndFindConflicts(
   // build luaEntity -> blueprint entity map
   const toBPEntityMap = new LuaMap<UnitNumber, PlainEntity>()
   for (const [entityNumber, luaEntity] of pairs(belowIndex)) {
-    toBPEntityMap.set(luaEntity.unit_number!, belowContent.entities[entityNumber - 1])
+    toBPEntityMap.set(luaEntity.unit_number!, belowContent.getEntities()[entityNumber - 1])
   }
 
   // find conflicts
@@ -86,7 +89,7 @@ export function pasteAndFindConflicts(
 
   let shouldRepaste = false
 
-  for (const aboveBpEntity of filteredContent.entities) {
+  for (const aboveBpEntity of filteredContent.getEntities()) {
     if (pastedBPEntities.has(aboveBpEntity)) {
       // already pasted
       if (aboveBpEntity.changedProps) {
@@ -142,7 +145,7 @@ export function pasteAndFindConflicts(
   }
 
   if (shouldRepaste) {
-    pasteBlueprint(surface, pasteLocation, filteredContent.entities, false)
+    pasteBlueprint(surface, pasteLocation, filteredContent, false)
   }
 
   const conflicts: BlueprintPasteConflicts = {

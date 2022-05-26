@@ -1,21 +1,23 @@
 import { EntityNumber, FullEntity, PasteEntity, PlainEntity } from "../entity/entity"
 import { computeEntityDiff, createReferenceOnlyEntity } from "../entity/entity-paste"
 import { nilIfEmpty } from "../lib"
-import { Blueprint, PasteBlueprint } from "./Blueprint"
+import { Blueprint, createEntityMap } from "./Blueprint"
 import { findCompatibleEntity } from "./blueprint-paste"
+import { LuaBlueprint, PasteBlueprint } from "./LuaBlueprint"
 
 export interface BlueprintDiff {
   readonly content: PasteBlueprint
   readonly deletions?: PlainEntity[]
 }
-export function computeBlueprintDiff(below: Blueprint, current: Blueprint): BlueprintDiff {
+export function computeBlueprintDiff(below: Blueprint<FullEntity>, current: Blueprint<FullEntity>): BlueprintDiff {
   const corresponding = new LuaMap<FullEntity, FullEntity | undefined>() // new to old
   const entityNumberMap: Record<EntityNumber, EntityNumber> = {} // old to new
   const shouldAlwaysInclude = new LuaSet<number>()
 
+  const belowMap = createEntityMap(below.getEntities())
   // find corresponding entities
-  for (const entity of current.entities) {
-    const compatible = findCompatibleEntity(below, entity)
+  for (const entity of current.getEntities()) {
+    const compatible = findCompatibleEntity(belowMap, entity)
     if (compatible) {
       // new entity
       corresponding.set(entity, compatible)
@@ -46,7 +48,7 @@ export function computeBlueprintDiff(below: Blueprint, current: Blueprint): Blue
   }
 
   const content: PasteEntity[] = []
-  for (const currentEntity of current.entities) {
+  for (const currentEntity of current.getEntities()) {
     const compatible = corresponding.get(currentEntity)
     if (compatible) {
       const referenceEntity = computeEntityDiff(compatible, currentEntity, entityNumberMap)
@@ -61,14 +63,14 @@ export function computeBlueprintDiff(below: Blueprint, current: Blueprint): Blue
   }
 
   const deletions: PlainEntity[] = []
-  for (const belowEntity of below.entities) {
+  for (const belowEntity of below.getEntities()) {
     if (!(belowEntity.entity_number in entityNumberMap)) {
       deletions.push(belowEntity)
     }
   }
 
   return {
-    content: Blueprint.fromArray(content),
+    content: LuaBlueprint.fromArray(content),
     deletions: nilIfEmpty(deletions),
   }
 }

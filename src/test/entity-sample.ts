@@ -46,7 +46,7 @@ function loadSamplesFromWorld() {
   }
   samples = {}
   const [surface, area] = get_area(1 as SurfaceIdentification, "entity samples")
-  const entities = takeBlueprint(surface, bbox.normalize(area))
+  const entities = takeBlueprint(surface, bbox.normalize(area)).getEntities()
   for (const entity of entities) {
     const name = entity.name
     const sampleName = samplesInOrderByName[name]?.shift()

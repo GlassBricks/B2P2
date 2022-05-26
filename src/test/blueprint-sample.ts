@@ -1,8 +1,7 @@
 import { get_area } from "__testorio__/testUtil/areas"
-import { table } from "util"
+import { LuaBlueprint } from "../blueprint/LuaBlueprint"
 import { takeBlueprint } from "../blueprint/world"
 import { bbox } from "../lib/geometry"
-import deepcopy = table.deepcopy
 
 const blueprintSampleNames = {
   original: true,
@@ -29,22 +28,23 @@ const blueprintSampleNames = {
 export type BlueprintSampleName = keyof typeof blueprintSampleNames
 export const BlueprintSampleNames = Object.keys(blueprintSampleNames) as BlueprintSampleName[]
 
-let samples: Record<string, BlueprintEntityRead[]>
+let samples: Record<string, readonly BlueprintEntityRead[]>
 function loadSamplesFromWorld() {
   samples = {}
-  for (const [name] of pairs(blueprintSampleNames)) {
+  for (const name of BlueprintSampleNames) {
     try {
       const [surface, area] = get_area(1 as SurfaceIdentification, `bp ${name}`)
-      samples[name] = takeBlueprint(surface, bbox.normalize(area))
+      samples[name] = takeBlueprint(surface, bbox.normalize(area)).getEntities()
     } catch {
       // ignore
     }
   }
 }
 
-export function getBlueprintSample(sample: BlueprintSampleName): BlueprintEntityRead[] {
+export function getBlueprintSample(sample: BlueprintSampleName): LuaBlueprint {
   if (!samples) {
     loadSamplesFromWorld()
   }
-  return deepcopy(samples[sample]) ?? error(`no blueprint sample found for ${sample}`)
+  const entities = samples[sample] ?? error(`no blueprint sample found for ${sample}`)
+  return LuaBlueprint.fromArray(entities)
 }

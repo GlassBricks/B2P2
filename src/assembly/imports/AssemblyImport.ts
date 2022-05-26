@@ -1,13 +1,14 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { Colors } from "../../constants"
+import { FullEntity } from "../../entity/entity"
 import { BBox, bbox } from "../../lib/geometry"
 import { State } from "../../lib/observable"
 
 export interface AssemblyImport {
   name(): State<LocalisedString>
   // undefined means is not valid
-  content(): State<Blueprint | undefined>
+  content(): State<Blueprint<FullEntity> | undefined>
 
   getRelativeBoundingBox(): BBox
   getSourceArea(): AreaIdentification | undefined

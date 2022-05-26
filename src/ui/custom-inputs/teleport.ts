@@ -16,7 +16,7 @@ function teleportToSourceOfEntity(player: LuaPlayer, entity: LuaEntity): void {
     })
     return
   }
-  const sourceMap = assembly.getContent()!.entitySourceMap.get()!
+  const sourceMap = assembly.getContent()!.entitySourceMap
 
   const source = getEntitySourceLocation(sourceMap, entity, undefined)
   if (!source) {

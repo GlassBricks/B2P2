@@ -65,7 +65,7 @@ export class SaveButton extends Component<{ assembly: Assembly }> {
     if (!content) return
     const result = content.commitAndReset()
     if (result) {
-      player.print([L_Interaction.AssemblySaved, result.content.asArray().length])
+      player.print([L_Interaction.AssemblySaved, result.content.getEntities().length])
     }
     if (content.hasConflicts.get()) {
       player.print([L_Interaction.FoundPasteConflicts])

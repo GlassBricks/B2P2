@@ -5,7 +5,7 @@ import { bbox, BoundingBoxClass, pos, Position } from "../lib/geometry"
 import { BlueprintSampleName, BlueprintSampleNames, getBlueprintSample } from "../test/blueprint-sample"
 import { getEntitySample } from "../test/entity-sample"
 import { getWorkingArea1 } from "../test/misc"
-import { Blueprint, PasteBlueprint } from "./Blueprint"
+import { Blueprint, createEntityMap } from "./Blueprint"
 import {
   BlueprintPasteConflicts,
   BlueprintPasteOptions,
@@ -13,20 +13,21 @@ import {
   findCompatibleEntity,
   pasteAndFindConflicts,
 } from "./blueprint-paste"
+import { LuaBlueprint, PasteBlueprint } from "./LuaBlueprint"
 import { clearBuildableEntities, pasteBlueprint } from "./world"
 
-let emptyBlueprint: Blueprint
+let emptyBlueprint: Blueprint<FullEntity>
 function getAssemblingMachineEntity(): FullEntity {
   return {
     ...getEntitySample("assembling-machine-1"),
     position: pos(3.5, 3.5),
   }
 }
-let singleAssemblerBlueprint: Blueprint
+let singleAssemblerBlueprint: Blueprint<FullEntity>
 
 before_all(() => {
-  emptyBlueprint = Blueprint.of()
-  singleAssemblerBlueprint = Blueprint.of(getAssemblingMachineEntity())
+  emptyBlueprint = LuaBlueprint.of()
+  singleAssemblerBlueprint = LuaBlueprint.of(getAssemblingMachineEntity())
 })
 
 describe("findCompatibleEntity", () => {
@@ -36,16 +37,16 @@ describe("findCompatibleEntity", () => {
       ...getEntitySample("assembling-machine-2"),
       position: rawEntity.position,
     }
-    const b = Blueprint.of(rawEntity)
-    const result = findCompatibleEntity(b, rawEntity2)
+    const map = createEntityMap([rawEntity])
+    const result = findCompatibleEntity(map, rawEntity2)
     assert.equal(rawEntity, result)
   })
 
   it("returns undefined if no compatible entity is found", () => {
     const rawEntity1 = getEntitySample("assembling-machine-1")
     const rawEntity2 = getEntitySample("chest")
-    const b = Blueprint.of(rawEntity1)
-    const result = findCompatibleEntity(b, rawEntity2)
+    const map = createEntityMap([rawEntity1])
+    const result = findCompatibleEntity(map, rawEntity2)
     assert.is_nil(result)
   })
 })
@@ -60,12 +61,12 @@ describe("pasteAndFindConflicts", () => {
     clearBuildableEntities(surface, area)
   })
   function testBPs(
-    below: Blueprint,
+    below: Blueprint<FullEntity>,
     above: PasteBlueprint,
     pasteLocation: Position = area.left_top,
     options: BlueprintPasteOptions = {},
   ) {
-    pasteBlueprint(surface, pasteLocation, below.entities)
+    pasteBlueprint(surface, pasteLocation, below)
     const pasteArea = bbox.shiftToOrigin(area).shift(pasteLocation)
     return pasteAndFindConflicts(surface, area, above, pasteArea, options)
   }
@@ -96,7 +97,7 @@ describe("pasteAndFindConflicts", () => {
       ...getAssemblingMachineEntity(),
       position: pos(1.5, 1.5),
     }
-    const blueprint2 = Blueprint.of(movedAssemblingMachine)
+    const blueprint2 = LuaBlueprint.of(movedAssemblingMachine)
     const conflicts = testBPs(singleAssemblerBlueprint, blueprint2)[0]
     assert.same([movedAssemblingMachine], conflicts.overlaps)
     assert.same(["overlaps"], Object.keys(conflicts), "no other conflicts")
@@ -107,7 +108,7 @@ describe("pasteAndFindConflicts", () => {
       ...getAssemblingMachineEntity(),
       name: "assembling-machine-2",
     }
-    const blueprint2 = Blueprint.of(asm2)
+    const blueprint2 = LuaBlueprint.of(asm2)
     const conflicts = testBPs(singleAssemblerBlueprint, blueprint2)[0]
     assert.same(
       [
@@ -123,7 +124,7 @@ describe("pasteAndFindConflicts", () => {
 
   it("detects reference entities without reference", () => {
     const asm = createReferenceOnlyEntity(getAssemblingMachineEntity())
-    const bp2 = Blueprint.of(asm)
+    const bp2 = LuaBlueprint.of(asm)
     const conflicts = testBPs(emptyBlueprint, bp2)[0]
     assert.same([asm], conflicts.lostReferences)
     assert.same(["lostReferences"], Object.keys(conflicts), "no other conflicts")
@@ -137,7 +138,7 @@ describe("pasteAndFindConflicts", () => {
       recipe: "stone-furnace",
       changedProps: new LuaSet("recipe"), // name not considered
     }
-    const blueprint2 = Blueprint.of(updatedAssemblingMachine)
+    const blueprint2 = LuaBlueprint.of(updatedAssemblingMachine)
     const conflicts = testBPs(singleAssemblerBlueprint, blueprint2)[0]
     assert.same({}, conflicts)
 
@@ -245,8 +246,8 @@ describe("pasteAndFindConflicts", () => {
     // test("diagnostics match expected for changing to sample: module change", () => {
     //   const sampleName: BlueprintSampleName = "inserter fast replace"
 
-    const below = Blueprint.fromArray(getBlueprintSample("original"))
-    const above = Blueprint.fromArray(getBlueprintSample(sampleName))
+    const below = getBlueprintSample("original")
+    const above = getBlueprintSample(sampleName)
 
     const conflicts = testBPs(below, above)[0]
 
@@ -255,8 +256,8 @@ describe("pasteAndFindConflicts", () => {
       assert.same({}, conflicts)
       return
     }
-    const aboveEntity = above.asArray().find((x) => x.name === expected.aboveEntity)!
-    const belowEntity = below.asArray().find((x) => x.name === expected.belowEntity)!
+    const aboveEntity = above.getEntities().find((x) => x.name === expected.aboveEntity)!
+    const belowEntity = below.getEntities().find((x) => x.name === expected.belowEntity)!
     let expectedConflict: BlueprintPasteConflicts
     if (expected.type === "overlap") {
       expectedConflict = {
@@ -277,11 +278,11 @@ describe("pasteAndFindConflicts", () => {
   })
 
   test("can upgrade entities", () => {
-    const below = Blueprint.fromArray(getBlueprintSample("original"))
-    const above = Blueprint.fromArray(getBlueprintSample("inserter fast replace and control change"))
+    const below = getBlueprintSample("original")
+    const above = getBlueprintSample("inserter fast replace and control change")
 
     const pasteLocation: Position = area.left_top
-    pasteBlueprint(surface, pasteLocation, below.entities)
+    pasteBlueprint(surface, pasteLocation, below)
     const inserter = surface.find_entities_filtered({ name: "inserter", area })[0]
     assert.not_nil(inserter, "inserter below")
     const oldControl = (inserter.get_control_behavior() as LuaInserterControlBehavior).circuit_read_hand_contents

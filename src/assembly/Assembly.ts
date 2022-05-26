@@ -161,7 +161,6 @@ Events.on_surface_deleted(() => {
     }
 })
 
-// todo: proper migration stuff
 Migrations.since("0.2.0", () => {
   global.nextAssemblyId = 1
 })

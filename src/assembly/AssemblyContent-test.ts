@@ -1,6 +1,7 @@
 import { Blueprint } from "../blueprint/Blueprint"
 import { getEntitySourceLocation } from "../blueprint/EntitySourceMap"
-import { clearBuildableEntities, pasteBlueprint } from "../blueprint/world"
+import { LuaBlueprint } from "../blueprint/LuaBlueprint"
+import { clearBuildableEntities, pasteBlueprint, takeBlueprint } from "../blueprint/world"
 import { computeTileBox } from "../entity/entity-info"
 import { Classes } from "../lib"
 import { bbox, BoundingBoxClass, pos } from "../lib/geometry"
@@ -18,12 +19,8 @@ test("registered", () => {
 let area: BoundingBoxClass
 let surface: LuaSurface
 
-let originalBlueprintSample: Blueprint
-
 before_all(() => {
   ;[surface, area] = getWorkingArea1()
-
-  originalBlueprintSample = Blueprint.fromArray(getBlueprintSample("original"))
 })
 
 function createAssemblyContent(area1: BoundingBoxClass = area): AssemblyContent {
@@ -51,14 +48,14 @@ describe("initializing contents", () => {
   })
   test("in an empty area yields empty ownContents ", () => {
     const content = createAssemblyContent()
-    assert.same({}, content.ownContents.get().entities)
+    assert.same({}, content.ownContents.get().getEntities())
   })
 
   test("in an area with entities sets ownContents", () => {
-    pasteBlueprint(surface, area.left_top, originalBlueprintSample.entities)
+    pasteBlueprint(surface, area.left_top, getBlueprintSample("original"))
     const content = createAssemblyContent()
-    assertBlueprintsEquivalent(originalBlueprintSample, content.ownContents.get())
-    assertBlueprintsEquivalent(originalBlueprintSample, content.resultContent.get()!)
+    assertBlueprintsEquivalent(getBlueprintSample("original"), content.ownContents.get())
+    assertBlueprintsEquivalent(getBlueprintSample("original"), content.resultContent.get()!)
   })
 })
 
@@ -68,21 +65,21 @@ describe("refreshInWorld", () => {
   })
   test("reset an empty assembly clears area", () => {
     const content = createAssemblyContent()
-    pasteBlueprint(surface, area.left_top, originalBlueprintSample.entities)
+    pasteBlueprint(surface, area.left_top, getBlueprintSample("original"))
     content.resetInWorld()
-    const bp = Blueprint.take(surface, area, area.left_top)
-    assert.same({}, bp.entities)
-    assert.same({}, content.resultContent.get()!.entities)
+    const bp = takeBlueprint(surface, area, area.left_top)
+    assert.same({}, bp.getEntities())
+    assert.same({}, content.resultContent.get()!.getEntities())
   })
   test.each<BlueprintSampleName>(
     ["original", "module change", "module purple sci"],
     "refreshing an assembly with entities sets entities: %s",
     (sampleName) => {
-      const sample = Blueprint.fromArray(getBlueprintSample(sampleName))
-      pasteBlueprint(surface, area.left_top, sample.entities)
+      const sample = getBlueprintSample(sampleName)
+      pasteBlueprint(surface, area.left_top, sample)
       const content = createAssemblyContent()
       content.resetInWorld()
-      const bp = Blueprint.take(surface, area, area.left_top)
+      const bp = takeBlueprint(surface, area, area.left_top)
       assertBlueprintsEquivalent(sample, bp)
       assertNoGhosts()
 
@@ -97,36 +94,38 @@ describe("import", () => {
   })
   test("adding import to blueprint adds to in world", () => {
     const content = createAssemblyContent()
-    content.saveAndAddImport(mockImport(originalBlueprintSample))
-    assert.same({}, content.ownContents.get().entities)
+    content.saveAndAddImport(mockImport(getBlueprintSample("original")))
+    assert.same({}, content.ownContents.get().getEntities())
     content.resetInWorld()
-    const bp = Blueprint.take(surface, area)
-    assertBlueprintsEquivalent(originalBlueprintSample, bp)
+    const bp = takeBlueprint(surface, area, area.left_top)
+    assertBlueprintsEquivalent(getBlueprintSample("original"), bp)
     assertNoGhosts()
-    assertBlueprintsEquivalent(originalBlueprintSample, content.resultContent.get()!)
+    assertBlueprintsEquivalent(getBlueprintSample("original"), content.resultContent.get()!)
   })
   test("adding import to blueprint adds to in world at nearest 2x2 grid pos", () => {
     const content = createAssemblyContent()
-    content.saveAndAddImport(mockImport(originalBlueprintSample, pos(2, 2)))
-    assert.same({}, content.ownContents.get().entities)
+    content.saveAndAddImport(mockImport(getBlueprintSample("original"), pos(2, 2)))
+    assert.same({}, content.ownContents.get().getEntities())
     content.resetInWorld()
-    const bp = Blueprint.take(surface, bbox.shift(area, pos(2, 2)))
-    assertBlueprintsEquivalent(originalBlueprintSample, bp)
+    const bp = takeBlueprint(surface, bbox.shift(area, pos(2, 2)))
+    assertBlueprintsEquivalent(getBlueprintSample("original"), bp)
     assertNoGhosts()
 
-    const shiftedBlueprint = Blueprint.fromArray(
-      originalBlueprintSample.asArray().map((x) => ({ ...x, position: pos.add(x.position, pos(2, 2)) })),
+    const shiftedBlueprint = LuaBlueprint.fromArray(
+      getBlueprintSample("original")
+        .getEntities()
+        .map((x) => ({ ...x, position: pos.add(x.position, pos(2, 2)) })),
     )
     assertBlueprintsEquivalent(shiftedBlueprint, content.resultContent.get()!)
   })
 
   test("inactive import does not add in world", () => {
     const content = createAssemblyContent()
-    content.saveAndAddImport(mockImport(originalBlueprintSample, pos(2, 2)))
+    content.saveAndAddImport(mockImport(getBlueprintSample("original"), pos(2, 2)))
     content.imports.get(0).active.set(false)
     content.resetInWorld()
-    const bp = Blueprint.take(surface, area)
-    assert.same({}, bp.entities)
+    const bp = takeBlueprint(surface, area, area.left_top)
+    assert.same({}, bp.getEntities())
   })
 
   test("imported entities do not extend beyond bounding box", () => {
@@ -143,11 +142,11 @@ describe("import", () => {
       },
     ]
     const content = createAssemblyContent(bbox(area.left_top, pos.add(area.left_top, pos(5, 5))))
-    content.saveAndAddImport(mockImport(Blueprint.fromArray(mockEntities)))
+    content.saveAndAddImport(mockImport(LuaBlueprint.fromArray(mockEntities)))
 
     content.resetInWorld()
-    const bp = Blueprint.take(surface, area, area.left_top)
-    const expected = Blueprint.fromArray(mockEntities.slice(0, 1))
+    const bp = takeBlueprint(surface, area, area.left_top)
+    const expected = LuaBlueprint.fromArray(mockEntities.slice(0, 1))
     assertBlueprintsEquivalent(expected, bp)
     assertNoGhosts()
   })
@@ -155,8 +154,8 @@ describe("import", () => {
   test("does not paste invalid import", () => {
     const content = createAssemblyContent()
     content.saveAndAddImport(invalidMockImport())
-    const bp = Blueprint.take(surface, area, area.left_top)
-    assert.same({}, bp.entities)
+    const bp = takeBlueprint(surface, area, area.left_top)
+    assert.same({}, bp.getEntities())
   })
 
   test("allow upgrades makes diagnostics highlight only", () => {
@@ -164,9 +163,9 @@ describe("import", () => {
     pasteBlueprint(surface, area.left_top, upgradeBlueprint)
     const content = createAssemblyContent()
     content.ownOptions.allowUpgrades.set(true)
-    content.saveAndAddImport(mockImport(originalBlueprintSample))
-    const bp = Blueprint.take(surface, area)
-    assertBlueprintsEquivalent(Blueprint.fromArray(upgradeBlueprint), bp)
+    content.saveAndAddImport(mockImport(getBlueprintSample("original")))
+    const bp = takeBlueprint(surface, area, area.left_top)
+    assertBlueprintsEquivalent(upgradeBlueprint, bp)
     assertNoGhosts()
 
     const diagnostics = content.pasteDiagnostics.get()![1]
@@ -180,7 +179,7 @@ describe("paste conflicts", () => {
   })
 
   it("has no conflicts for simple paste", () => {
-    pasteBlueprint(surface, area.left_top, originalBlueprintSample.entities)
+    pasteBlueprint(surface, area.left_top, getBlueprintSample("original"))
     const content = createAssemblyContent()
     assert.same(
       [{}],
@@ -188,17 +187,17 @@ describe("paste conflicts", () => {
     )
   })
 
-  function testBlueprints(above: BlueprintEntityRead[], below: BlueprintEntityRead[]) {
+  function testBlueprints(above: Blueprint, below: Blueprint) {
     pasteBlueprint(surface, area.left_top, above)
     const content = createAssemblyContent()
-    content.saveAndAddImport(mockImport(Blueprint.fromArray(below)))
+    content.saveAndAddImport(mockImport(below))
     return content
   }
   it("highlights conflicts", () => {
     const below = getBlueprintSample("original")
     const above = getBlueprintSample("inserter rotate")
     testBlueprints(above, below)
-    const conflictingEntity = above.find((x) => x.name === "inserter")!
+    const conflictingEntity = above.getEntities().find((x) => x.name === "inserter")!
     const conflictingPosition = pos.add(conflictingEntity.position, area.left_top)
     const highlightBox = surface.find_entity("highlight-box", conflictingPosition)
     assert.not_nil(highlightBox)
@@ -232,9 +231,9 @@ describe("sourceMap", () => {
     const blueprintSample = getBlueprintSample("original")
     pasteBlueprint(surface, area.left_top, blueprintSample)
     const contents = createAssemblyContent()
-    const map = contents.entitySourceMap.get()!
+    const map = contents.entitySourceMap
     assert.not_nil(map)
-    for (const entity of blueprintSample) {
+    for (const entity of blueprintSample.getEntities()) {
       const box = getEntitySourceLocation(map, entity, area.left_top)?.area
       assert.same(shift(computeTileBox(entity), area.left_top), box)
     }
@@ -246,16 +245,16 @@ describe("sourceMap", () => {
     const contents = createAssemblyContent()
     const importContent = getBlueprintSample("original")
     const [, area2] = getWorkingArea2()
-    const imp = mockImport(Blueprint.fromArray(importContent), undefined, { surface, area: area2 })
+    const imp = mockImport(importContent, undefined, { surface, area: area2 })
     contents.saveAndAddImport(imp)
 
-    const map = contents.entitySourceMap.get()!
+    const map = contents.entitySourceMap
     assert.not_nil(map)
-    for (const entity of importContent) {
+    for (const entity of importContent.getEntities()) {
       const box = getEntitySourceLocation(map, entity, area.left_top)?.area
       assert.same(shift(computeTileBox(entity), area2.left_top), box, "imported entity maps to source location")
     }
-    for (const entity of ownContent) {
+    for (const entity of ownContent.getEntities()) {
       if (entity.name === "iron-chest") {
         const box = getEntitySourceLocation(map, entity, area.left_top)?.area
         assert.same(shift(computeTileBox(entity), area.left_top), box, "own chest maps to own location")
@@ -271,26 +270,26 @@ describe("saveChanges", () => {
     const contents = createAssemblyContent()
     contents.prepareSave()
     contents.commitSave()
-    assert.same({}, Blueprint.take(surface, area, area.left_top).entities)
+    assert.same({}, takeBlueprint(surface, area, area.left_top).getEntities())
     assertNoGhosts()
   })
 
   it("sets ownContents", () => {
     const contents = createAssemblyContent()
-    pasteBlueprint(surface, area.left_top, originalBlueprintSample.entities)
+    pasteBlueprint(surface, area.left_top, getBlueprintSample("original"))
     contents.prepareSave()
     contents.commitSave()
-    assertBlueprintsEquivalent(originalBlueprintSample, contents.ownContents.get())
+    assertBlueprintsEquivalent(getBlueprintSample("original"), contents.ownContents.get())
     assertNoGhosts()
   })
 
   it("is empty when content exactly matches imports", () => {
     const contents = createAssemblyContent()
-    contents.saveAndAddImport(mockImport(originalBlueprintSample))
+    contents.saveAndAddImport(mockImport(getBlueprintSample("original")))
     contents.resetInWorld()
     contents.prepareSave()
     contents.commitSave()
-    assert.same({}, contents.ownContents.get().entities)
+    assert.same({}, contents.ownContents.get().getEntities())
     assertNoGhosts()
   })
 })

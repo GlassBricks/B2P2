@@ -1,6 +1,5 @@
 import { Assembly } from "../assembly/Assembly"
 import { mockImport } from "../assembly/imports/import-mock"
-import { Blueprint } from "../blueprint/Blueprint"
 import { clearBuildableEntities } from "../blueprint/world"
 import { Settings } from "../constants"
 import { ContextualFun } from "../lib"
@@ -72,7 +71,7 @@ test("does not save if there are conflicts", () => {
 })
 
 test("does not save if there are deletions", () => {
-  assembly.getContent()!.saveAndAddImport(mockImport(Blueprint.fromArray(getBlueprintSample("original"))))
+  assembly.getContent()!.saveAndAddImport(mockImport(getBlueprintSample("original")))
   clearBuildableEntities(assembly.surface, assembly.area)
   saved.clear()
   teleportIn()

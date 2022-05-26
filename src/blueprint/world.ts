@@ -1,30 +1,25 @@
 import { FullEntity } from "../entity/entity"
 import { isEmpty, Mutable } from "../lib"
 import { BBox, pos, Position } from "../lib/geometry"
+import { Blueprint } from "./Blueprint"
+import { LuaBlueprint } from "./LuaBlueprint"
+import { getTempBpItemStack } from "./tempItemStack"
 
-declare const global: {
-  __tempBlueprintInventory: LuaInventory
-}
-
-function getTempItemStack(): BlueprintItemStack {
-  const inventory = (global.__tempBlueprintInventory ??= game.create_inventory(1))[0]
-  inventory.set_stack("blueprint")
-  return inventory
-}
 export function takeBlueprint(
   surface: SurfaceIdentification,
   area: BBox,
   worldTopLeft: Position = area.left_top,
-): FullEntity[] {
-  const [entities] = takeBlueprintWithIndex(surface, area, worldTopLeft)
-  return entities
+): LuaBlueprint {
+  const [bp] = takeBlueprintWithIndex(surface, area, worldTopLeft)
+  return bp
 }
+
 export function takeBlueprintWithIndex(
   surface: SurfaceIdentification,
   area: BBox,
   worldTopLeft: Position = area.left_top,
-): LuaMultiReturn<[FullEntity[], Record<number, LuaEntity>]> {
-  const item = getTempItemStack()
+): LuaMultiReturn<[LuaBlueprint, Record<number, LuaEntity>]> {
+  const item = getTempBpItemStack()
   const index = item.create_blueprint({
     surface,
     area,
@@ -32,7 +27,7 @@ export function takeBlueprintWithIndex(
     include_station_names: true,
     include_trains: true,
   })
-  if (isEmpty(index)) return $multi([], {})
+  if (isEmpty(index)) return $multi(LuaBlueprint.of(), {})
   const entities = item.get_blueprint_entities()! as Mutable<FullEntity>[]
   const targetPos = pos.sub(index[1].position, worldTopLeft)
   const actualPos = item.get_blueprint_entities()![0].position
@@ -44,7 +39,7 @@ export function takeBlueprintWithIndex(
       position.y += offset.y
     }
   }
-  return $multi(entities, index)
+  return $multi(LuaBlueprint._new(entities), index)
 }
 
 function reviveGhost(ghost: GhostEntity): LuaEntity | undefined {
@@ -74,16 +69,11 @@ function reviveGhost(ghost: GhostEntity): LuaEntity | undefined {
 export function pasteBlueprint(
   surface: SurfaceIdentification,
   location: Position,
-  entities: readonly BlueprintEntityRead[],
+  blueprint: Blueprint<FullEntity>,
   revive: boolean = true,
 ): LuaEntity[] {
-  if (isEmpty(entities)) return []
-
-  const stack = getTempItemStack()
-  stack.set_stack("blueprint")
-  stack.blueprint_snap_to_grid = [2, 2] // 2x2 so that rails can fit
-  stack.blueprint_absolute_snapping = true
-  stack.set_blueprint_entities(entities)
+  const stack = blueprint.getStack()
+  if (!stack) return []
   const ghosts = stack.build_blueprint({
     surface,
     position: location,

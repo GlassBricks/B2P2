@@ -2,7 +2,8 @@ import { AreaIdentification } from "../area/AreaIdentification"
 import { Entity } from "../entity/entity"
 import { computeTileBox, computeTileBoxOfLuaEntity } from "../entity/entity-info"
 import { bbox, pos, Position } from "../lib/geometry"
-import { Blueprint } from "./Blueprint"
+import { Map2D } from "../lib/map2d"
+import { createEntityMap } from "./Blueprint"
 import { findCompatibleEntity } from "./blueprint-paste"
 import shift = bbox.shift
 
@@ -10,7 +11,7 @@ export interface SourceMapEntity extends Entity {
   actualLocation: AreaIdentification
 }
 
-export type EntitySourceMap = Blueprint<SourceMapEntity>
+export type EntitySourceMap = Map2D<SourceMapEntity>
 
 /**
  * Not serializable!
@@ -50,7 +51,7 @@ export class EntitySourceMapBuilder {
   }
 
   build(): EntitySourceMap {
-    return Blueprint._new(this.entities)
+    return createEntityMap(this.entities)
   }
 }
 

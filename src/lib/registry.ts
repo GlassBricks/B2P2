@@ -58,6 +58,17 @@ export class Registry<T, N extends string> {
       this.registerRaw((prefix + name) as N, item)
     }
   }
+  registerIn(file: string, as?: string): (this: unknown, item: T) => void {
+    const callerFile = getCallerFile()
+
+    const [folder] = string.match(callerFile, "^(.+/)")
+    const prefix = (folder ?? "") + file + "::"
+
+    return (item) => {
+      const name = as ?? this.getDefaultName(item)
+      this.registerRaw((prefix + name) as N, item)
+    }
+  }
 
   registerAll(items: Record<string, T>): void {
     const prefix = getCallerFile() + "::"

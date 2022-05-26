@@ -1,5 +1,6 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
+import { FullEntity } from "../../entity/entity"
 import { Classes, raiseUserError } from "../../lib"
 import { BBox, bbox, Position } from "../../lib/geometry"
 import { State } from "../../lib/observable"
@@ -9,14 +10,14 @@ import { AssemblyImport } from "./AssemblyImport"
 
 @Classes.register()
 export class BasicImport implements AssemblyImport {
-  private readonly _content: State<Blueprint | undefined>
+  private readonly _content: State<Blueprint<FullEntity> | undefined>
   private constructor(private readonly source: Assembly, readonly relativeBoundingBox: BBox) {
     this._content = source.getContent()!.resultContent
   }
   name(): State<LocalisedString> {
     return this.source.name
   }
-  content(): State<Blueprint | undefined> {
+  content(): State<Blueprint<FullEntity> | undefined> {
     return this._content
   }
   getRelativeBoundingBox(): BBox {

@@ -1,5 +1,6 @@
 import { Blueprint } from "../../blueprint/Blueprint"
 import { clearBuildableEntities, pasteBlueprint } from "../../blueprint/world"
+import { FullEntity } from "../../entity/entity"
 import { isUserError } from "../../lib"
 import { BBox, bbox, pos } from "../../lib/geometry"
 import { assertBlueprintsEquivalent } from "../../test/blueprint"
@@ -8,11 +9,11 @@ import { getWorkingArea1 } from "../../test/misc"
 import { Assembly } from "../Assembly"
 import { BasicImport } from "./BasicImport"
 
-let blueprint: Blueprint
+let blueprint: Blueprint<FullEntity>
 let surface: LuaSurface
 let area: BBox
 before_each(() => {
-  blueprint = Blueprint.fromArray(getBlueprintSample("original"))
+  blueprint = getBlueprintSample("original")
   ;[surface, area] = getWorkingArea1()
   clearBuildableEntities(surface, area)
 })
@@ -23,7 +24,7 @@ after_each(() => {
 })
 
 test("creation", () => {
-  pasteBlueprint(surface, area.left_top, blueprint.asArray())
+  pasteBlueprint(surface, area.left_top, blueprint)
   const assembly = Assembly.create("test", surface, area)
 
   const im = BasicImport._createUnchecked(assembly, pos(0, 0))

@@ -30,7 +30,7 @@ export function startBasicImportCreation(
 
   const stack: BlueprintItemStack = player.cursor_stack
 
-  const entities = content.asArray()
+  const entities = content.getEntities()
 
   const shiftAmount = bbox.size(source.area).div(4).floor().times(2) // area/2, rounded to nearest 2
   let nextEntityNumber = 1

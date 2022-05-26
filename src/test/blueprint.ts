@@ -17,7 +17,7 @@ function sortEntities(entities: Record<number, FullEntity>): FullEntity[] {
 }
 
 export function assertBlueprintsEquivalent(expected: Blueprint<FullEntity>, actual: Blueprint<FullEntity>): void {
-  const expectedEntities = remapEntityNumbersInArrayPosition(sortEntities(expected.entities))
-  const actualEntities = remapEntityNumbersInArrayPosition(sortEntities(actual.entities))
+  const expectedEntities = remapEntityNumbersInArrayPosition(sortEntities(expected.getEntities()))
+  const actualEntities = remapEntityNumbersInArrayPosition(sortEntities(actual.getEntities()))
   assert.same(expectedEntities, actualEntities)
 }
