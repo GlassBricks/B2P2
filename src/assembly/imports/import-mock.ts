@@ -10,10 +10,9 @@ export function mockImport(
   relativePosition: Position = pos(0, 0),
   sourceArea: AreaIdentification | undefined = undefined,
 ): AssemblyImport {
-  const c = state(content)
   const name = state("")
   return {
-    content: () => c,
+    getContent: () => content,
     name: () => name,
     getRelativeBoundingBox: () => {
       let maxX = 0
@@ -34,10 +33,9 @@ export function mockImport(
 }
 
 export function invalidMockImport(relativePosition: Position = pos(0, 0)): AssemblyImport {
-  const c = state(undefined)
   const name = state("")
   return {
-    content: () => c,
+    getContent: () => undefined,
     name: () => name,
     getRelativeBoundingBox: () => ({ left_top: relativePosition, right_bottom: relativePosition }),
     getSourceArea: () => undefined,

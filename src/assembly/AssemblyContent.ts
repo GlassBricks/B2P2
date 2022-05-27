@@ -18,7 +18,7 @@ import { mapPasteConflictsToDiagnostics, PasteDiagnostics } from "./paste-diagno
  * Manages in-world contents of an assembly.
  */
 export interface AssemblyContent extends AreaIdentification {
-  readonly ownContents: State<PasteBlueprint>
+  readonly ownContents: PasteBlueprint
   readonly ownOptions: LayerOptions
 
   readonly imports: MutableObservableList<AssemblyImportItem>
@@ -28,7 +28,7 @@ export interface AssemblyContent extends AreaIdentification {
 
   readonly hasConflicts: State<boolean>
 
-  readonly resultContent: State<Blueprint<FullEntity> | undefined> // undefined when invalid
+  readonly resultContent: Blueprint<FullEntity> | undefined // undefined when invalid
   readonly entitySourceMap: EntitySourceMap
 
   prepareSave(): BlueprintDiff
@@ -60,12 +60,12 @@ export interface LayerDiagnostics {
 
 @Classes.register()
 export class DefaultAssemblyContent implements AssemblyContent {
-  readonly ownContents: MutableState<PasteBlueprint>
+  ownContents: PasteBlueprint
   readonly ownOptions: LayerOptions = {
     allowUpgrades: state(false),
   }
   readonly imports = observableList<AssemblyImportItem>()
-  readonly resultContent: MutableState<Blueprint<FullEntity> | undefined>
+  resultContent: Blueprint<FullEntity> | undefined
   entitySourceMap: EntitySourceMap
   private importsContent: Blueprint<FullEntity> = LuaBlueprint.of()
 
@@ -80,8 +80,8 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   constructor(readonly surface: LuaSurface, readonly area: BBox) {
     const [content, index] = takeBlueprintWithIndex(surface, area)
-    this.ownContents = state(content)
-    this.resultContent = state(content)
+    this.ownContents = content
+    this.resultContent = content
     const luaEntities = Object.values(index)
     this.entitySourceMap = new EntitySourceMapBuilder().addAll(luaEntities, this, this.area.left_top).build()
   }
@@ -118,13 +118,13 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
     this.pasteDiagnostics.set(diagnostics)
 
-    this.resultContent.set(takeBlueprint(this.surface, this.area))
+    this.resultContent = takeBlueprint(this.surface, this.area)
   }
 
   private pasteImport(item: AssemblyImportItem, sourceMap: EntitySourceMapBuilder): BlueprintPasteConflicts {
     if (!item.active.get()) return {}
     const imp = item.import
-    const content = imp.content().get()
+    const content = imp.getContent()
     if (!content) return {}
 
     const relativeBBox = imp.getRelativeBoundingBox()
@@ -140,9 +140,8 @@ export class DefaultAssemblyContent implements AssemblyContent {
   }
 
   private pasteOwnContents(sourceMap: EntitySourceMapBuilder): BlueprintPasteConflicts {
-    const ownContents = this.ownContents.get()
     return this.pasteContentAndRecordSourceMap(
-      ownContents,
+      this.ownContents,
       this.area,
       this,
       sourceMap,
@@ -217,7 +216,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
     const diff = this.pendingSave.get()
     if (diff) {
       this.pendingSave.set(undefined)
-      this.ownContents.set(diff.content)
+      this.ownContents = diff.content
     }
     return diff
   }
@@ -243,17 +242,22 @@ export class DefaultAssemblyContent implements AssemblyContent {
   }
 
   delete(): void {
-    this.resultContent.set(undefined)
+    this.resultContent = undefined
+    this.ownContents = undefined!
   }
 }
 
 Migrations.from("0.3.0", () => {
   interface OldDefaultAssemblyContent {
     entitySourceMap: MutableState<Blueprint<SourceMapEntity>>
+    ownContents: MutableState<PasteBlueprint>
+    resultContent: MutableState<Blueprint<FullEntity> | undefined>
   }
   for (const instance of getAllInstances(DefaultAssemblyContent)) {
     const old = instance as any as OldDefaultAssemblyContent
     instance.entitySourceMap = createEntityMap(old.entitySourceMap.value.getEntities())
+    instance.ownContents = old.ownContents.value
+    instance.resultContent = old.resultContent.value
   }
 })
 

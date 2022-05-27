@@ -26,7 +26,7 @@ export function startBasicImportCreation(
   if (!tryClearCursor(player)) return false
   if (!source.isValid() || !target.isValid()) return false
 
-  const content = source.getContent()!.resultContent.get()!
+  const content = source.getContent()!.resultContent!
 
   const stack: BlueprintItemStack = player.cursor_stack
 

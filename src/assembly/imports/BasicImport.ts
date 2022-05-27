@@ -1,8 +1,9 @@
 import { AreaIdentification } from "../../area/AreaIdentification"
 import { Blueprint } from "../../blueprint/Blueprint"
 import { FullEntity } from "../../entity/entity"
-import { Classes, raiseUserError } from "../../lib"
+import { Classes, getAllInstances, raiseUserError } from "../../lib"
 import { BBox, bbox, Position } from "../../lib/geometry"
+import { Migrations } from "../../lib/migration"
 import { State } from "../../lib/observable"
 import { L_Interaction } from "../../locale"
 import { Assembly } from "../Assembly"
@@ -10,15 +11,12 @@ import { AssemblyImport } from "./AssemblyImport"
 
 @Classes.register()
 export class BasicImport implements AssemblyImport {
-  private readonly _content: State<Blueprint<FullEntity> | undefined>
-  private constructor(private readonly source: Assembly, readonly relativeBoundingBox: BBox) {
-    this._content = source.getContent()!.resultContent
-  }
+  private constructor(private readonly source: Assembly, readonly relativeBoundingBox: BBox) {}
   name(): State<LocalisedString> {
     return this.source.name
   }
-  content(): State<Blueprint<FullEntity> | undefined> {
-    return this._content
+  getContent(): Blueprint<FullEntity> | undefined {
+    return this.source.getContent()?.resultContent
   }
   getRelativeBoundingBox(): BBox {
     return this.relativeBoundingBox
@@ -40,3 +38,12 @@ export class BasicImport implements AssemblyImport {
     return new BasicImport(source, boundingBox)
   }
 }
+
+Migrations.from("0.3.0", () => {
+  interface OldBasicImport {
+    _content?: State<Blueprint<FullEntity> | undefined>
+  }
+  for (const instance of getAllInstances(BasicImport)) {
+    delete (instance as OldBasicImport)._content
+  }
+})

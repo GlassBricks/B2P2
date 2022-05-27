@@ -8,7 +8,7 @@ import { State } from "../../lib/observable"
 export interface AssemblyImport {
   name(): State<LocalisedString>
   // undefined means is not valid
-  content(): State<Blueprint<FullEntity> | undefined>
+  getContent(): Blueprint<FullEntity> | undefined
 
   getRelativeBoundingBox(): BBox
   getSourceArea(): AreaIdentification | undefined

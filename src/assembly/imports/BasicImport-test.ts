@@ -29,7 +29,7 @@ test("creation", () => {
 
   const im = BasicImport._createUnchecked(assembly, pos(0, 0))
   assert.same("test", im.name().get())
-  const content = im.content().get()!
+  const content = im.getContent()!
   assertBlueprintsEquivalent(blueprint, content)
   assert.same(bbox.load(area).shiftToOrigin(), im.getRelativeBoundingBox())
 })

@@ -24,7 +24,9 @@ before_all(() => {
 })
 
 function createAssemblyContent(area1: BoundingBoxClass = area): AssemblyContent {
-  return new DefaultAssemblyContent(surface, area1)
+  const result = new DefaultAssemblyContent(surface, area1)
+  after_test(() => result.delete())
+  return result
 }
 
 function assertNoGhosts() {
@@ -48,14 +50,14 @@ describe("initializing contents", () => {
   })
   test("in an empty area yields empty ownContents ", () => {
     const content = createAssemblyContent()
-    assert.same({}, content.ownContents.get().getEntities())
+    assert.same({}, content.ownContents.getEntities())
   })
 
   test("in an area with entities sets ownContents", () => {
     pasteBlueprint(surface, area.left_top, getBlueprintSample("original"))
     const content = createAssemblyContent()
-    assertBlueprintsEquivalent(getBlueprintSample("original"), content.ownContents.get())
-    assertBlueprintsEquivalent(getBlueprintSample("original"), content.resultContent.get()!)
+    assertBlueprintsEquivalent(getBlueprintSample("original"), content.ownContents)
+    assertBlueprintsEquivalent(getBlueprintSample("original"), content.resultContent!)
   })
 })
 
@@ -69,7 +71,7 @@ describe("refreshInWorld", () => {
     content.resetInWorld()
     const bp = takeBlueprint(surface, area, area.left_top)
     assert.same({}, bp.getEntities())
-    assert.same({}, content.resultContent.get()!.getEntities())
+    assert.same({}, content.resultContent!.getEntities())
   })
   test.each<BlueprintSampleName>(
     ["original", "module change", "module purple sci"],
@@ -83,7 +85,7 @@ describe("refreshInWorld", () => {
       assertBlueprintsEquivalent(sample, bp)
       assertNoGhosts()
 
-      assertBlueprintsEquivalent(sample, content.resultContent.get()!)
+      assertBlueprintsEquivalent(sample, content.resultContent!)
     },
   )
 })
@@ -95,17 +97,17 @@ describe("import", () => {
   test("adding import to blueprint adds to in world", () => {
     const content = createAssemblyContent()
     content.saveAndAddImport(mockImport(getBlueprintSample("original")))
-    assert.same({}, content.ownContents.get().getEntities())
+    assert.same({}, content.ownContents.getEntities())
     content.resetInWorld()
     const bp = takeBlueprint(surface, area, area.left_top)
     assertBlueprintsEquivalent(getBlueprintSample("original"), bp)
     assertNoGhosts()
-    assertBlueprintsEquivalent(getBlueprintSample("original"), content.resultContent.get()!)
+    assertBlueprintsEquivalent(getBlueprintSample("original"), content.resultContent!)
   })
   test("adding import to blueprint adds to in world at nearest 2x2 grid pos", () => {
     const content = createAssemblyContent()
     content.saveAndAddImport(mockImport(getBlueprintSample("original"), pos(2, 2)))
-    assert.same({}, content.ownContents.get().getEntities())
+    assert.same({}, content.ownContents.getEntities())
     content.resetInWorld()
     const bp = takeBlueprint(surface, bbox.shift(area, pos(2, 2)))
     assertBlueprintsEquivalent(getBlueprintSample("original"), bp)
@@ -116,7 +118,7 @@ describe("import", () => {
         .getEntities()
         .map((x) => ({ ...x, position: pos.add(x.position, pos(2, 2)) })),
     )
-    assertBlueprintsEquivalent(shiftedBlueprint, content.resultContent.get()!)
+    assertBlueprintsEquivalent(shiftedBlueprint, content.resultContent!)
   })
 
   test("inactive import does not add in world", () => {
@@ -279,7 +281,7 @@ describe("saveChanges", () => {
     pasteBlueprint(surface, area.left_top, getBlueprintSample("original"))
     contents.prepareSave()
     contents.commitSave()
-    assertBlueprintsEquivalent(getBlueprintSample("original"), contents.ownContents.get())
+    assertBlueprintsEquivalent(getBlueprintSample("original"), contents.ownContents)
     assertNoGhosts()
   })
 
@@ -289,7 +291,7 @@ describe("saveChanges", () => {
     contents.resetInWorld()
     contents.prepareSave()
     contents.commitSave()
-    assert.same({}, contents.ownContents.get().getEntities())
+    assert.same({}, contents.ownContents.getEntities())
     assertNoGhosts()
   })
 })
