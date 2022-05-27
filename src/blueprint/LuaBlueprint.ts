@@ -1,10 +1,11 @@
 import { Entity, PasteEntity, PlainEntity, UpdateablePasteEntity } from "../entity/entity"
 import { Classes, getAllInstances, shallowCopy } from "../lib"
-import { BBox, bbox } from "../lib/geometry"
+import { BBox, bbox, Position } from "../lib/geometry"
 import { Map2D } from "../lib/map2d"
 import { Migrations } from "../lib/migration"
 import { Blueprint } from "./Blueprint"
 import { getTempBpItemStack } from "./blueprint-items"
+import { takeBlueprintWithIndex } from "./world"
 import contains = bbox.contains
 
 @Classes.registerIn("Blueprint", "Blueprint")
@@ -22,6 +23,12 @@ export class LuaBlueprint<E extends Entity = PlainEntity> implements Blueprint<E
   static of<E extends Entity>(...entities: E[]): LuaBlueprint<E> {
     return new LuaBlueprint(entities)
   }
+
+  static take(surface: SurfaceIdentification, area: BBox, worldTopLeft: Position = area.left_top): LuaBlueprint {
+    const [entities] = takeBlueprintWithIndex(surface, area, worldTopLeft)
+    return new LuaBlueprint(entities)
+  }
+
   getEntities(): readonly E[] {
     return this.entities as E[]
   }

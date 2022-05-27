@@ -70,7 +70,7 @@ describe("refreshInWorld", () => {
     pasteBlueprint(surface, area.left_top, getBlueprintSample("original"))
     content.resetInWorld()
     const bp = takeBlueprint(surface, area, area.left_top)
-    assert.same({}, bp.getEntities())
+    assert.same({}, bp)
     assert.same({}, content.resultContent!.getEntities())
   })
   test.each<BlueprintSampleName>(
@@ -81,7 +81,7 @@ describe("refreshInWorld", () => {
       pasteBlueprint(surface, area.left_top, sample)
       const content = createAssemblyContent()
       content.resetInWorld()
-      const bp = takeBlueprint(surface, area, area.left_top)
+      const bp = LuaBlueprint.take(surface, area, area.left_top)
       assertBlueprintsEquivalent(sample, bp)
       assertNoGhosts()
 
@@ -99,7 +99,7 @@ describe("import", () => {
     content.saveAndAddImport(mockImport(getBlueprintSample("original")))
     assert.same({}, content.ownContents!.getEntities())
     content.resetInWorld()
-    const bp = takeBlueprint(surface, area, area.left_top)
+    const bp = LuaBlueprint.take(surface, area, area.left_top)
     assertBlueprintsEquivalent(getBlueprintSample("original"), bp)
     assertNoGhosts()
     assertBlueprintsEquivalent(getBlueprintSample("original"), content.resultContent!)
@@ -109,7 +109,7 @@ describe("import", () => {
     content.saveAndAddImport(mockImport(getBlueprintSample("original"), pos(2, 2)))
     assert.same({}, content.ownContents!.getEntities())
     content.resetInWorld()
-    const bp = takeBlueprint(surface, bbox.shift(area, pos(2, 2)))
+    const bp = LuaBlueprint.take(surface, bbox.shift(area, pos(2, 2)), undefined)
     assertBlueprintsEquivalent(getBlueprintSample("original"), bp)
     assertNoGhosts()
 
@@ -126,8 +126,8 @@ describe("import", () => {
     content.saveAndAddImport(mockImport(getBlueprintSample("original"), pos(2, 2)))
     content.imports.get(0).active.set(false)
     content.resetInWorld()
-    const bp = takeBlueprint(surface, area, area.left_top)
-    assert.same({}, bp.getEntities())
+    const entities = takeBlueprint(surface, area, area.left_top)
+    assert.same({}, entities)
   })
 
   test("imported entities do not extend beyond bounding box", () => {
@@ -147,7 +147,7 @@ describe("import", () => {
     content.saveAndAddImport(mockImport(LuaBlueprint.fromArray(mockEntities)))
 
     content.resetInWorld()
-    const bp = takeBlueprint(surface, area, area.left_top)
+    const bp = LuaBlueprint.take(surface, area, area.left_top)
     const expected = LuaBlueprint.fromArray(mockEntities.slice(0, 1))
     assertBlueprintsEquivalent(expected, bp)
     assertNoGhosts()
@@ -156,7 +156,7 @@ describe("import", () => {
   test("does not paste invalid import", () => {
     const content = createAssemblyContent()
     content.saveAndAddImport(invalidMockImport())
-    const bp = takeBlueprint(surface, area, area.left_top)
+    const bp = LuaBlueprint.take(surface, area, area.left_top)
     assert.same({}, bp.getEntities())
   })
 
@@ -166,7 +166,7 @@ describe("import", () => {
     const content = createAssemblyContent()
     content.ownOptions.allowUpgrades.set(true)
     content.saveAndAddImport(mockImport(getBlueprintSample("original")))
-    const bp = takeBlueprint(surface, area, area.left_top)
+    const bp = LuaBlueprint.take(surface, area, area.left_top)
     assertBlueprintsEquivalent(upgradeBlueprint, bp)
     assertNoGhosts()
 
@@ -272,7 +272,7 @@ describe("saveChanges", () => {
     const contents = createAssemblyContent()
     contents.prepareSave()
     contents.commitSave()
-    assert.same({}, takeBlueprint(surface, area, area.left_top).getEntities())
+    assert.same({}, takeBlueprint(surface, area, area.left_top))
     assertNoGhosts()
   })
 

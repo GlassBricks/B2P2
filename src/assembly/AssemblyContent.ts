@@ -5,7 +5,7 @@ import { BlueprintPasteConflicts, BlueprintPasteOptions, pasteAndFindConflicts }
 import { EntitySourceMap, EntitySourceMapBuilder, SourceMapEntity } from "../blueprint/EntitySourceMap"
 import { ItemBlueprint } from "../blueprint/ItemBlueprint"
 import { LuaBlueprint, PasteBlueprint } from "../blueprint/LuaBlueprint"
-import { clearBuildableEntities, takeBlueprint } from "../blueprint/world"
+import { clearBuildableEntities } from "../blueprint/world"
 import { FullEntity } from "../entity/entity"
 import { Classes, funcRef, getAllInstances } from "../lib"
 import { bbox, BBox } from "../lib/geometry"
@@ -212,7 +212,7 @@ export class DefaultAssemblyContent implements AssemblyContent {
 
   prepareSave(): BlueprintDiff {
     if (!this.importsContent) return { content: LuaBlueprint.of() }
-    const diff = computeBlueprintDiff(this.importsContent, takeBlueprint(this.surface, this.area))
+    const diff = computeBlueprintDiff(this.importsContent, LuaBlueprint.take(this.surface, this.area, undefined))
     this.pendingSave.set(diff)
     return diff
   }

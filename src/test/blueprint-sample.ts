@@ -1,6 +1,5 @@
 import { get_area } from "__testorio__/testUtil/areas"
 import { LuaBlueprint } from "../blueprint/LuaBlueprint"
-import { takeBlueprint } from "../blueprint/world"
 import { bbox } from "../lib/geometry"
 
 const blueprintSampleNames = {
@@ -34,7 +33,7 @@ function loadSamplesFromWorld() {
   for (const name of BlueprintSampleNames) {
     try {
       const [surface, area] = get_area(1 as SurfaceIdentification, `bp ${name}`)
-      samples[name] = takeBlueprint(surface, bbox.normalize(area)).getEntities()
+      samples[name] = LuaBlueprint.take(surface, bbox.normalize(area), undefined).getEntities()
     } catch {
       // ignore
     }

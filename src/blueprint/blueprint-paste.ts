@@ -51,13 +51,14 @@ export function pasteAndFindConflicts(
   const actualBounds = bbox.intersect(pasteBounds, contentBounds).roundTile()
   const relativeBounds = bbox.shiftNegative(actualBounds, contentBounds.left_top)
 
-  const filteredContent = LuaBlueprint._new(filterEntitiesInArea(content.getEntities(), relativeBounds))
-  const filteredContentMap = createEntityMap(filteredContent.getEntities())
+  const filteredContent = filterEntitiesInArea(content.getEntities(), relativeBounds)
+  const filteredContentMap = createEntityMap(filteredContent)
 
   const pasteLocation = floor(contentBounds.left_top)
-  const [belowContent, belowIndex] = takeBlueprintWithIndex(surface, actualBounds, pasteLocation)
+  const [belowEntities, belowIndex] = takeBlueprintWithIndex(surface, actualBounds, pasteLocation)
 
-  const pastedEntities = pasteBlueprint(surface, pasteLocation, filteredContent)
+  const contentBp = LuaBlueprint._new(filteredContent)
+  const pastedEntities = pasteBlueprint(surface, pasteLocation, contentBp)
 
   // find pasted blueprint entities
   const pastedBPEntities = new LuaSet<Entity>()
@@ -78,7 +79,7 @@ export function pasteAndFindConflicts(
   // build luaEntity -> blueprint entity map
   const toBPEntityMap = new LuaMap<UnitNumber, PlainEntity>()
   for (const [entityNumber, luaEntity] of pairs(belowIndex)) {
-    toBPEntityMap.set(luaEntity.unit_number!, belowContent.getEntities()[entityNumber - 1])
+    toBPEntityMap.set(luaEntity.unit_number!, belowEntities[entityNumber - 1])
   }
 
   // find conflicts
@@ -89,7 +90,7 @@ export function pasteAndFindConflicts(
 
   let shouldRepaste = false
 
-  for (const aboveBpEntity of filteredContent.getEntities()) {
+  for (const aboveBpEntity of filteredContent) {
     if (pastedBPEntities.has(aboveBpEntity)) {
       // already pasted
       if (aboveBpEntity.changedProps) {
@@ -145,7 +146,7 @@ export function pasteAndFindConflicts(
   }
 
   if (shouldRepaste) {
-    pasteBlueprint(surface, pasteLocation, filteredContent, false)
+    pasteBlueprint(surface, pasteLocation, contentBp, false)
   }
 
   const conflicts: BlueprintPasteConflicts = {

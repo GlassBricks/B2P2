@@ -1,5 +1,6 @@
 import { BBox, pos } from "../lib/geometry"
 import { getWorkingArea1 } from "../test/misc"
+import { LuaBlueprint } from "./LuaBlueprint"
 import { clearBuildableEntities, pasteBlueprint, takeBlueprintWithIndex } from "./world"
 
 let surface: LuaSurface
@@ -21,7 +22,7 @@ test("takeBlueprint and pasteBlueprint", () => {
   const entity1 = surface.create_entity({ name: "iron-chest", position: pos1, force: "player" })
   const entity2 = surface.create_entity({ name: "iron-chest", position: pos2, force: "player" })
 
-  const [bp, index] = takeBlueprintWithIndex(surface, area, offsetPos)
+  const [bpEntities, index] = takeBlueprintWithIndex(surface, area, offsetPos)
   assert.same(
     [
       {
@@ -35,17 +36,17 @@ test("takeBlueprint and pasteBlueprint", () => {
         entity_number: 2,
       },
     ],
-    bp.getEntities(),
+    bpEntities,
   )
   assert.equal(entity1, index[1])
   assert.equal(entity2, index[2])
 
   clearBuildableEntities(surface, area)
-  const entities = pasteBlueprint(surface, offsetPos, bp, true)
-  assert.equal(2, entities.length)
+  const pastedEntities = pasteBlueprint(surface, offsetPos, LuaBlueprint._new(bpEntities), true)
+  assert.equal(2, pastedEntities.length)
 
-  assert.equal("iron-chest", entities[0].name)
-  assert.same(pos1, entities[0].position)
-  assert.equal("iron-chest", entities[1].name)
-  assert.same(pos2, entities[1].position)
+  assert.equal("iron-chest", pastedEntities[0].name)
+  assert.same(pos1, pastedEntities[0].position)
+  assert.equal("iron-chest", pastedEntities[1].name)
+  assert.same(pos2, pastedEntities[1].position)
 })

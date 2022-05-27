@@ -3,27 +3,26 @@ import { isEmpty, Mutable } from "../lib"
 import { BBox, pos, Position } from "../lib/geometry"
 import { Blueprint } from "./Blueprint"
 import { getTempBpItemStack, prepareBlueprintStack } from "./blueprint-items"
-import { LuaBlueprint } from "./LuaBlueprint"
 
 export function takeBlueprint(
   surface: SurfaceIdentification,
   area: BBox,
   worldTopLeft: Position = area.left_top,
-): LuaBlueprint {
-  const [bp] = takeBlueprintWithIndex(surface, area, worldTopLeft)
-  return bp
+): FullEntity[] {
+  const [entities] = takeBlueprintWithIndex(surface, area, worldTopLeft)
+  return entities
 }
 
 export function takeBlueprintWithIndex(
   surface: SurfaceIdentification,
   area: BBox,
   worldTopLeft: Position = area.left_top,
-): LuaMultiReturn<[LuaBlueprint, Record<number, LuaEntity>]> {
+): LuaMultiReturn<[FullEntity[], Record<number, LuaEntity>]> {
   const item = getTempBpItemStack()
   const [index, targetPos] = takeBlueprintUntranslated(item, surface, area, worldTopLeft)
   const entities = getShiftedEntities(item, targetPos)
   shiftEntitiesToMatchPosition(entities, targetPos)
-  return $multi(LuaBlueprint._new(entities), index)
+  return $multi(entities, index)
 }
 
 function takeBlueprintRaw(
