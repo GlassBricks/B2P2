@@ -1,9 +1,9 @@
-import { FullEntity } from "../entity/entity"
+import { FullEntity, PlainEntity } from "../entity/entity"
 import { isEmpty, Mutable } from "../lib"
 import { BBox, pos, Position } from "../lib/geometry"
 import { Blueprint } from "./Blueprint"
+import { getTempBpItemStack, prepareBlueprintStack } from "./blueprint-items"
 import { LuaBlueprint } from "./LuaBlueprint"
-import { getTempBpItemStack } from "./tempItemStack"
 
 export function takeBlueprint(
   surface: SurfaceIdentification,
@@ -20,18 +20,35 @@ export function takeBlueprintWithIndex(
   worldTopLeft: Position = area.left_top,
 ): LuaMultiReturn<[LuaBlueprint, Record<number, LuaEntity>]> {
   const item = getTempBpItemStack()
-  const index = item.create_blueprint({
+  const index = takeBlueprintRaw(item, surface, area)
+  if (isEmpty(index)) return $multi(LuaBlueprint.of(), {})
+  const entities = item.get_blueprint_entities()! as Mutable<FullEntity>[]
+  const targetPos = pos.sub(index[1].position, worldTopLeft)
+  shiftEntitiesToMatchPosition(entities, targetPos)
+  return $multi(LuaBlueprint._new(entities), index)
+}
+
+export function takeBlueprintRaw(
+  stack: BlueprintItemStack,
+  surface: SurfaceIdentification,
+  area: BBox,
+): Record<number, LuaEntity> {
+  prepareBlueprintStack(stack)
+  const index = stack.create_blueprint({
     surface,
     area,
     force: "player",
     include_station_names: true,
     include_trains: true,
   })
-  if (isEmpty(index)) return $multi(LuaBlueprint.of(), {})
-  const entities = item.get_blueprint_entities()! as Mutable<FullEntity>[]
-  const targetPos = pos.sub(index[1].position, worldTopLeft)
-  const actualPos = item.get_blueprint_entities()![0].position
-  const offset = pos.sub(targetPos, actualPos)
+  if (isEmpty(index)) return {}
+  return index
+}
+
+export function shiftEntitiesToMatchPosition(entities: PlainEntity[], firstEntityTargetPosition: Position): void {
+  // const targetPos = pos.sub(firstEntityRealPosition, worldTopLeft)
+  const actualPos = entities[0].position
+  const offset = pos.sub(firstEntityTargetPosition, actualPos)
   if (offset.x !== 0 || offset.y !== 0) {
     for (const entity of entities) {
       const position = entity.position as Mutable<Position>
@@ -39,7 +56,6 @@ export function takeBlueprintWithIndex(
       position.y += offset.y
     }
   }
-  return $multi(LuaBlueprint._new(entities), index)
 }
 
 function reviveGhost(ghost: GhostEntity): LuaEntity | undefined {

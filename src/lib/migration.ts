@@ -31,7 +31,6 @@ export namespace Migrations {
     loadFuncs = []
     preLoadFuncs = undefined
     Events.on_configuration_changed(() => {
-      __DebugAdapter?.breakpoint()
       const oldVersion = global.oldVersion
       if (preparePreLoadMigrations(oldVersion)) {
         for (const func of preLoadFuncs!) func()

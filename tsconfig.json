@@ -27,7 +27,7 @@
   },
   "tstl": {
     "luaTarget": "5.2",
-    "noResolvePaths": ["__testorio__/init"],
+    "noResolvePaths": ["__testorio__/init", "__debugadapter__/debugadapter.lua"],
     "noImplicitSelf": true,
     "sourceMapTraceback": true,
     "luaPlugins": [

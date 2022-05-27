@@ -4,7 +4,7 @@ import { BBox, bbox } from "../lib/geometry"
 import { Map2D } from "../lib/map2d"
 import { Migrations } from "../lib/migration"
 import { Blueprint } from "./Blueprint"
-import { getTempBpItemStack } from "./tempItemStack"
+import { getTempBpItemStack } from "./blueprint-items"
 import contains = bbox.contains
 
 @Classes.registerIn("Blueprint", "Blueprint")
