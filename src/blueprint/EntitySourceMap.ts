@@ -21,11 +21,11 @@ export type EntitySourceMap = Map2D<SourceMapEntity>
 export class EntitySourceMapBuilder {
   private entities: SourceMapEntity[] = []
 
-  addAll(entities: readonly LuaEntity[], sourceArea: AreaIdentification, pastedLeftTop: Position): this {
+  addAll(entities: Record<number, LuaEntity>, sourceArea: AreaIdentification, pastedLeftTop: Position): this {
     // actualArea = location - (pastedLeftTop - sourceLeftTop)
     const offset = pos.sub(sourceArea.area.left_top, pastedLeftTop)
     const surface = sourceArea.surface
-    for (const entity of entities) {
+    for (const [, entity] of pairs(entities)) {
       const area = shift(computeTileBoxOfLuaEntity(entity), offset)
       this.entities.push({
         name: entity.type === "entity-ghost" ? entity.ghost_name : entity.name,

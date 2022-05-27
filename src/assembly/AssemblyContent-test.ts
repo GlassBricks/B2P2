@@ -50,13 +50,13 @@ describe("initializing contents", () => {
   })
   test("in an empty area yields empty ownContents ", () => {
     const content = createAssemblyContent()
-    assert.same({}, content.ownContents.getEntities())
+    assert.same({}, content.ownContents!.getEntities())
   })
 
   test("in an area with entities sets ownContents", () => {
     pasteBlueprint(surface, area.left_top, getBlueprintSample("original"))
     const content = createAssemblyContent()
-    assertBlueprintsEquivalent(getBlueprintSample("original"), content.ownContents)
+    assertBlueprintsEquivalent(getBlueprintSample("original"), content.ownContents!)
     assertBlueprintsEquivalent(getBlueprintSample("original"), content.resultContent!)
   })
 })
@@ -97,7 +97,7 @@ describe("import", () => {
   test("adding import to blueprint adds to in world", () => {
     const content = createAssemblyContent()
     content.saveAndAddImport(mockImport(getBlueprintSample("original")))
-    assert.same({}, content.ownContents.getEntities())
+    assert.same({}, content.ownContents!.getEntities())
     content.resetInWorld()
     const bp = takeBlueprint(surface, area, area.left_top)
     assertBlueprintsEquivalent(getBlueprintSample("original"), bp)
@@ -107,7 +107,7 @@ describe("import", () => {
   test("adding import to blueprint adds to in world at nearest 2x2 grid pos", () => {
     const content = createAssemblyContent()
     content.saveAndAddImport(mockImport(getBlueprintSample("original"), pos(2, 2)))
-    assert.same({}, content.ownContents.getEntities())
+    assert.same({}, content.ownContents!.getEntities())
     content.resetInWorld()
     const bp = takeBlueprint(surface, bbox.shift(area, pos(2, 2)))
     assertBlueprintsEquivalent(getBlueprintSample("original"), bp)
@@ -281,7 +281,7 @@ describe("saveChanges", () => {
     pasteBlueprint(surface, area.left_top, getBlueprintSample("original"))
     contents.prepareSave()
     contents.commitSave()
-    assertBlueprintsEquivalent(getBlueprintSample("original"), contents.ownContents)
+    assertBlueprintsEquivalent(getBlueprintSample("original"), contents.ownContents!)
     assertNoGhosts()
   })
 
@@ -291,7 +291,7 @@ describe("saveChanges", () => {
     contents.resetInWorld()
     contents.prepareSave()
     contents.commitSave()
-    assert.same({}, contents.ownContents.getEntities())
+    assert.same({}, contents.ownContents!.getEntities())
     assertNoGhosts()
   })
 })
