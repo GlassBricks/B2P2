@@ -20,15 +20,13 @@ export function takeBlueprintWithIndex(
   worldTopLeft: Position = area.left_top,
 ): LuaMultiReturn<[LuaBlueprint, Record<number, LuaEntity>]> {
   const item = getTempBpItemStack()
-  const index = takeBlueprintRaw(item, surface, area)
-  if (isEmpty(index)) return $multi(LuaBlueprint.of(), {})
-  const entities = item.get_blueprint_entities()! as Mutable<FullEntity>[]
-  const targetPos = pos.sub(index[1].position, worldTopLeft)
+  const [index, targetPos] = takeBlueprintUntranslated(item, surface, area, worldTopLeft)
+  const entities = getShiftedEntities(item, targetPos)
   shiftEntitiesToMatchPosition(entities, targetPos)
   return $multi(LuaBlueprint._new(entities), index)
 }
 
-export function takeBlueprintRaw(
+function takeBlueprintRaw(
   stack: BlueprintItemStack,
   surface: SurfaceIdentification,
   area: BBox,
@@ -45,8 +43,20 @@ export function takeBlueprintRaw(
   return index
 }
 
-export function shiftEntitiesToMatchPosition(entities: PlainEntity[], firstEntityTargetPosition: Position): void {
+export function takeBlueprintUntranslated(
+  stack: BlueprintItemStack,
+  surface: SurfaceIdentification,
+  area: BBox,
+  worldTopLeft: Position = area.left_top,
+): LuaMultiReturn<[Record<number, LuaEntity>, Position]> {
+  const index = takeBlueprintRaw(stack, surface, area)
+  const targetPos = !isEmpty(index) ? pos.sub(index[1].position, worldTopLeft) : { x: 0, y: 0 }
+  return $multi(index, targetPos)
+}
+
+function shiftEntitiesToMatchPosition(entities: PlainEntity[], firstEntityTargetPosition: Position): void {
   // const targetPos = pos.sub(firstEntityRealPosition, worldTopLeft)
+  if (!entities[0]) return
   const actualPos = entities[0].position
   const offset = pos.sub(firstEntityTargetPosition, actualPos)
   if (offset.x !== 0 || offset.y !== 0) {
@@ -56,6 +66,13 @@ export function shiftEntitiesToMatchPosition(entities: PlainEntity[], firstEntit
       position.y += offset.y
     }
   }
+}
+
+export function getShiftedEntities(stack: BlueprintItemStack, firstEntityTargetPos: Position): PlainEntity[] {
+  const entities = stack.get_blueprint_entities()
+  if (!entities) return []
+  shiftEntitiesToMatchPosition(entities, firstEntityTargetPos)
+  return entities
 }
 
 function reviveGhost(ghost: GhostEntity): LuaEntity | undefined {

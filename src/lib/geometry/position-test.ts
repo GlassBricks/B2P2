@@ -111,3 +111,9 @@ test("equals", () => {
   assert.is_true(position.equals(position2))
   assert.is_false(position.equals(position3))
 })
+
+test("isZero", () => {
+  assert.true(pos(0, 0).isZero())
+  assert.false(pos(1, 0).isZero())
+  assert.false(pos(1, 1).isZero())
+})

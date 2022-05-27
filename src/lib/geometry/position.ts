@@ -59,6 +59,9 @@ namespace pos {
   export function equals(pos1: Position, pos2: Position): boolean {
     return pos1.x === pos2.x && pos1.y === pos2.y
   }
+  export function isZero(pos1: Position): boolean {
+    return pos1.x === 0 && pos1.y === 0
+  }
   export function rotateAboutOrigin(pos1: Position, direction: defines.direction): PositionClass {
     if (direction === UP) return pos.from(pos1)
     if (direction === DOWN) return pos(-pos1.x, -pos1.y)
