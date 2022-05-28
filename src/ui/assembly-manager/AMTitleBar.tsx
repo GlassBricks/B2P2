@@ -1,7 +1,7 @@
 import { Assembly } from "../../assembly/Assembly"
 import { bound, Classes, reg, returns } from "../../lib"
 import { ClickEventHandler, Component, FactorioJsx, Spec } from "../../lib/factoriojsx"
-import { State, state } from "../../lib/observable"
+import { state } from "../../lib/observable"
 import { L_Gui } from "../../locale"
 import { CloseButton } from "../components/buttons"
 import { If } from "../components/If"
@@ -23,7 +23,7 @@ export class AMTitleBar extends Component<{ assembly: Assembly; onClose: ClickEv
           then={reg(this.makeEditTextfield)}
           else={returns(<label caption={this.assembly.displayName} style="frame_title" ignored_by_interaction />)}
         />
-        <RenameButton onClick={this.isEditingName.toggleFn()} isEditing={this.isEditingName} />
+        <RenameButton onClick={this.isEditingName.toggleFn()} />
         <DraggableSpace />
         <CloseButton onClick={props.onClose} />
       </TitleBar>
@@ -49,19 +49,14 @@ export class AMTitleBar extends Component<{ assembly: Assembly; onClose: ClickEv
   }
 }
 
-function RenameButton(props: { onClick?: ClickEventHandler; isEditing: State<boolean> }): Spec {
-  // when editing, should resemble close button and have "cancel rename" tooltip
-  const { isEditing } = props
-  const sprite = isEditing.switch("utility/close_white", "utility/rename_icon_small_white")
-  const tooltip = isEditing.switch<LocalisedString>([L_Gui.CancelRenameAssembly], [L_Gui.RenameAssembly])
-  const hoveredSprite = isEditing.switch("utility/close_black", "utility/rename_icon_small_black")
+function RenameButton(props: { onClick?: ClickEventHandler }): Spec {
   return (
     <sprite-button
       style="frame_action_button"
-      sprite={sprite}
-      hovered_sprite={hoveredSprite}
-      clicked_sprite={hoveredSprite}
-      tooltip={tooltip}
+      sprite={"utility/rename_icon_small_white"}
+      hovered_sprite={"utility/rename_icon_small_black"}
+      clicked_sprite={"utility/rename_icon_small_black"}
+      tooltip={[L_Gui.RenameAssembly]}
       mouse_button_filter={["left"]}
       on_gui_click={props.onClick}
     />
