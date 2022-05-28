@@ -75,6 +75,7 @@ export function getShiftedEntities(stack: BlueprintItemStack, firstEntityTargetP
 }
 
 function reviveGhost(ghost: GhostEntity): LuaEntity | undefined {
+  if (!ghost.valid) return
   const [, entity, requestProxy] = ghost.silent_revive({
     return_item_request_proxy: true,
   })

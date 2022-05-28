@@ -56,6 +56,8 @@ export class Assembly implements AreaIdentification {
     })
 
     this.name.subscribe(reg(this.setName))
+    const isUpToDate = content.dependencyNode.isUpToDate
+    isUpToDate.subscribeAndFire(reg(this.outlineIsUpToDate))
   }
 
   static create(name: string, surface: LuaSurface, area: BBox): Assembly {
@@ -111,6 +113,11 @@ export class Assembly implements AreaIdentification {
   private setName(name?: string): void {
     if (!name) return
     rendering.set_text(this.textRenderId, name)
+  }
+
+  @bound
+  private outlineIsUpToDate(isUpToDate: boolean): void {
+    rendering.set_color(this.boxRenderId, isUpToDate ? Colors.AssemblyOutline : Colors.AssemblyOutdated)
   }
 
   @bound
