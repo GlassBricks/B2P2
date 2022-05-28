@@ -1,5 +1,5 @@
 import { funcRef, Functions } from "../../lib"
-import { destroy, FactorioJsx, Spec, SpecChildren } from "../../lib/factoriojsx"
+import { destroy, FactorioJsx, GuiEvent, Spec, SpecChildren } from "../../lib/factoriojsx"
 import { MaybeState } from "../../lib/observable"
 import { CloseButton } from "./buttons"
 
@@ -40,7 +40,11 @@ export function closeParentParent(e: OnGuiClickEvent): void {
   const parent = e.element.parent!.parent!
   if (parent.type === "frame") destroy(parent)
 }
-Functions.registerAll({ closeParentParent })
+export function closeSelf(e: GuiEvent): void {
+  destroy(e.element)
+}
+
+Functions.registerAll({ closeParentParent, closeSelf })
 
 // noinspection JSUnusedGlobalSymbols
 export function SimpleTitleBar(props: { title: MaybeState<LocalisedString> }): Spec {

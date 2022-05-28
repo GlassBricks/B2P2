@@ -7,14 +7,14 @@ import { L_Gui } from "../locale"
 import { AssembliesList } from "./AssembliesList"
 import { openAssemblyManager } from "./assembly-manager"
 import { CloseButton } from "./components/buttons"
-import { closeParentParent, DraggableSpace, TitleBar } from "./components/TitleBar"
+import { closeParentParent, closeSelf, DraggableSpace, TitleBar } from "./components/TitleBar"
 import { Window } from "./window/Window"
 
 @Classes.register()
 export class AssembliesOverview extends Window {
   render(): Spec {
     return (
-      <frame auto_center direction="vertical">
+      <frame auto_center direction="vertical" on_gui_closed={funcRef(closeSelf)}>
         <TitleBar title={[L_Gui.AssemblyOverviewTitle]}>
           <DraggableSpace />
           <CloseButton onClick={funcRef(closeParentParent)} />

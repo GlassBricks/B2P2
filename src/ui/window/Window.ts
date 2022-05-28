@@ -11,9 +11,12 @@ export abstract class Window extends Component<EmptyProps> {
     rawset(this, "_fullName", name)
     return name
   }
-  private static create(this: ConcreteWindow, screen: LuaGuiElement): void {
-    const element = render(screen, { type: this, props: {} })
-    if (element) element.name = this.getName()
+  private static create(this: ConcreteWindow, player: LuaPlayer): void {
+    const element = render(player.gui.screen, { type: this, props: {} })
+    if (element) {
+      element.name = this.getName()
+      player.opened = element
+    }
   }
   public static isOpen(this: ConcreteWindow, player: LuaPlayer): boolean {
     return player.gui.screen[this.getName()] !== undefined
@@ -22,7 +25,7 @@ export abstract class Window extends Component<EmptyProps> {
   public static open(this: ConcreteWindow, player: LuaPlayer): void {
     const screen = player.gui.screen
     destroy(screen[this.getName()])
-    this.create(screen)
+    this.create(player)
   }
   public static close(this: ConcreteWindow, player: LuaPlayer): void {
     const screen = player.gui.screen
@@ -34,7 +37,7 @@ export abstract class Window extends Component<EmptyProps> {
     if (gui) {
       destroy(gui)
     } else {
-      this.create(screen)
+      this.create(player)
     }
   }
   public static refreshIfOpen(this: ConcreteWindow, player: LuaPlayer): void {
@@ -42,7 +45,7 @@ export abstract class Window extends Component<EmptyProps> {
     const gui = screen[this.getName()]
     if (gui) {
       destroy(gui)
-      this.create(screen)
+      this.create(player)
     }
   }
 }
