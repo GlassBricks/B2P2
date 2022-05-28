@@ -16,7 +16,8 @@ export class SaveButton extends Component<{ assembly: Assembly }> {
         tooltip={[L_Gui.SaveButtonTooltip]}
         on_gui_click={reg(this.onSaveClicked)}
         styleMod={{
-          width: GuiConstants.MiniButtonWidth,
+          width: GuiConstants.SaveResetButtonWidth,
+          height: GuiConstants.SaveResetButtonHeight,
         }}
       />
     )
@@ -96,7 +97,8 @@ export class ResetButton extends Component<{ assembly: Assembly }> {
         tooltip={[L_Gui.ResetButtonTooltip]}
         on_gui_click={reg(this.onResetClicked)}
         styleMod={{
-          width: GuiConstants.MiniButtonWidth,
+          width: GuiConstants.SaveResetButtonWidth,
+          height: GuiConstants.SaveResetButtonHeight,
         }}
       />
     )

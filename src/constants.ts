@@ -39,7 +39,8 @@ export const enum GuiConstants {
   AMListMinHeight = ImportItemHeight * 4,
   AMListMaxHeight = ImportItemHeight * 8,
 
-  MiniButtonWidth = 70,
+  SaveResetButtonWidth = 60,
+  SaveResetButtonHeight = 24,
 }
 
 export namespace Colors {

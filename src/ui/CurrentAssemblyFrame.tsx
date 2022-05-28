@@ -1,12 +1,16 @@
 import * as mod_gui from "mod-gui"
 import { Assembly } from "../assembly/Assembly"
 import { assemblyAtPlayerLocation } from "../assembly/player-tracking"
+import { GuiConstants } from "../constants"
 import { bound, Callback, Classes, Events, funcOn, onPlayerInit, reg } from "../lib"
 import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../lib/factoriojsx"
 import { state } from "../lib/observable"
 import { L_Gui } from "../locale"
 import { AssembliesOverview } from "./AssembliesOverview"
 import { openAssemblyManager } from "./assembly-manager"
+import { ResetButton, SaveButton } from "./assembly-manager/SaveButtons"
+import { Fn } from "./components/Fn"
+import { HorizontalPusher } from "./components/misc"
 import { TitleBar } from "./components/TitleBar"
 
 const modFrameName = `${script.mod_name}:current-assembly`
@@ -32,10 +36,30 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
             tooltip={[L_Gui.OpenAssemblyManager]}
           />
         </TitleBar>
-        <flow direction="horizontal">
+        <flow direction="vertical">
+          <Fn uses="flow" direction="horizontal" from={assemblyState} map={reg(this.showSaveButtons)} />
           <button caption={[L_Gui.AllAssemblies]} on_gui_click={reg(this.openAssemblyList)} />
         </flow>
       </frame>
+    )
+  }
+
+  @bound
+  showSaveButtons(assembly: Assembly | undefined): Spec {
+    if (!assembly)
+      return (
+        <empty-widget
+          styleMod={{
+            height: GuiConstants.SaveResetButtonHeight,
+          }}
+        />
+      )
+    return (
+      <>
+        <HorizontalPusher />
+        <SaveButton assembly={assembly} />
+        <ResetButton assembly={assembly} />
+      </>
     )
   }
 
@@ -74,6 +98,7 @@ function renderCurrentAssemblyFrame(player: LuaPlayer): void {
   render(frameFlow, <CurrentAssembly player={player} />)
 
   // hacky fix for editor window blocking
+  // game usually does this on its own
   player.gui.left.style.left_margin ??= 474
 }
 function destroyCurrentAssemblyFrame(player: LuaPlayer): void {
