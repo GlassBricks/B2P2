@@ -29,6 +29,7 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
             caption={this.currentName}
             on_gui_click={reg(this.openAssemblyManager)}
             enabled={assemblyState.truthy()}
+            tooltip={[L_Gui.OpenAssemblyManager]}
           />
         </TitleBar>
         <flow direction="horizontal">
@@ -37,6 +38,7 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
       </frame>
     )
   }
+
   //todo: move some of this to lib
   private lastSubscription: Callback | undefined
 
@@ -60,6 +62,10 @@ class CurrentAssembly extends Component<{ player: LuaPlayer }> {
   @bound
   private openAssemblyList() {
     AssembliesOverview.toggle(this.player)
+  }
+
+  override onDestroy() {
+    this.lastSubscription?.()
   }
 }
 function renderCurrentAssemblyFrame(player: LuaPlayer): void {

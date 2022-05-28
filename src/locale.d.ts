@@ -104,6 +104,8 @@ export declare const enum L_Interaction {
 export declare const enum L_Gui {
   /** <Unnamed assembly __1__> */
   UnnamedAssembly = "b2p2.gui.unnamed-assembly",
+  /** Open assembly manager */
+  OpenAssemblyManager = "b2p2.gui.open-assembly-manager",
   /** Current assembly: */
   CurrentAssembly = "b2p2.gui.current-assembly",
   /** <None> */
