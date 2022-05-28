@@ -4,6 +4,7 @@ import { Colors } from "../../constants"
 import { FullEntity } from "../../entity/entity"
 import { BBox, bbox } from "../../lib/geometry"
 import { State } from "../../lib/observable"
+import { DependencyNode } from "../../lib/observable/DependencyNode"
 
 export interface AssemblyImport {
   name(): State<LocalisedString>
@@ -12,6 +13,8 @@ export interface AssemblyImport {
 
   getRelativeBoundingBox(): BBox
   getSourceArea(): AreaIdentification | undefined
+
+  getDependencyNode(): DependencyNode | undefined
 }
 
 export function highlightImport(surface: LuaSurface, area: BBox, imp: AssemblyImport, forPlayer: LuaPlayer): void {

@@ -5,6 +5,7 @@ import { Classes, getAllInstances, raiseUserError } from "../../lib"
 import { BBox, bbox, Position } from "../../lib/geometry"
 import { Migrations } from "../../lib/migration"
 import { State } from "../../lib/observable"
+import { DependencyNode } from "../../lib/observable/DependencyNode"
 import { L_Interaction } from "../../locale"
 import { Assembly } from "../Assembly"
 import { AssemblyImport } from "./AssemblyImport"
@@ -23,6 +24,9 @@ export class BasicImport implements AssemblyImport {
   }
   getSourceArea(): AreaIdentification | undefined {
     return this.source
+  }
+  getDependencyNode(): DependencyNode | undefined {
+    return this.source.getContent()?.dependencyNode
   }
 
   static createFor(source: Assembly, target: Assembly, relativePosition: Position): BasicImport {

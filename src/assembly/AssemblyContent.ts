@@ -7,10 +7,11 @@ import { ItemBlueprint } from "../blueprint/ItemBlueprint"
 import { LuaBlueprint, PasteBlueprint } from "../blueprint/LuaBlueprint"
 import { clearBuildableEntities } from "../blueprint/world"
 import { FullEntity } from "../entity/entity"
-import { Classes, funcRef, getAllInstances } from "../lib"
+import { bound, Callback, Classes, funcRef, getAllInstances, rebindFuncs, reg } from "../lib"
 import { bbox, BBox } from "../lib/geometry"
 import { Migrations } from "../lib/migration"
-import { MutableObservableList, MutableState, observableList, state, State } from "../lib/observable"
+import { MutableObservableList, MutableState, observableList, observeEachUnique, state, State } from "../lib/observable"
+import { dependencyNode, DependencyNode } from "../lib/observable/DependencyNode"
 import { getDiagnosticHighlightType } from "./diagnostics/Diagnostic"
 import { AssemblyImport } from "./imports/AssemblyImport"
 import { LayerOptions } from "./LayerOptions"
@@ -38,10 +39,9 @@ export interface AssemblyContent extends AreaIdentification {
   commitSave(): BlueprintDiff | undefined
 
   commitAndReset(): BlueprintDiff | undefined
-
   saveAndAddImport(imp: AssemblyImport): AssemblyImportItem
 
-  // isUpToDate(): boolean
+  readonly dependencyNode: DependencyNode
 
   delete(): void
 }
@@ -78,6 +78,9 @@ export class DefaultAssemblyContent implements AssemblyContent {
   hasConflicts = this.pasteDiagnostics.map(funcRef(DefaultAssemblyContent.hasAnyConflicts))
   pendingSave: MutableState<BlueprintDiff | undefined> = state(undefined)
 
+  dependencyNode: DependencyNode
+  private callbacks: Callback[] | undefined
+
   constructor(readonly surface: LuaSurface, readonly area: BBox) {
     const [content, index] = ItemBlueprint.newWithIndex(surface, area)
     // const [content, index] = takeBlueprintWithIndex(surface, area)
@@ -85,9 +88,39 @@ export class DefaultAssemblyContent implements AssemblyContent {
     this.resultContent = content
     this.importsContent = ItemBlueprint.empty()
     this.entitySourceMap = new EntitySourceMapBuilder().addAll(index, this, this.area.left_top).build()
+
+    this.dependencyNode = dependencyNode(reg(this.doResetInWorld))
+    this.dependencyNode.ensureUpToDate()
+    this.addSubscriptions()
   }
 
-  resetInWorld(): void {
+  addSubscriptions(): void {
+    this.callbacks = [observeEachUnique(this.imports, reg(this.onImportsChanged), true)]
+  }
+
+  @bound
+  private onImportsChanged(
+    imp: AssemblyImportItem,
+    _: number,
+    type: "add" | "swap" | "remove",
+  ): Callback[] | undefined {
+    if (type === "add") {
+      const impNode = imp.import.getDependencyNode()
+      if (impNode) this.dependencyNode.addDependency(impNode)
+      const cb = imp.active.subscribe(reg(this.dependencyNode.markNotUpToDate))
+      return [cb]
+    }
+    if (type === "remove") {
+      const impNode = imp.import.getDependencyNode()
+      if (impNode) this.dependencyNode.removeDependency(impNode)
+      return undefined
+    }
+    assert(type === "swap")
+    // do nothing for swap
+  }
+
+  @bound
+  doResetInWorld(): void {
     if (!this.ownContents) return // invalid
     clearBuildableEntities(this.surface, this.area)
 
@@ -122,6 +155,10 @@ export class DefaultAssemblyContent implements AssemblyContent {
       }
     })
     this.pasteDiagnostics.set(diagnostics)
+  }
+
+  resetInWorld(): void {
+    this.dependencyNode.resetSelf()
   }
 
   private pasteImport(
@@ -235,6 +272,9 @@ export class DefaultAssemblyContent implements AssemblyContent {
   delete(): void {
     this.resultContent?.delete()
     this.importsContent?.delete()
+    this.dependencyNode.delete()
+    if (this.callbacks) for (const cb of this.callbacks) cb()
+    this.callbacks = undefined
 
     this.resultContent = undefined
     this.ownContents = undefined
@@ -261,6 +301,14 @@ Migrations.from("0.3.0", () => {
 
     const importsContent = old.importsContent
     instance.importsContent = importsContent && ItemBlueprint.from(importsContent)
+  }
+})
+
+Migrations.from("0.4.0", () => {
+  const instances = rebindFuncs(DefaultAssemblyContent)
+  for (const instance of instances) {
+    instance.dependencyNode = dependencyNode(reg(instance.doResetInWorld))
+    instance.addSubscriptions()
   }
 })
 

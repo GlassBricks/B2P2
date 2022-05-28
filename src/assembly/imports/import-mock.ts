@@ -3,6 +3,7 @@ import { Blueprint } from "../../blueprint/Blueprint"
 import { FullEntity } from "../../entity/entity"
 import { bbox, pos, Position } from "../../lib/geometry"
 import { state } from "../../lib/observable"
+import { dependencyNode } from "../../lib/observable/DependencyNode"
 import { AssemblyImport } from "./AssemblyImport"
 
 export function mockImport(
@@ -11,6 +12,8 @@ export function mockImport(
   sourceArea: AreaIdentification | undefined = undefined,
 ): AssemblyImport {
   const name = state("")
+  const depNode = dependencyNode()
+  depNode.ensureUpToDate()
   return {
     getContent: () => content,
     name: () => name,
@@ -29,6 +32,7 @@ export function mockImport(
       )
     },
     getSourceArea: () => sourceArea,
+    getDependencyNode: () => depNode,
   }
 }
 
@@ -39,5 +43,6 @@ export function invalidMockImport(relativePosition: Position = pos(0, 0)): Assem
     name: () => name,
     getRelativeBoundingBox: () => ({ left_top: relativePosition, right_bottom: relativePosition }),
     getSourceArea: () => undefined,
+    getDependencyNode: () => undefined,
   }
 }

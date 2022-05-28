@@ -173,6 +173,28 @@ describe("import", () => {
     const diagnostics = content.pasteDiagnostics.get()![1]
     assert.true(diagnostics.diagnostics["cannot-upgrade"]!.highlightOnly)
   })
+
+  test("upToDate tracked correctly", () => {
+    const content = createAssemblyContent()
+    const depNode = content.dependencyNode
+    assert.true(depNode.isUpToDate.get(), "starts up to date")
+
+    const imp = mockImport(getBlueprintSample("original"))
+    const impDepNode = imp.getDependencyNode()!
+
+    content.saveAndAddImport(imp)
+    assert.true(depNode.isUpToDate.get(), "up to date after save and add import")
+
+    impDepNode.markNotUpToDate()
+    assert.false(depNode.isUpToDate.get(), "not up to date after import invalidation")
+
+    clearBuildableEntities(surface, area)
+    depNode.ensureUpToDate()
+    assert.true(depNode.isUpToDate.get(), "up to date after ensure up to date")
+
+    const bp = LuaBlueprint.take(surface, area)
+    assertBlueprintsEquivalent(getBlueprintSample("original"), bp) // updated during makeUpToDate
+  })
 })
 
 describe("paste conflicts", () => {
