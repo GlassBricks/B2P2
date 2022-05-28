@@ -68,7 +68,6 @@ class AssemblyManager extends Component<{ assembly: Assembly }> {
     openedAssemblies[this.element.player_index].delete(this.assembly)
   }
 
-  // @bound
   closeSelf(): void {
     destroy(this.element)
   }
@@ -96,7 +95,7 @@ AssemblyDeleted.subscribe((assembly) => {
   }
 })
 
-Migrations.fromBeforeLoad(script.active_mods[script.mod_name], () => {
+Migrations.from(script.active_mods[script.mod_name], () => {
   for (const [, assemblies] of openedAssemblies) {
     for (const [assembly, window] of assemblies) {
       window.closeSelf()
