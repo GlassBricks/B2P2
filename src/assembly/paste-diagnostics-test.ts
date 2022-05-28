@@ -11,6 +11,7 @@ import { Diagnostic } from "./diagnostics/Diagnostic"
 import { LayerOptions } from "./LayerOptions"
 import {
   CannotUpgrade,
+  FlippedUnderground,
   ItemsIgnored,
   mapPasteConflictsToDiagnostics,
   Overlap,
@@ -61,7 +62,8 @@ test("overlap", () => {
     overlaps: [entity2],
   }
   const expected = Overlap.create(entity2, entity2AssemblyLocation)
-  assertSingleDiagnostic(conflict, expected)
+  const diagnostics = assertSingleDiagnostic(conflict, expected)
+  assert.same(diagnostics[expected.id]![0].location, entity2AssemblyLocation)
 })
 
 test.each([false, true], "upgrade, allowed: %s", (allowed) => {
@@ -76,6 +78,9 @@ test.each([false, true], "upgrade, allowed: %s", (allowed) => {
   const expected = CannotUpgrade.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
   const diagnostics = assertSingleDiagnostic(conflict, expected, { allowUpgrades: state(allowed) })
   assert.equal(allowed || undefined, diagnostics["cannot-upgrade"]!.highlightOnly)
+  const diagnostic = diagnostics[expected.id]![0]
+  assert.same(diagnostic.location, entity2AssemblyLocation)
+  assert.same(diagnostic.altLocation, entity1SourceLocation)
 })
 
 test("items", () => {
@@ -88,5 +93,17 @@ test("items", () => {
     ],
   }
   const expected = ItemsIgnored.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
-  assertSingleDiagnostic(conflict, expected)
+  const conflicts = assertSingleDiagnostic(conflict, expected)
+  const diagnostic = conflicts[expected.id]![0]
+  assert.same(diagnostic.location, entity2AssemblyLocation)
+  assert.same(diagnostic.altLocation, entity1SourceLocation)
+})
+
+test("flipped-underground", () => {
+  const conflict: BlueprintPasteConflicts = {
+    flippedUndergrounds: [entity2],
+  }
+  const expected = FlippedUnderground.create(entity2, entity2AssemblyLocation)
+  const diagnostics = assertSingleDiagnostic(conflict, expected)
+  assert.same(diagnostics[expected.id]![0].location, entity2AssemblyLocation)
 })

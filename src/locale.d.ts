@@ -56,6 +56,12 @@ export declare const enum L_Diagnostic {
   ItemsIgnoredTooltip = "b2p2.diagnostic.items-ignored-tooltip",
   /** __1__: __2__  ->  __3__ */
   ItemsIgnoredItem = "b2p2.diagnostic.items-ignored-item",
+  /** [color=yellow]Flipped underground:[/color] [img=info] */
+  FlippedUnderground = "b2p2.diagnostic.flipped-underground",
+  /** These underground belts were flipped from their original direction to match an existing underground. */
+  FlippedUndergroundTooltip = "b2p2.diagnostic.flipped-underground-tooltip",
+  /** __1__ */
+  FlippedUndergroundItem = "b2p2.diagnostic.flipped-underground-item",
   /** [font=default-bold]Click[/font] to teleport to the entity. */
   BasicTooltip = "b2p2.diagnostic.basic-tooltip",
   /** [font=default-bold]Click[/font] to teleport to the entity.\n[font=default-bold]Control click[/font] to teleport to entity at the [font=default-bold]import source[/font]. */

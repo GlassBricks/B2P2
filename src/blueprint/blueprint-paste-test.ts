@@ -17,6 +17,7 @@ import {
 } from "./blueprint-paste"
 import { LuaBlueprint, PasteBlueprint } from "./LuaBlueprint"
 import { clearBuildableEntities, pasteBlueprint } from "./world"
+import direction = defines.direction
 
 let emptyBlueprint: LuaBlueprint<FullEntity>
 function getAssemblingMachineEntity(): FullEntity {
@@ -229,6 +230,30 @@ describe("pasteAndFindConflicts", () => {
       },
       updatedAssemblingMachine,
     )
+  })
+
+  test("handles flipped underground", () => {
+    const inPos = pos(0.5, 0.5)
+    const outPos = pos(1.5, 0.5)
+
+    const inEntity: FullEntity = {
+      name: "underground-belt",
+      entity_number: 1,
+      position: inPos,
+      direction: direction.east,
+      type: "input",
+    }
+    // create in-underground going east, paste in-underground going west
+    // the pasted entity will flip to match the in-underground
+    const outEntity: FullEntity = {
+      name: "underground-belt",
+      entity_number: 1,
+      direction: direction.west,
+      position: outPos,
+      type: "input",
+    }
+    const conflicts = testBPs(LuaBlueprint.of(inEntity), LuaBlueprint.of(outEntity))[0]
+    assert.same([outEntity], conflicts.flippedUndergrounds)
   })
 
   function assertConflictEquivalent(expected: BlueprintPasteConflicts, actual: BlueprintPasteConflicts): void {

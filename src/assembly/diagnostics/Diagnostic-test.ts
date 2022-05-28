@@ -4,7 +4,7 @@ import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./Diagn
 const category = DiagnosticCategory(
   {
     id: "test diagnostic",
-    shortDescription: [L_Diagnostic.Overlap],
+    title: [L_Diagnostic.Overlap],
   },
   (value) => ({
     message: [L_Diagnostic.Overlap, value],

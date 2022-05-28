@@ -3,13 +3,13 @@ import { Mutable } from "../../lib"
 
 export interface DiagnosticCategory<Id extends string> {
   readonly id: Id
-  readonly shortDescription: LocalisedString // title
-  readonly longDescription?: LocalisedString // tooltip
+  readonly title: LocalisedString
+  readonly tooltip?: LocalisedString
   readonly highlightType?: CursorBoxRenderType
 }
 
-export type Diagnostic = {
-  readonly id: string
+export interface Diagnostic<Id extends string = string> {
+  readonly id: Id
   readonly message?: LocalisedString
   readonly location?: AreaIdentification
   readonly altLocation?: AreaIdentification
@@ -26,7 +26,7 @@ const categories = new Map<string, DiagnosticCategory<string>>()
 export function DiagnosticCategory<Id extends string, A extends any[]>(
   category: DiagnosticCategory<Id>,
   factory: (this: void, ...args: A) => Omit<Diagnostic, "id">,
-): DiagnosticCategory<Id> & { create: (this: void, ...args: A) => Diagnostic } {
+): DiagnosticCategory<Id> & { create: (this: void, ...args: A) => Diagnostic<Id> } {
   const id = category.id
   if (categories.has(id)) {
     error("Duplicate diagnostic category: " + id)
@@ -35,7 +35,7 @@ export function DiagnosticCategory<Id extends string, A extends any[]>(
   const result = {
     ...category,
     create(this: void, ...args: A) {
-      const diagnostic = factory(...args) as Mutable<Diagnostic>
+      const diagnostic = factory(...args) as Mutable<Diagnostic<Id>>
       diagnostic.id = id
       return diagnostic
     },

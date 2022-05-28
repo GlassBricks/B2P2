@@ -80,11 +80,7 @@ export class DiagnosticsTab extends Component<{
     const category = getDiagnosticCategory(categoryName)!
     return (
       <flow direction="vertical">
-        <label
-          caption={category.shortDescription}
-          tooltip={category.longDescription}
-          styleMod={{ font: "default-semibold" }}
-        />
+        <label caption={category.title} tooltip={category.tooltip} styleMod={{ font: "default-semibold" }} />
         <flow
           direction="vertical"
           styleMod={{
@@ -113,11 +109,11 @@ export class DiagnosticsTab extends Component<{
 
   @bound
   private diagnosticClicked(diagnostic: Diagnostic, event: OnGuiClickEvent) {
-    if (!event.control) {
-      DiagnosticsTab.showDiagnosticLocation(event, diagnostic.location, "blueprint-snap-rectangle")
-    } else {
+    if (event.control && diagnostic.altLocation) {
       DiagnosticsTab.showDiagnosticLocation(event, diagnostic.altLocation, getDiagnosticHighlightType(diagnostic.id))
+      return
     }
+    DiagnosticsTab.showDiagnosticLocation(event, diagnostic.location, "blueprint-snap-rectangle")
   }
 
   private static showDiagnosticLocation(

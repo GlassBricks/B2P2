@@ -1,3 +1,4 @@
+import { oppositedirection } from "util"
 import { AreaIdentification } from "../area/AreaIdentification"
 import { Prototypes } from "../constants"
 import {
@@ -68,26 +69,24 @@ export class PartialBlueprint {
 }
 
 export interface BlueprintPasteConflicts {
-  readonly overlaps?: Overlap[]
+  readonly overlaps?: FullEntity[]
   readonly upgrades?: EntityPair[]
   readonly itemRequestChanges?: EntityPair[]
   readonly lostReferences?: ReferenceEntity[]
+  readonly flippedUndergrounds?: FullEntity[]
 }
-export type Overlap = FullEntity
-
 export interface EntityPair {
   readonly below: FullEntity
   readonly above: PasteEntity
 }
 
 /**
- * Performance critical.
+ * Performance hotspot.
  *
  * @param area area (bounds) to place
  * @param belowContent existing entities; used to check for conflicts
  * @param content content to paste
  * @param pasteBounds location of content to paste
- *
  */
 export function pasteAndFindConflicts(
   area: AreaIdentification,
@@ -163,19 +162,29 @@ export function pasteAndFindConflicts(
 
   const pastedEntities = pasteBlueprint(surface, pasteLocation, LuaBlueprint._new(filteredEntities))
 
-  const overlaps: Overlap[] = []
+  const overlaps: FullEntity[] = []
   const lostReferences: ReferenceEntity[] = []
+  const flippedUndergrounds: FullEntity[] = []
   // find pasted blueprint entities
   for (const pastedEntity of pastedEntities) {
     const relativeLocation = sub(pastedEntity.position, pasteLocation)
-    const refEntity: Entity = {
+    const refEntity: Mutable<Entity> = {
       name: pastedEntity.type === "entity-ghost" ? pastedEntity.ghost_name : pastedEntity.name,
       direction: pastedEntity.direction,
       position: relativeLocation,
     }
-    const corresponding = findCompatibleEntity(contentPositionMap, refEntity, relativeLocation)
+    let corresponding = findCompatibleEntity(contentPositionMap, refEntity, relativeLocation)
     if (corresponding === undefined) {
-      error("bp entity corresponding to pasted lua entity not found")
+      // could be underground belt, that has been flipped
+      const type = pastedEntity.type === "entity-ghost" ? pastedEntity.ghost_type : pastedEntity.type
+      if (type === "underground-belt") {
+        refEntity.direction = oppositedirection(pastedEntity.direction)
+        corresponding = findCompatibleEntity(contentPositionMap, refEntity, relativeLocation)
+      }
+      if (corresponding === undefined) {
+        error("bp entity corresponding to pasted lua entity not found: " + serpent.block(refEntity))
+      }
+      flippedUndergrounds.push(corresponding)
     }
     if (corresponding.changedProps) {
       // pasted, but is ref prop
@@ -211,6 +220,7 @@ export function pasteAndFindConflicts(
     upgrades: nilIfEmpty(upgrades),
     itemRequestChanges: nilIfEmpty(itemRequestChanges),
     lostReferences: nilIfEmpty(lostReferences),
+    flippedUndergrounds: nilIfEmpty(flippedUndergrounds),
   }
   return $multi(conflicts, pastedEntities)
 }

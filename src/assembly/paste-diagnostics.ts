@@ -10,14 +10,14 @@ import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagn
 import { LayerOptions } from "./LayerOptions"
 import shift = bbox.shift
 
-export type PasteDiagnosticId = "overlap" | "items-ignored" | "cannot-upgrade" | "unsupported-prop"
+export type PasteDiagnosticId = "overlap" | "items-ignored" | "cannot-upgrade" | "flipped-underground"
 
 export type PasteDiagnostics = DiagnosticCollection<PasteDiagnosticId>
 
 export const Overlap = DiagnosticCategory(
   {
     id: "overlap",
-    shortDescription: [L_Diagnostic.Overlap],
+    title: [L_Diagnostic.Overlap],
     highlightType: "not-allowed",
   },
   (above: Entity, assemblyAboveLocation: AreaIdentification) => ({
@@ -28,8 +28,8 @@ export const Overlap = DiagnosticCategory(
 export const CannotUpgrade = DiagnosticCategory(
   {
     id: "cannot-upgrade",
-    shortDescription: [L_Diagnostic.CannotUpgrade],
-    longDescription: [L_Diagnostic.CannotUpgradeTooltip],
+    title: [L_Diagnostic.CannotUpgrade],
+    tooltip: [L_Diagnostic.CannotUpgradeTooltip],
     highlightType: "copy",
   },
   (
@@ -46,8 +46,8 @@ export const CannotUpgrade = DiagnosticCategory(
 export const ItemsIgnored = DiagnosticCategory(
   {
     id: "items-ignored",
-    shortDescription: [L_Diagnostic.ItemsIgnored],
-    longDescription: [L_Diagnostic.ItemsIgnoredTooltip],
+    title: [L_Diagnostic.ItemsIgnored],
+    tooltip: [L_Diagnostic.ItemsIgnoredTooltip],
     highlightType: "pair",
   },
   (
@@ -64,6 +64,19 @@ export const ItemsIgnored = DiagnosticCategory(
     ],
     location: assemblyLocation,
     altLocation: sourceLocation,
+  }),
+)
+
+export const FlippedUnderground = DiagnosticCategory(
+  {
+    id: "flipped-underground",
+    title: [L_Diagnostic.FlippedUnderground],
+    tooltip: [L_Diagnostic.FlippedUndergroundTooltip],
+    highlightType: "not-allowed",
+  },
+  (entity: FullEntity, sourceLocation: AreaIdentification | undefined) => ({
+    message: [L_Diagnostic.FlippedUndergroundItem, describeEntity(entity)],
+    location: sourceLocation,
   }),
 )
 
@@ -109,6 +122,11 @@ export function mapPasteConflictsToDiagnostics(
       const belowArea = getSourceArea(below)
       const aboveArea = getAssemblyArea(above)
       addDiagnostic(diagnostics, ItemsIgnored, below, belowArea, above, aboveArea)
+    }
+  }
+  if (conflicts.flippedUndergrounds) {
+    for (const entity of conflicts.flippedUndergrounds) {
+      addDiagnostic(diagnostics, FlippedUnderground, entity, getAssemblyArea(entity))
     }
   }
   return diagnostics
