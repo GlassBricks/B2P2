@@ -15,6 +15,7 @@ export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
   render(props: { assembly: Assembly }): Spec {
     this.assembly = props.assembly
 
+    const isUpToDate = this.assembly.getContent()!.dependencyNode.isUpToDate
     return (
       <frame
         style="subheader_frame"
@@ -25,6 +26,11 @@ export class AMSubframeButtons extends Component<{ assembly: Assembly }> {
       >
         <SaveButton assembly={this.assembly} />
         <ResetButton assembly={this.assembly} />
+        <label
+          style="subheader_label"
+          caption={isUpToDate.switch<LocalisedString>("", [L_Gui.NotUpToDateWarning])}
+          tooltip={isUpToDate.switch<LocalisedString>("", [L_Gui.NotUpToDateWarningTooltip])}
+        />
         <HorizontalPusher />
         <TeleportButton tooltip={[L_Gui.TeleportToAssembly]} onClick={reg(this.teleport)} />
         <TrashButton tooltip={[L_Gui.DeleteAssembly]} onClick={reg(this.confirmDelete)} />

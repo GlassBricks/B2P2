@@ -33,7 +33,12 @@ export class DiagnosticsTab extends Component<{
   @bound
   private mapDiagnosticsToListItem(diagnostics: readonly LayerDiagnostics[]): Spec {
     if (!diagnostics.some((x) => !isEmpty(x.diagnostics))) {
-      return <label style="bold_label" caption={[L_Gui.NoDiagnostics]} />
+      return (
+        <>
+          <label style="bold_label" caption={[L_Gui.NoDiagnostics]} />
+          <label caption={[L_Gui.NoDiagnosticsInfo]} />
+        </>
+      )
     }
 
     return <>{diagnostics.map((conflict) => this.diagnosticsForLayer(conflict))}</>

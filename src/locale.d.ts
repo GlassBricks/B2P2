@@ -136,6 +136,10 @@ export declare const enum L_Gui {
   ResetButtonTooltip = "b2p2.gui.reset-button-tooltip",
   /** Are you sure you want to reset this assembly? Any unsaved changes will be lost. */
   ConfirmResetAssembly = "b2p2.gui.confirm-reset-assembly",
+  /** [img=utility/warning_icon] */
+  NotUpToDateWarning = "b2p2.gui.not-up-to-date-warning",
+  /** This assembly's dependencies have been changed or updated; Save or reset this assembly for changes to take effect. */
+  NotUpToDateWarningTooltip = "b2p2.gui.not-up-to-date-warning-tooltip",
   /** Delete assembly */
   DeleteAssembly = "b2p2.gui.delete-assembly",
   /** Are you sure you want to delete the assembly "__1__"? */
@@ -176,6 +180,8 @@ export declare const enum L_Gui {
   OwnContents = "b2p2.gui.own-contents",
   /** No diagnostics */
   NoDiagnostics = "b2p2.gui.no-diagnostics",
+  /** If there are issues when pasting imports, they will be listed here. */
+  NoDiagnosticsInfo = "b2p2.gui.no-diagnostics-info",
   /** Assemblies */
   AssemblyOverviewTitle = "b2p2.gui.assembly-overview-title",
   /** All assemblies [img=info] */
