@@ -1,7 +1,13 @@
 import { asFunc } from "../test-util/func"
 import { Event } from "./Event"
 import { SingleObserver } from "./Observable"
-import { MutableObservableList, observableList, ObservableListChange } from "./ObservableList"
+import {
+  MutableObservableList,
+  observableList,
+  ObservableListChange,
+  ObserveEachFn,
+  observeEachUnique,
+} from "./ObservableList"
 import { MutableObservableMap, observableMap, ObservableMapChange } from "./ObservableMap"
 import { MutableObservableSet, observableSet, ObservableSetChange } from "./ObservableSet"
 import { MutableState, state } from "./State"
@@ -315,37 +321,37 @@ describe("ObservableMap", () => {
 })
 
 describe("ObservableList", () => {
-  let array: MutableObservableList<string>
+  let list: MutableObservableList<string>
   before_each(() => {
-    array = observableList<string>()
+    list = observableList()
   })
 
   it("can be constructed", () => {
-    assert.equal(array.length(), 0)
+    assert.equal(list.length(), 0)
   })
 
   it("keeps track of length", () => {
-    array.push("a")
-    assert.equal(array.length(), 1)
-    array.push("b")
-    assert.equal(array.length(), 2)
-    array.pop()
-    assert.equal(array.length(), 1)
+    list.push("a")
+    assert.equal(list.length(), 1)
+    list.push("b")
+    assert.equal(list.length(), 2)
+    list.pop()
+    assert.equal(list.length(), 1)
   })
 
   it("allows to inspect value", () => {
-    array.push("a")
-    array.push("b")
-    assert.same(["a", "b"], array.value())
+    list.push("a")
+    list.push("b")
+    assert.same(["a", "b"], list.value())
   })
 
   test("notifies subscribers of pushed items", () => {
     const fn = spy()
-    array.subscribe(fn)
-    array.push("a")
-    assert.same(["a"], array.value())
+    list.subscribe(fn)
+    list.push("a")
+    assert.same(["a"], list.value())
     const change: ObservableListChange<string> = {
-      array,
+      array: list,
       type: "add",
       index: 0,
       value: "a",
@@ -355,13 +361,13 @@ describe("ObservableList", () => {
   })
 
   it("notifies subscribers of inserted items", () => {
-    array.push("a")
+    list.push("a")
     const fn = spy()
-    array.subscribe(fn)
-    array.insert(0, "b")
-    assert.same(["b", "a"], array.value())
+    list.subscribe(fn)
+    list.insert(0, "b")
+    assert.same(["b", "a"], list.value())
     const change: ObservableListChange<string> = {
-      array,
+      array: list,
       type: "add",
       index: 0,
       value: "b",
@@ -371,13 +377,13 @@ describe("ObservableList", () => {
   })
 
   it("notifies subscribers of popped items", () => {
-    array.push("a")
+    list.push("a")
     const fn = spy()
-    array.subscribe(fn)
-    array.pop()
-    assert.same([], array.value())
+    list.subscribe(fn)
+    list.pop()
+    assert.same([], list.value())
     const change: ObservableListChange<string> = {
-      array,
+      array: list,
       type: "remove",
       index: 0,
       value: "a",
@@ -387,14 +393,14 @@ describe("ObservableList", () => {
   })
 
   it("notifies subscribers of removed items", () => {
-    array.push("a")
-    array.push("b")
+    list.push("a")
+    list.push("b")
     const fn = spy()
-    array.subscribe(fn)
-    array.remove(0)
-    assert.same(["b"], array.value())
+    list.subscribe(fn)
+    list.remove(0)
+    assert.same(["b"], list.value())
     const change: ObservableListChange<string> = {
-      array,
+      array: list,
       type: "remove",
       index: 0,
       value: "a",
@@ -404,14 +410,14 @@ describe("ObservableList", () => {
   })
 
   it("notifies subscribers of changed items", () => {
-    array.push("a")
-    array.push("b")
+    list.push("a")
+    list.push("b")
     const fn = spy()
-    array.subscribe(fn)
-    array.set(0, "c")
-    assert.same(["c", "b"], array.value())
+    list.subscribe(fn)
+    list.set(0, "c")
+    assert.same(["c", "b"], list.value())
     const change: ObservableListChange<string> = {
-      array,
+      array: list,
       type: "set",
       index: 0,
       oldValue: "a",
@@ -422,24 +428,24 @@ describe("ObservableList", () => {
   })
 
   it("does not notify subscribers of changed items when value is not changed", () => {
-    array.push("a")
-    array.push("b")
+    list.push("a")
+    list.push("b")
     const fn = spy()
-    array.subscribe(fn)
-    array.set(0, "a")
-    assert.same(["a", "b"], array.value())
+    list.subscribe(fn)
+    list.set(0, "a")
+    assert.same(["a", "b"], list.value())
     assert.spy(fn).not_called()
   })
 
   test("it notifies subscribers of swapped items", () => {
-    array.push("a")
-    array.push("b")
+    list.push("a")
+    list.push("b")
     const fn = spy()
-    array.subscribe(fn)
-    array.swap(0, 1)
-    assert.same(["b", "a"], array.value())
+    list.subscribe(fn)
+    list.swap(0, 1)
+    assert.same(["b", "a"], list.value())
     const change: ObservableListChange<string> = {
-      array,
+      array: list,
       type: "swap",
       indexA: 0,
       indexB: 1,
@@ -448,6 +454,56 @@ describe("ObservableList", () => {
     }
     assert.spy(fn).called(1)
     assert.spy(fn).called_with(match._, change)
+  })
+})
+
+describe("observeEachUnique", () => {
+  let list: MutableObservableList<string[]>
+  let fn: stub.Stub<ObserveEachFn<string[]>>
+  let fn2: spy.Spy<any> | undefined
+  const spy = globalThis.spy
+  before_each(() => {
+    list = observableList()
+    fn = stub()
+    fn2 = undefined
+  })
+  test("calls on add", () => {
+    observeEachUnique(list, fn)
+    list.push(["a"])
+    assert.spy(fn).called_with(undefined, ["a"], 0, "add")
+  })
+  test("calls and unsubscribes given subscription when removed", () => {
+    observeEachUnique(list, fn)
+    fn.invokes((() => {
+      fn2 ??= spy()
+      return [fn2]
+    }) as any)
+    list.push(["a"])
+    assert.spy(fn2).not_called()
+    list.pop()
+    assert.spy(fn2).called(1)
+    assert.spy(fn).called_with(undefined, ["a"], 0, "remove")
+  })
+  test("unsubs old and resubs new on set", () => {
+    observeEachUnique(list, fn)
+    fn.invokes((() => {
+      fn2 ??= spy()
+      return [fn2]
+    }) as any)
+    list.push(["a"])
+    assert.spy(fn2).not_called()
+    list.set(0, ["b"])
+    assert.spy(fn2).called(1)
+    assert.spy(fn).called_with(undefined, ["a"], 0, "remove")
+    assert.spy(fn).called_with(undefined, ["b"], 0, "add")
+  })
+  test("calls on swap", () => {
+    observeEachUnique(list, fn)
+    list.push(["a"])
+    list.push(["b"])
+    list.swap(0, 1)
+    assert.spy(fn).called_with(undefined, ["b"], 0, "swap")
+    assert.spy(fn).called_with(undefined, ["a"], 1, "swap")
   })
 })
 

@@ -1,4 +1,4 @@
-import { Classes } from "../references"
+import { bind, Callback, Classes, Functions, Registered } from "../references"
 import { Observable } from "./Observable"
 import { SingleSubscribable } from "./Observers"
 
@@ -136,3 +136,63 @@ class ObservableListImpl<T extends AnyNotNil>
 export function observableList<T extends AnyNotNil>(): MutableObservableList<T> {
   return new ObservableListImpl<T>()
 }
+
+export interface ObserveEachFn<T extends object> extends Registered {
+  (this: unknown, value: T, index: number, type: "add"): Callback[] | undefined
+  (this: unknown, value: T, index: number, type: "swap"): void
+  (this: unknown, value: T, index: number, type: "remove"): void
+}
+export function observeEachUnique<T extends object>(
+  list: ObservableList<T>,
+  fn: ObserveEachFn<T>,
+  fireNow?: boolean,
+): Callback {
+  const listener = bind(observeEachListener, fn, new LuaMap<T, Callback[] | undefined>())
+  const cb = list.subscribe(listener)
+  if (fireNow) {
+    for (const [index, value] of ipairs(list.value())) {
+      listener({
+        array: list,
+        type: "add",
+        value,
+        index: index - 1,
+      })
+    }
+  }
+  return cb
+}
+function observeEachListener<T extends object>(
+  this: ObserveEachFn<T>,
+  callbacks: MutableLuaMap<T, Callback[] | undefined>,
+  change: ObservableListChange<T>,
+): void {
+  const { type } = change
+  if (type === "add") {
+    const { index, value } = change
+    const callback = this(value, index, type)
+    callbacks.set(value, callback)
+  } else if (type === "remove") {
+    const { value } = change
+    const callback = callbacks.get(value)
+    if (callback) {
+      callbacks.set(value, undefined)
+      for (const cb of callback) cb()
+    }
+    this(value, change.index, type)
+  } else if (type === "set") {
+    const { value, oldValue, index } = change
+    const oldCallback = callbacks.get(oldValue)
+    if (oldCallback) {
+      callbacks.set(oldValue, undefined)
+      for (const cb of oldCallback) cb()
+    }
+    this(oldValue, index, "remove")
+    const callback = this(value, index, "add")
+    callbacks.set(value, callback)
+  } else if (type === "swap") {
+    const { indexA, indexB, newValueA, newValueB } = change
+    this(newValueA, indexA, "swap")
+    this(newValueB, indexB, "swap")
+  }
+}
+Functions.registerAll({ observeEachListener })
