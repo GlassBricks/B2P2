@@ -135,6 +135,18 @@ export function getAllInstances<T>(type: Class<T>): T[] {
   return result
 }
 
+export function rebindFuncs<T>(type: Class<T>): void {
+  const instances = getAllInstances(type)
+  const classInfo = assert(rawget(type as unknown as RClass, RClassInfo))
+  const boundFuncKeys = classInfo.boundFuncKeys
+  if (!boundFuncKeys) return
+  for (const instance of instances as any[]) {
+    for (const funcKey of boundFuncKeys) {
+      instance[funcKey] = boundPrototypeFunc(instance, funcKey)
+    }
+  }
+}
+
 // -- functions --
 
 // eslint-disable-next-line @typescript-eslint/ban-types
