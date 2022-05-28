@@ -2,6 +2,7 @@ import { Assembly, AssemblyDeleted } from "../../assembly/Assembly"
 import { GuiConstants } from "../../constants"
 import { bound, Classes, funcRef, PlayerData, reg } from "../../lib"
 import { Component, destroy, FactorioJsx, render, Spec, Tracker } from "../../lib/factoriojsx"
+import { Migrations } from "../../lib/migration"
 import { L_Gui } from "../../locale"
 import { closeParentParent } from "../components/TitleBar"
 import { AMSubframeButtons } from "./AMSubframeButtons"
@@ -92,5 +93,20 @@ AssemblyDeleted.subscribe((assembly) => {
   for (const [, assemblies] of openedAssemblies) {
     assemblies.get(assembly)?.closeSelf()
     assemblies.delete(assembly)
+  }
+})
+
+Migrations.fromBeforeLoad(script.active_mods[script.mod_name], () => {
+  for (const [, assemblies] of openedAssemblies) {
+    for (const [assembly, window] of assemblies) {
+      window.closeSelf()
+      assemblies.delete(assembly)
+    }
+  }
+  for (const [, player] of game.players) {
+    const opened = player.opened
+    if (opened && opened.valid && opened.object_name === "LuaGuiElement" && opened.get_mod() === script.mod_name) {
+      player.opened = undefined
+    }
   }
 })
