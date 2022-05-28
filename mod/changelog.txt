@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.4.0
-Date: ????
+Date: 2022-05-28
   Features:
     - Assemblies now keep track of their dependencies; and they are marked out-of-date if any dependencies have changed.
     - Added more info to Assembly Manager window.
