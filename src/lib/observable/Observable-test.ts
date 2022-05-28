@@ -351,7 +351,7 @@ describe("ObservableList", () => {
     list.push("a")
     assert.same(["a"], list.value())
     const change: ObservableListChange<string> = {
-      array: list,
+      list,
       type: "add",
       index: 0,
       value: "a",
@@ -367,7 +367,7 @@ describe("ObservableList", () => {
     list.insert(0, "b")
     assert.same(["b", "a"], list.value())
     const change: ObservableListChange<string> = {
-      array: list,
+      list,
       type: "add",
       index: 0,
       value: "b",
@@ -383,7 +383,7 @@ describe("ObservableList", () => {
     list.pop()
     assert.same([], list.value())
     const change: ObservableListChange<string> = {
-      array: list,
+      list,
       type: "remove",
       index: 0,
       value: "a",
@@ -400,7 +400,7 @@ describe("ObservableList", () => {
     list.remove(0)
     assert.same(["b"], list.value())
     const change: ObservableListChange<string> = {
-      array: list,
+      list,
       type: "remove",
       index: 0,
       value: "a",
@@ -417,7 +417,7 @@ describe("ObservableList", () => {
     list.set(0, "c")
     assert.same(["c", "b"], list.value())
     const change: ObservableListChange<string> = {
-      array: list,
+      list,
       type: "set",
       index: 0,
       oldValue: "a",
@@ -445,7 +445,7 @@ describe("ObservableList", () => {
     list.swap(0, 1)
     assert.same(["b", "a"], list.value())
     const change: ObservableListChange<string> = {
-      array: list,
+      list,
       type: "swap",
       indexA: 0,
       indexB: 1,

@@ -3,19 +3,19 @@ import { Observable } from "./Observable"
 import { SingleSubscribable } from "./Observers"
 
 export type ObservableListAdd<T> = {
-  array: ObservableList<T>
+  list: ObservableList<T>
   type: "add"
   index: number
   value: T
 }
 export type ObservableListRemove<T> = {
-  array: ObservableList<T>
+  list: ObservableList<T>
   type: "remove"
   index: number
   value: T
 }
 export type ObservableListSwap<T> = {
-  array: ObservableList<T>
+  list: ObservableList<T>
   type: "swap"
   indexA: number
   indexB: number
@@ -23,7 +23,7 @@ export type ObservableListSwap<T> = {
   newValueB: T
 }
 export type ObservableListSet<T> = {
-  array: ObservableList<T>
+  list: ObservableList<T>
   type: "set"
   index: number
   oldValue: T
@@ -75,7 +75,7 @@ class ObservableListImpl<T extends AnyNotNil>
     if (oldValue !== value) {
       array[index] = value
       this.fire({
-        array: this,
+        list: this,
         type: "set",
         index,
         oldValue,
@@ -88,7 +88,7 @@ class ObservableListImpl<T extends AnyNotNil>
     const { array } = this
     table.insert(array, index + 1, value)
     this.fire({
-      array: this,
+      list: this,
       type: "add",
       index,
       value,
@@ -100,7 +100,7 @@ class ObservableListImpl<T extends AnyNotNil>
     const oldValue = array[index]
     table.remove(array, index + 1)
     this.fire({
-      array: this,
+      list: this,
       type: "remove",
       index,
       value: oldValue,
@@ -123,7 +123,7 @@ class ObservableListImpl<T extends AnyNotNil>
     array[indexA] = oldValueB
     array[indexB] = oldValueA
     this.fire({
-      array: this,
+      list: this,
       type: "swap",
       indexA,
       indexB,
@@ -152,7 +152,7 @@ export function observeEachUnique<T extends object>(
   if (fireNow) {
     for (const [index, value] of ipairs(list.value())) {
       listener({
-        array: list,
+        list,
         type: "add",
         value,
         index: index - 1,

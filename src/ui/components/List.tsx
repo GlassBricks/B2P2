@@ -64,7 +64,7 @@ export class List<T, U extends GuiElementType> extends Component<ListProps<T, U>
     if (!change) return
     const { ifEmpty, element } = this
     if (!element.valid) return Unsubscribe
-    const array = change.array
+    const array = change.list
 
     const changeType = change.type
     if (changeType === "add") {
