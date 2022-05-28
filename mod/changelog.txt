@@ -1,7 +1,15 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.2.2
+Version: 0.3.0
 Date: ????
+  Optimizations:
+    - New assembly-paste algorithm significantly improves performance of assembly save/reset.
+    - Reduce memory usage for very large blueprints.
+  Features:
+    - Added diagnostic for flipped undergrounds on paste.
   Changes:
+    - Upgraded-on-paste is always applied; the allow-upgrades option only removes the diagnostic.
+  Bugfixes:
+    - Handle more corner cases in assembly-paste algorithm.
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.1
 Date: 2022-05-21
