@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.0
-Date: ????
+Date: 2022-05-28
   Optimizations:
     - New assembly-paste algorithm significantly improves performance of assembly save/reset.
     - Reduce memory usage for very large blueprints.
