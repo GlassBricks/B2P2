@@ -2,7 +2,7 @@ import { FullEntity } from "../entity/entity"
 import { BBox, pos } from "../lib/geometry"
 import { get } from "../lib/map2d"
 import { getWorkingArea1 } from "../test/misc"
-import { createEntityMap } from "./Blueprint"
+import { createEntityPositionMap } from "./Blueprint"
 import { ItemBlueprint } from "./ItemBlueprint"
 import { LuaBlueprint } from "./LuaBlueprint"
 import { clearBuildableEntities } from "./world"
@@ -22,24 +22,24 @@ before_all(() => {
 })
 describe("entity-map", () => {
   it("returns entity", () => {
-    const bp = createEntityMap([mockEntity])
+    const bp = createEntityPositionMap([mockEntity])
     const { x, y } = mockEntity.position
     assert.same(new LuaSet(mockEntity), get(bp, x, y))
   })
 
   it("does not round", () => {
-    const bp = createEntityMap([mockEntity])
+    const bp = createEntityPositionMap([mockEntity])
     assert.is_nil(get(bp, 0, 0))
     assert.is_nil(get(bp, 1, 1))
   })
 
   it("returns nil when no entity at pos", () => {
-    const bp = createEntityMap([mockEntity])
+    const bp = createEntityPositionMap([mockEntity])
     assert.same(undefined, get(bp, 10, 10))
   })
 
   it("returns all entities if overlapping", () => {
-    const bp = createEntityMap([mockEntity, mockEntity2])
+    const bp = createEntityPositionMap([mockEntity, mockEntity2])
     const { x, y } = mockEntity.position
     assert.same(new LuaSet(mockEntity, mockEntity2), get(bp, x, y))
   })

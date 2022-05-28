@@ -1,18 +1,28 @@
+import { AreaIdentification } from "../area/AreaIdentification"
 import { Prototypes } from "../constants"
-import { Entity, FullEntity, PasteEntity, PlainEntity, ReferenceEntity } from "../entity/entity"
-import { findEntityPasteConflictAndUpdate, isCompatibleEntity } from "../entity/entity-paste"
-import { Mutable, nilIfEmpty } from "../lib"
+import {
+  Entity,
+  ErrorEntity,
+  FullEntity,
+  IntermediateEntity,
+  PartialEntity,
+  PasteEntity,
+  PlainEntity,
+  ReferenceEntity,
+  UpdateablePasteEntity,
+} from "../entity/entity"
+import { applyEntityPaste, isCompatibleEntity } from "../entity/entity-paste"
+import { Classes, Mutable, nilIfEmpty, shallowCopy } from "../lib"
 import { BBox, bbox, pos, Position } from "../lib/geometry"
-import { get, Map2D } from "../lib/map2d"
-import { createEntityMap } from "./Blueprint"
+import { add as mapAdd, get, Map2D, MutableMap2D } from "../lib/map2d"
 import { filterEntitiesInArea, LuaBlueprint, UpdateablePasteBlueprint } from "./LuaBlueprint"
-import { pasteBlueprint, takeBlueprintWithIndex } from "./world"
+import { pasteBlueprint } from "./world"
 import add = pos.add
 import floor = pos.floor
 import sub = pos.sub
 
 export function findCompatibleEntity<T extends Entity>(
-  positionMap: Map2D<T>,
+  positionMap: MutableMap2D<T> | Map2D<T>,
   entity: Entity,
   position: Position = entity.position,
 ): T | undefined {
@@ -24,8 +34,37 @@ export function findCompatibleEntity<T extends Entity>(
   return undefined
 }
 
-export interface BlueprintPasteOptions {
-  readonly allowUpgrades?: boolean
+export function toPartialEntity(entity: PlainEntity): PartialEntity {
+  const result = shallowCopy(entity) as unknown as PartialEntity
+  result.position = entity.position
+  result.isPartialEntity = true
+  return result
+}
+/**
+ * Used to check for conflicts.
+ */
+@Classes.register()
+export class PartialBlueprint {
+  public entityMap: MutableMap2D<IntermediateEntity> = {}
+
+  addPartial(entity: PasteEntity, position: Position): void {
+    const { x, y } = position
+    const newEntity = shallowCopy(entity) as unknown as PartialEntity
+    newEntity.position = position
+    newEntity.isPartialEntity = true
+    mapAdd(this.entityMap, x, y, newEntity)
+  }
+
+  addErrorEntity(entity: PasteEntity, position: Position): void {
+    const errEntity: ErrorEntity = {
+      name: entity.name,
+      position,
+      direction: entity.direction,
+      isErrorEntity: true,
+    }
+    const { x, y } = position
+    mapAdd(this.entityMap, x, y, errEntity)
+  }
 }
 
 export interface BlueprintPasteConflicts {
@@ -41,27 +80,92 @@ export interface EntityPair {
   readonly above: PasteEntity
 }
 
+/**
+ * Performance critical.
+ *
+ * @param area area (bounds) to place
+ * @param belowContent existing entities; used to check for conflicts
+ * @param content content to paste
+ * @param pasteBounds location of content to paste
+ *
+ */
 export function pasteAndFindConflicts(
-  surface: LuaSurface,
-  pasteBounds: BBox,
+  area: AreaIdentification,
+  belowContent: PartialBlueprint,
   content: UpdateablePasteBlueprint,
-  contentBounds: BBox,
-  options: BlueprintPasteOptions = {},
+  pasteBounds: BBox,
 ): LuaMultiReturn<[BlueprintPasteConflicts, LuaEntity[]]> {
-  const actualBounds = bbox.intersect(pasteBounds, contentBounds).roundTile()
-  const relativeBounds = bbox.shiftNegative(actualBounds, contentBounds.left_top)
+  const { surface, area: areaBounds } = area
+  const areaTopLeft = areaBounds.left_top
+  const actualBounds = bbox.intersect(areaBounds, pasteBounds).roundTile()
+  const relativeBounds = bbox.shiftNegative(actualBounds, pasteBounds.left_top)
 
-  const filteredContent = filterEntitiesInArea(content.getEntities(), relativeBounds)
-  const filteredContentMap = createEntityMap(filteredContent)
+  const [unfilteredEntities, contentPositionMap] = content.getEntitiesAndPositionMap()
 
-  const pasteLocation = floor(contentBounds.left_top)
-  const [belowEntities, belowIndex] = takeBlueprintWithIndex(surface, actualBounds, pasteLocation)
+  const filteredEntities = filterEntitiesInArea(unfilteredEntities, relativeBounds)
 
-  const contentBp = LuaBlueprint._new(filteredContent)
-  const pastedEntities = pasteBlueprint(surface, pasteLocation, contentBp)
+  const pasteLocation = floor(pasteBounds.left_top)
+  const relativePasteLocation = pos.sub(pasteLocation, areaTopLeft)
 
+  const upgrades: EntityPair[] = []
+  const itemRequestChanges: EntityPair[] = []
+
+  const unaccountedEntities = new LuaSet<UpdateablePasteEntity>()
+
+  // check every entity for corresponding entity in below content
+  const belowMap = belowContent.entityMap
+  for (const contentEntity of filteredEntities) {
+    const contentEntityPos = contentEntity.position
+    const relativeLocation = add(relativePasteLocation, contentEntityPos)
+    const belowEntity = findCompatibleEntity(belowMap, contentEntity, relativeLocation)
+    if (!belowEntity) {
+      // new entity
+      unaccountedEntities.add(contentEntity)
+      continue
+    }
+    if (belowEntity.isErrorEntity) {
+      // ignore checking
+      continue
+    }
+    // this entity has matching entity
+    const [upgraded, itemsChanged] = applyEntityPaste(belowEntity, contentEntity)
+    if (itemsChanged) {
+      itemRequestChanges.push({ below: belowEntity, above: contentEntity })
+    }
+    if (upgraded) {
+      // try fast replace to upgrade
+      const worldPosition = add(pasteLocation, contentEntityPos)
+      const direction = contentEntity.direction
+      if (
+        surface.can_fast_replace({
+          name: contentEntity.name,
+          position: worldPosition,
+          direction,
+          force: "player",
+        })
+      ) {
+        upgrades.push({ below: belowEntity, above: contentEntity })
+        surface.create_entity({
+          name: contentEntity.name,
+          position: worldPosition,
+          direction,
+          fast_replace: true,
+          force: "player",
+          spill: false,
+          create_build_effect_smoke: false,
+        })
+      } else {
+        // consider to be possibly overlap
+        unaccountedEntities.add(contentEntity)
+      }
+    }
+  }
+
+  const pastedEntities = pasteBlueprint(surface, pasteLocation, LuaBlueprint._new(filteredEntities))
+
+  const overlaps: Overlap[] = []
+  const lostReferences: ReferenceEntity[] = []
   // find pasted blueprint entities
-  const pastedBPEntities = new LuaSet<Entity>()
   for (const pastedEntity of pastedEntities) {
     const relativeLocation = sub(pastedEntity.position, pasteLocation)
     const refEntity: Entity = {
@@ -69,84 +173,37 @@ export function pasteAndFindConflicts(
       direction: pastedEntity.direction,
       position: relativeLocation,
     }
-    const corresponding = findCompatibleEntity(filteredContentMap, refEntity, relativeLocation)
+    const corresponding = findCompatibleEntity(contentPositionMap, refEntity, relativeLocation)
     if (corresponding === undefined) {
       error("bp entity corresponding to pasted lua entity not found")
     }
-    pastedBPEntities.add(corresponding)
-  }
-
-  // build luaEntity -> blueprint entity map
-  const toBPEntityMap = new LuaMap<UnitNumber, PlainEntity>()
-  for (const [entityNumber, luaEntity] of pairs(belowIndex)) {
-    toBPEntityMap.set(luaEntity.unit_number!, belowEntities[entityNumber - 1])
-  }
-
-  // find conflicts
-  const overlaps: Overlap[] = []
-  const upgrades: EntityPair[] = []
-  const itemRequestChanges: EntityPair[] = []
-  const lostReferences: ReferenceEntity[] = []
-
-  let shouldRepaste = false
-
-  for (const aboveBpEntity of filteredContent) {
-    if (pastedBPEntities.has(aboveBpEntity)) {
-      // already pasted
-      if (aboveBpEntity.changedProps) {
-        lostReferences.push(aboveBpEntity)
-      }
-      continue
+    if (corresponding.changedProps) {
+      // pasted, but is ref prop
+      lostReferences.push(corresponding)
     }
-    // not pasted
-    // try to find corresponding entity in world
-    const worldPosition = add(aboveBpEntity.position, pasteLocation)
-    const belowLuaEntity = surface
-      .find_entities_filtered({ position: worldPosition })
-      .find((x) => isCompatibleEntity(x, aboveBpEntity, worldPosition))
-    if (belowLuaEntity) {
-      const belowBpEntity = toBPEntityMap.get(belowLuaEntity.unit_number!)
-      if (!belowBpEntity) {
-        // should not happen
-        error(`Could not find entity in blueprint: ${belowLuaEntity.name}`)
-      }
-      const conflict = findEntityPasteConflictAndUpdate(belowBpEntity, aboveBpEntity)
-      shouldRepaste = true // in case of updates
-      if (conflict === "name") {
-        upgrades.push({ below: belowBpEntity, above: aboveBpEntity })
-        if (options.allowUpgrades) {
-          surface.create_entity({
-            name: aboveBpEntity.name,
-            position: worldPosition,
-            direction: aboveBpEntity.direction,
-            fast_replace: true,
-            force: "player",
-            spill: false,
-            create_build_effect_smoke: false,
-          })
-        }
-      } else if (conflict === "items") {
-        itemRequestChanges.push({ below: belowBpEntity, above: aboveBpEntity })
-      }
-    } else {
-      // must intersect something
-      overlaps.push(aboveBpEntity)
-      const params = {
-        ...aboveBpEntity,
-        name: Prototypes.OverlappedGhost,
-        inner_name: aboveBpEntity.name,
-        position: worldPosition,
-        force: "player",
-      } as Mutable<BlueprintEntityRead> & EntityGhostSurfaceCreateEntity
-      delete params.connections
-      delete params.neighbours
-      const entity = surface.create_entity(params)
-      pastedEntities.push(entity!)
-    }
+    unaccountedEntities.delete(corresponding)
+    const relativePosition = add(relativePasteLocation, corresponding.position)
+    belowContent.addPartial(corresponding, relativePosition)
   }
 
-  if (shouldRepaste) {
-    pasteBlueprint(surface, pasteLocation, contentBp, false)
+  for (const [unpastedEntity] of unaccountedEntities) {
+    // not pasted, not compatible: is overlap
+    overlaps.push(unpastedEntity)
+
+    const worldPosition = add(pasteLocation, unpastedEntity.position)
+
+    const params: Mutable<BlueprintEntityRead & EntityGhostSurfaceCreateEntity> = shallowCopy(unpastedEntity) as any
+    params.name = Prototypes.OverlappedGhost
+    params.inner_name = unpastedEntity.name
+    params.position = worldPosition
+    params.force = "player"
+    delete params.connections
+    delete params.neighbours
+    const entity = surface.create_entity(params)
+    pastedEntities.push(entity!)
+    // add error entity
+    const relativeLocation = add(unpastedEntity.position, relativePasteLocation)
+    belowContent.addErrorEntity(unpastedEntity, relativeLocation)
   }
 
   const conflicts: BlueprintPasteConflicts = {

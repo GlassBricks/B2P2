@@ -1,7 +1,7 @@
 import { EntityNumber, FullEntity, PasteEntity, PlainEntity } from "../entity/entity"
 import { computeEntityDiff, createReferenceOnlyEntity } from "../entity/entity-paste"
 import { nilIfEmpty } from "../lib"
-import { Blueprint, createEntityMap } from "./Blueprint"
+import { Blueprint } from "./Blueprint"
 import { findCompatibleEntity } from "./blueprint-paste"
 import { LuaBlueprint, PasteBlueprint } from "./LuaBlueprint"
 
@@ -14,9 +14,10 @@ export function computeBlueprintDiff(below: Blueprint<FullEntity>, current: Blue
   const entityNumberMap: Record<EntityNumber, EntityNumber> = {} // old to new
   const shouldAlwaysInclude = new LuaSet<number>()
 
-  const belowMap = createEntityMap(below.getEntities())
+  const [, belowMap] = below.getEntitiesAndPositionMap()
   // find corresponding entities
-  for (const entity of current.getEntities()) {
+  const currentEntities = current.getEntities()
+  for (const entity of currentEntities) {
     const compatible = findCompatibleEntity(belowMap, entity)
     if (compatible) {
       // new entity
@@ -48,7 +49,7 @@ export function computeBlueprintDiff(below: Blueprint<FullEntity>, current: Blue
   }
 
   const content: PasteEntity[] = []
-  for (const currentEntity of current.getEntities()) {
+  for (const currentEntity of currentEntities) {
     const compatible = corresponding.get(currentEntity)
     if (compatible) {
       const referenceEntity = computeEntityDiff(compatible, currentEntity, entityNumberMap)

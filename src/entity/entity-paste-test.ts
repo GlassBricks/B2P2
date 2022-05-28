@@ -1,13 +1,7 @@
-import { Mutable, mutableShallowCopy, shallowCopy } from "../lib"
+import { mutableShallowCopy } from "../lib"
 import { EntitySampleName, getEntitySample } from "../test/entity-sample"
-import { EntityNumber, ReferenceEntity } from "./entity"
-import {
-  computeEntityDiff,
-  createReferenceOnlyEntity,
-  findEntityPasteConflict,
-  findEntityPasteConflictAndUpdate,
-  isCompatibleEntity,
-} from "./entity-paste"
+import { EntityNumber, FullEntity, IgnoredProps, PartialEntity, ReferenceEntity } from "./entity"
+import { applyEntityPaste, computeEntityDiff, createReferenceOnlyEntity, isCompatibleEntity } from "./entity-paste"
 
 describe("isCompatibleEntity", () => {
   test("identical entities are compatible", () => {
@@ -68,36 +62,48 @@ describe("isCompatibleEntity", () => {
   })
 })
 
-describe("findEntityPasteConflict", () => {
-  test("pasting an entity on itself is successful", () => {
+describe("applyEntityPaste", () => {
+  function toPartialEntity(entity: FullEntity): PartialEntity {
+    return {
+      ...entity,
+      isPartialEntity: true,
+    }
+  }
+
+  function assertEntitiesSame(entity: FullEntity, referenceEntity: FullEntity) {
+    const comp = mutableShallowCopy(referenceEntity)
+    for (const [prop] of pairs(IgnoredProps)) (comp as any)[prop] = (entity as any)[prop]
+    assert.same(entity, comp)
+  }
+
+  function testEntityPair(below: FullEntity, above: FullEntity, expected: [boolean, boolean]) {
+    const pEntity = toPartialEntity(below)
+    assert.same(expected, applyEntityPaste(pEntity, above))
+    assertEntitiesSame(pEntity, above)
+  }
+
+  test("pasting an entity on itself yields self", () => {
     const entity = getEntitySample("chest")
-    assert.is_nil(findEntityPasteConflict(entity, entity))
+    testEntityPair(entity, entity, [false, false])
   })
 
-  test("pasting a pasteable prop is successful", () => {
+  test("pasting a pasteable prop", () => {
     const entity = getEntitySample("assembling-machine-1")
     const entity2 = { ...entity, recipe: "iron-gear-wheel" }
-    assert.is_nil(findEntityPasteConflict(entity, entity2))
+    testEntityPair(entity, entity2, [false, false])
   })
 
-  test("pasting recipe from none successful", () => {
-    const entity = getEntitySample("assembling-machine-1")
-    const entity2 = mutableShallowCopy(entity)
+  test("pasting a undefined pasteable prop", () => {
+    const entity1 = getEntitySample("assembling-machine-1")
+    const entity2 = mutableShallowCopy(entity1)
     entity2.recipe = undefined
-    assert.is_nil(findEntityPasteConflict(entity, entity2))
+    testEntityPair(entity1, entity2, [false, false])
   })
 
-  test("pasting to remove recipe is successful", () => {
-    const entity = getEntitySample("assembling-machine-1")
-    const entity2 = mutableShallowCopy(entity)
-    entity2.recipe = undefined
-    assert.is_nil(findEntityPasteConflict(entity, entity2))
-  })
-
-  test("pasting an entity in the same fast replace group is unsuccessful", () => {
+  test("pasting an upgrade", () => {
     const entity1 = getEntitySample("assembling-machine-1")
     const entity2 = { ...getEntitySample("assembling-machine-2"), position: entity1.position }
-    assert.equal("name", findEntityPasteConflict(entity1, entity2))
+    testEntityPair(entity1, entity2, [true, false])
   })
 
   test.each<[EntitySampleName, EntitySampleName]>(
@@ -115,52 +121,46 @@ describe("findEntityPasteConflict", () => {
         position: entity1.position,
         entity_number: entity1.entity_number,
       }
-      assert.equal("items", findEntityPasteConflict(entity1, entity2))
+      testEntityPair(entity1, entity2, [false, true])
     },
   )
 
-  it("does not report conflict for empty reference entities", () => {
+  test("empty reference entity: no conflict and changes props on reference entity", () => {
     const entity1 = getEntitySample("assembling-machine-1")
     const entity2 = { ...getEntitySample("assembling-machine-2"), position: entity1.position }
     const emptyReferenceEntity = createReferenceOnlyEntity(entity2)
-    assert.is_nil(findEntityPasteConflict(entity1, emptyReferenceEntity))
+    assert.same([false, false], applyEntityPaste(toPartialEntity(entity1), emptyReferenceEntity))
+    assertEntitiesSame(entity1, emptyReferenceEntity)
   })
 
-  it("only cares about props in changedProps", () => {
+  test("updates prop in below", () => {
     const entity1 = getEntitySample("assembling-machine-1")
-    const entity2: BlueprintEntityRead = {
-      ...getEntitySample("assembling-machine-2"),
-      position: entity1.position,
-      items: { "productivity-module": 1 },
-    }
-    const diffEntity = shallowCopy(entity2) as Mutable<ReferenceEntity>
-    diffEntity.changedProps = new LuaSet("items") // ignore "name"
-    assert.same("items", findEntityPasteConflict(entity1, diffEntity))
+    const partialEntity = toPartialEntity(entity1)
+    const entity2 = { ...getEntitySample("assembling-machine-2"), position: entity1.position }
+    assert.same([true, false], applyEntityPaste(partialEntity, entity2))
+    assertEntitiesSame(entity2, partialEntity)
   })
-})
 
-describe("findEntityPasteConflictsAndUpdate", () => {
-  test("does not give conflict for compatible changedProps and updates other props", () => {
-    const assemblingMachine = getEntitySample("assembling-machine-1")
-    const updatedAssemblingMachine: ReferenceEntity = {
-      ...assemblingMachine,
+  test("updates props in both below and above", () => {
+    const entity1 = getEntitySample("assembling-machine-1")
+    const refEntity: ReferenceEntity = {
+      ...entity1,
       name: "assembling-machine-2",
       recipe: "furnace",
       changedProps: new LuaSet("recipe"), // name not considered
     }
-    const prop = findEntityPasteConflictAndUpdate(assemblingMachine, updatedAssemblingMachine)
-    assert.is_nil(prop)
-
-    assert.same(
-      {
-        ...assemblingMachine,
-        // name: "assembling-machine-2",
-        recipe: "furnace",
-        changedProps: new LuaSet("recipe"),
-      },
-      updatedAssemblingMachine,
-    )
+    // below has recipe set
+    const expectedBelow = {
+      ...entity1,
+      recipe: "furnace",
+      isPartialEntity: true,
+    }
+    const pEntity = toPartialEntity(entity1)
+    assert.same([false, false], applyEntityPaste(pEntity, refEntity))
+    assert.same(expectedBelow, pEntity)
+    assert.equal(entity1.name, refEntity.name)
   })
+
   test("returns conflict if is in changedProps", () => {
     const assemblingMachine = getEntitySample("assembling-machine-1")
     const updatedAssemblingMachine: ReferenceEntity = {
@@ -168,16 +168,18 @@ describe("findEntityPasteConflictsAndUpdate", () => {
       name: "assembling-machine-2",
       changedProps: new LuaSet("name"),
     }
-    const prop = findEntityPasteConflictAndUpdate(assemblingMachine, updatedAssemblingMachine)
-    assert.equal("name", prop)
+    const [upgraded, itemsChanged] = applyEntityPaste(toPartialEntity(assemblingMachine), updatedAssemblingMachine)
+    assert.true(upgraded)
+    assert.false(itemsChanged)
 
     const updatedAssemblingMachine2: ReferenceEntity = {
       ...assemblingMachine,
       items: { "productivity-module": 1 },
       changedProps: new LuaSet("items"),
     }
-    const prop2 = findEntityPasteConflictAndUpdate(assemblingMachine, updatedAssemblingMachine2)
-    assert.equal("items", prop2)
+    const [upgraded2, itemsChanged2] = applyEntityPaste(toPartialEntity(assemblingMachine), updatedAssemblingMachine2)
+    assert.false(upgraded2)
+    assert.true(itemsChanged2)
   })
 
   test("updates other props even if there is conflict", () => {
@@ -186,10 +188,11 @@ describe("findEntityPasteConflictsAndUpdate", () => {
       ...assemblingMachine,
       name: "assembling-machine-2",
       recipe: "furnace",
-      changedProps: new LuaSet("name"), // name not considered
+      changedProps: new LuaSet("name"), // recipe not considered
     }
-    const prop = findEntityPasteConflictAndUpdate(assemblingMachine, updatedAssemblingMachine)
-    assert.equal("name", prop)
+    const [upgraded, itemsChanged] = applyEntityPaste(toPartialEntity(assemblingMachine), updatedAssemblingMachine)
+    assert.true(upgraded)
+    assert.false(itemsChanged)
 
     assert.same(
       {

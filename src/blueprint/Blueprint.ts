@@ -9,9 +9,11 @@ export interface Blueprint<T extends Entity = PlainEntity> {
   getStack(this: Blueprint<FullEntity>): BlueprintItemStack | undefined
 
   getEntities(): readonly T[]
+
+  getEntitiesAndPositionMap(): LuaMultiReturn<[readonly T[], Map2D<T>]>
 }
 
-export function createEntityMap<E extends Entity>(entities: readonly E[]): Map2D<E> {
+export function createEntityPositionMap<E extends Entity>(entities: readonly E[]): MutableMap2D<E> {
   const result: MutableMap2D<E> = {}
   for (const entity of entities) {
     const { x, y } = entity.position

@@ -1,11 +1,10 @@
 import { AreaIdentification } from "../area/AreaIdentification"
 import { Entity } from "../entity/entity"
 import { computeTileBox, computeTileBoxOfLuaEntity } from "../entity/entity-info"
-import { bbox, pos, Position } from "../lib/geometry"
+import { pos, Position } from "../lib/geometry"
 import { Map2D } from "../lib/map2d"
-import { createEntityMap } from "./Blueprint"
+import { createEntityPositionMap } from "./Blueprint"
 import { findCompatibleEntity } from "./blueprint-paste"
-import shift = bbox.shift
 
 export interface SourceMapEntity extends Entity {
   actualLocation: AreaIdentification
@@ -26,7 +25,7 @@ export class EntitySourceMapBuilder {
     const offset = pos.sub(sourceArea.area.left_top, pastedLeftTop)
     const surface = sourceArea.surface
     for (const [, entity] of pairs(entities)) {
-      const area = shift(computeTileBoxOfLuaEntity(entity), offset)
+      const area = computeTileBoxOfLuaEntity(entity).shift(offset)
       this.entities.push({
         name: entity.type === "entity-ghost" ? entity.ghost_name : entity.name,
         direction: entity.direction,
@@ -39,19 +38,19 @@ export class EntitySourceMapBuilder {
 
   addMock(entity: Entity, sourceArea: AreaIdentification, pastedLeftTop: Position): this {
     const surface = sourceArea.surface
-    const entitySourceArea = shift(computeTileBox(entity), sourceArea.area.left_top)
+    const area = computeTileBox(entity).shift(sourceArea.area.left_top)
     const pastedPosition = pos.add(entity.position, pastedLeftTop)
     this.entities.push({
       name: entity.name,
       direction: entity.direction,
       position: pastedPosition,
-      actualLocation: { surface, area: entitySourceArea },
+      actualLocation: { surface, area },
     })
     return this
   }
 
   build(): EntitySourceMap {
-    return createEntityMap(this.entities)
+    return createEntityPositionMap(this.entities)
   }
 }
 

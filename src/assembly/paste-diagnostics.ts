@@ -1,5 +1,5 @@
 import { AreaIdentification } from "../area/AreaIdentification"
-import { BlueprintPasteConflicts, BlueprintPasteOptions } from "../blueprint/blueprint-paste"
+import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, getEntitySourceLocation } from "../blueprint/EntitySourceMap"
 import { describeEntity, describeItems } from "../entity/describe-entity"
 import { Entity, FullEntity } from "../entity/entity"
@@ -7,6 +7,7 @@ import { computeTileBox } from "../entity/entity-info"
 import { bbox, Position } from "../lib/geometry"
 import { L_Diagnostic } from "../locale"
 import { addDiagnostic, DiagnosticCategory, DiagnosticCollection } from "./diagnostics/Diagnostic"
+import { LayerOptions } from "./LayerOptions"
 import shift = bbox.shift
 
 export type PasteDiagnosticId = "overlap" | "items-ignored" | "cannot-upgrade" | "unsupported-prop"
@@ -68,7 +69,7 @@ export const ItemsIgnored = DiagnosticCategory(
 
 export function mapPasteConflictsToDiagnostics(
   conflicts: BlueprintPasteConflicts,
-  options: BlueprintPasteOptions,
+  options: LayerOptions | undefined,
   surface: LuaSurface,
   pastedLeftTop: Position,
   sourceMap: EntitySourceMap,
@@ -97,7 +98,7 @@ export function mapPasteConflictsToDiagnostics(
       const aboveArea = getAssemblyArea(above)
       addDiagnostic(diagnostics, CannotUpgrade, below, belowArea, above, aboveArea)
     }
-    if (options.allowUpgrades) {
+    if (options?.allowUpgrades.get()) {
       if (diagnostics["cannot-upgrade"]) {
         diagnostics["cannot-upgrade"].highlightOnly = true
       }

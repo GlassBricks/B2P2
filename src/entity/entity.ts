@@ -10,15 +10,32 @@ export type Entity = Pick<BlueprintEntityRead, "name" | "position" | "direction"
 export type FullEntity = BlueprintEntityRead
 
 export interface PlainEntity extends FullEntity {
-  readonly changedProps?: never
+  changedProps?: never
+  isPartialEntity?: never
+  isErrorEntity?: never
 }
+
 export interface ReferenceEntity extends FullEntity {
   readonly changedProps: LuaSet<UpdateableProp>
+  isPartialEntity?: never
+  isErrorEntity?: never
 }
 export type UpdateableReferenceEntity = Mutable<ReferenceEntity>
-
 export type PasteEntity = PlainEntity | ReferenceEntity
 export type UpdateablePasteEntity = PlainEntity | UpdateableReferenceEntity
+
+export interface PartialEntity extends Mutable<BlueprintEntityRead> {
+  changedProps?: never
+  isErrorEntity?: never
+  isPartialEntity: true
+}
+export interface ErrorEntity extends Entity {
+  changedProps?: never
+  isErrorEntity: true
+  isPartialEntity?: never
+}
+
+export type IntermediateEntity = PartialEntity | ErrorEntity
 
 function remapEntityNumbers<T extends FullEntity>(
   entities: readonly T[],
@@ -79,10 +96,12 @@ export type EntityProp = keyof PasteEntity
 export const IgnoredProps = {
   entity_number: true,
   position: true,
-  neighbours: true,
-  tileBox: true,
+  isPartialEntity: true,
+  isErrorEntity: true,
   changedProps: true,
+  tileBox: true,
   connections: true,
+  neighbours: true,
 } as const
 export type IgnoredProp = keyof typeof IgnoredProps
 

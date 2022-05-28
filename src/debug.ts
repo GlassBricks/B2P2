@@ -44,8 +44,9 @@ if (script.active_mods.testorio) {
         Assembly.create("test2", game.surfaces[1], bbox.fromCoords(20, 0, 40, 20))
         // AssembliesOverview.open(game.players[1])
       } else {
-        game.players[1]?.gui.screen["testorio:test-config"]?.bring_to_front()
+        // game.players[1]?.gui.screen["testorio:test-config"]?.bring_to_front()
       }
+      game.players[1]?.gui.screen["testorio:test-config"]?.bring_to_front()
     },
     log_passed_tests: false,
   } as Testorio.Config)

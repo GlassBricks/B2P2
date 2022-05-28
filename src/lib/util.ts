@@ -39,6 +39,18 @@ export function deepCompare<T>(a: T, b: T): boolean {
   return true
 }
 
+export function shallowCompareRecords(a: Record<any, any> | undefined, b: Record<any, any> | undefined): boolean {
+  if (a === b) return true
+  if (a === undefined || b === undefined) return false
+  for (const [k, v] of pairs(a)) {
+    if (b[k] !== v) return false
+  }
+  for (const [k] of pairs(b)) {
+    if (a[k] === undefined) return false
+  }
+  return true
+}
+
 export function isEmpty(obj: object): boolean {
   return next(obj)[0] === undefined
 }

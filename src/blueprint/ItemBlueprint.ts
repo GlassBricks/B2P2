@@ -1,7 +1,8 @@
-import { EntityNumber, FullEntity } from "../entity/entity"
+import { EntityNumber, FullEntity, PlainEntity } from "../entity/entity"
 import { Classes } from "../lib"
 import { BBox, pos, Position } from "../lib/geometry"
-import { Blueprint } from "./Blueprint"
+import { Map2D } from "../lib/map2d"
+import { Blueprint, createEntityPositionMap } from "./Blueprint"
 import { allocateBPItemStack, freeBPItemStack } from "./blueprint-items"
 import { getShiftedEntities, takeBlueprintUntranslated } from "./world"
 
@@ -56,6 +57,12 @@ export class ItemBlueprint implements Blueprint {
     if (!stack) return []
     if (!this.posToShift) return stack.get_blueprint_entities() ?? []
     return this.shiftEntities()
+  }
+
+  getEntitiesAndPositionMap(): LuaMultiReturn<[readonly PlainEntity[], Map2D<PlainEntity>]> {
+    const entities = this.getEntities()
+    const map = createEntityPositionMap(entities)
+    return $multi(entities, map)
   }
 
   private shiftEntities(): FullEntity[] {

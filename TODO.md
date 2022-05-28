@@ -1,5 +1,7 @@
 ## Next
 
+- fix underground rotate on paste
+
 - Lazy properties, make simpler
 - Dependency checking, invalidation
 

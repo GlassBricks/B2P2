@@ -1,12 +1,14 @@
 import { AreaIdentification } from "../area/AreaIdentification"
-import { BlueprintPasteConflicts, BlueprintPasteOptions } from "../blueprint/blueprint-paste"
+import { BlueprintPasteConflicts } from "../blueprint/blueprint-paste"
 import { EntitySourceMap, EntitySourceMapBuilder } from "../blueprint/EntitySourceMap"
 import { FullEntity } from "../entity/entity"
 import { computeTileBox } from "../entity/entity-info"
 import { bbox } from "../lib/geometry"
+import { state } from "../lib/observable"
 import { getEntitySample } from "../test/entity-sample"
 import { getWorkingArea1, getWorkingArea2 } from "../test/misc"
 import { Diagnostic } from "./diagnostics/Diagnostic"
+import { LayerOptions } from "./LayerOptions"
 import {
   CannotUpgrade,
   ItemsIgnored,
@@ -44,7 +46,7 @@ before_all(() => {
 function assertSingleDiagnostic(
   source: BlueprintPasteConflicts,
   expectedDiagnostic: Diagnostic,
-  pasteOptions: BlueprintPasteOptions = {},
+  pasteOptions?: LayerOptions,
 ): PasteDiagnostics {
   const diagnostics = mapPasteConflictsToDiagnostics(source, pasteOptions, surface, area2.area.left_top, sourceMap)
   const id = expectedDiagnostic.id as PasteDiagnosticId
@@ -72,7 +74,7 @@ test.each([false, true], "upgrade, allowed: %s", (allowed) => {
     ],
   }
   const expected = CannotUpgrade.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
-  const diagnostics = assertSingleDiagnostic(conflict, expected, { allowUpgrades: allowed })
+  const diagnostics = assertSingleDiagnostic(conflict, expected, { allowUpgrades: state(allowed) })
   assert.equal(allowed || undefined, diagnostics["cannot-upgrade"]!.highlightOnly)
 })
 

@@ -1,13 +1,12 @@
-import { deepCompare, Mutable, PRecord, shallowCopy } from "../lib"
+import { deepCompare, Mutable, PRecord, shallowCompareRecords, shallowCopy } from "../lib"
 import { pos, Position, UP } from "../lib/geometry"
 import {
   Entity,
   EntityNumber,
   FullEntity,
   IgnoredProps,
-  PlainEntity,
+  PartialEntity,
   ReferenceEntity,
-  UnpasteableProp,
   UpdateablePasteEntity,
   UpdateableProp,
 } from "./entity"
@@ -23,38 +22,51 @@ export function isCompatibleEntity(a: Entity, b: Entity, bPosition: Position = b
   return aInfo.isRotationPasteable || (a.direction ?? UP) === (b.direction ?? UP)
 }
 
-export function findEntityPasteConflictAndUpdate(
-  below: FullEntity,
+const IgnoredPropsAsRecord: Record<string, true> = IgnoredProps
+
+/**
+ * Performance critical!
+ *
+ * This does several functions in one, for efficiency:
+ *
+ * - The result of pasting the above onto below entity is applied to the below entity.
+ * - If the above is a reference entity, the unpasted props of it are set to the below entity.
+ * - Returns if the entity was upgraded or item requests have changed.
+ */
+export function applyEntityPaste(
+  below: PartialEntity,
   above: UpdateablePasteEntity,
-): UnpasteableProp | undefined {
+): LuaMultiReturn<[upgraded: boolean, itemsChanged: boolean]> {
   const { changedProps } = above
-  if (changedProps) {
-    // is reference entity
-    // set values of props not in changedProps
-    for (const [prop, value] of pairs(below)) {
-      if (!(prop in IgnoredProps || changedProps.has(prop))) {
-        above[prop] = value as never
+
+  const upgraded = (changedProps === undefined || changedProps.has("name")) && above.name !== below.name
+  const itemsChanged =
+    (changedProps === undefined || changedProps.has("items")) && !shallowCompareRecords(above.items, below.items)
+
+  for (const [prop, belowValue] of pairs(below)) {
+    if (IgnoredPropsAsRecord[prop] === undefined) {
+      if (changedProps === undefined || changedProps.has(prop)) {
+        // set in below
+        below[prop] = above[prop] as never
+      } else {
+        // set in above
+        above[prop] = belowValue as never
       }
     }
-    for (const [prop] of pairs(above)) {
-      if (!(prop in below || prop in IgnoredProps || changedProps.has(prop))) {
+  }
+  for (const [prop, aboveValue] of pairs(above)) {
+    if (IgnoredPropsAsRecord[prop] === undefined && below[prop] === undefined) {
+      if (changedProps === undefined || changedProps.has(prop)) {
+        // set in below
+        below[prop] = aboveValue as never
+      } else {
+        // set in above
         above[prop] = undefined!
       }
     }
   }
-
-  // check for conflicts
-  if (!changedProps || changedProps.has("name")) {
-    if (below.name !== above.name) return "name"
-  }
-  if (!changedProps || changedProps.has("items")) {
-    if (!deepCompare(below.items, above.items)) return "items"
-  }
+  return $multi(upgraded, itemsChanged)
 }
-export const findEntityPasteConflict: (
-  below: FullEntity,
-  above: PlainEntity | ReferenceEntity,
-) => UnpasteableProp | undefined = findEntityPasteConflictAndUpdate
 
 export function computeEntityDiff(
   before: FullEntity,
