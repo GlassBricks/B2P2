@@ -34,7 +34,7 @@ class DependencyNodeImpl implements DependencyNode {
   }
 
   [OnLoad]() {
-    setmetatable(this, { __mode: "k" })
+    setmetatable(this.dependencies, { __mode: "k" })
   }
 
   private assertIsValid() {
