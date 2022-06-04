@@ -21,7 +21,7 @@ export const Overlap = DiagnosticCategory(
     highlightType: "not-allowed",
   },
   (above: Entity, assemblyAboveLocation: AreaIdentification) => ({
-    message: [L_Diagnostic.OverlapItem, describeEntity(above)],
+    message: [L_Diagnostic.OverlapItem, describeEntity(above.name)],
     location: assemblyAboveLocation,
   }),
 )
@@ -33,12 +33,12 @@ export const CannotUpgrade = DiagnosticCategory(
     highlightType: "copy",
   },
   (
-    below: Entity,
+    belowName: string,
     sourceLocation: AreaIdentification | undefined,
-    above: Entity,
+    aboveName: string,
     assemblyLocation: AreaIdentification | undefined,
   ) => ({
-    message: [L_Diagnostic.CannotUpgradeItem, describeEntity(above), describeEntity(below)],
+    message: [L_Diagnostic.CannotUpgradeItem, describeEntity(aboveName), describeEntity(belowName)],
     location: assemblyLocation,
     altLocation: sourceLocation,
   }),
@@ -51,16 +51,17 @@ export const ItemsIgnored = DiagnosticCategory(
     highlightType: "pair",
   },
   (
-    below: FullEntity,
+    belowItems: Record<string, number> | undefined,
     sourceLocation: AreaIdentification | undefined,
-    above: FullEntity,
+    aboveName: string,
+    aboveItems: Record<string, number> | undefined,
     assemblyLocation: AreaIdentification,
   ) => ({
     message: [
       L_Diagnostic.ItemsIgnoredItem,
-      describeEntity(above),
-      describeItems(below.items),
-      describeItems(above.items),
+      describeEntity(aboveName),
+      describeItems(belowItems),
+      describeItems(aboveItems),
     ],
     location: assemblyLocation,
     altLocation: sourceLocation,
@@ -75,7 +76,7 @@ export const FlippedUnderground = DiagnosticCategory(
     highlightType: "not-allowed",
   },
   (entity: FullEntity, sourceLocation: AreaIdentification | undefined) => ({
-    message: [L_Diagnostic.FlippedUndergroundItem, describeEntity(entity)],
+    message: [L_Diagnostic.FlippedUndergroundItem, describeEntity(entity.name)],
     location: sourceLocation,
   }),
 )
@@ -106,10 +107,10 @@ export function mapPasteConflictsToDiagnostics(
     }
   }
   if (conflicts.upgrades) {
-    for (const { below, above } of conflicts.upgrades) {
+    for (const { below, above, fromValue, toValue } of conflicts.upgrades) {
       const belowArea = getSourceArea(below)
       const aboveArea = getAssemblyArea(above)
-      addDiagnostic(diagnostics, CannotUpgrade, below, belowArea, above, aboveArea)
+      addDiagnostic(diagnostics, CannotUpgrade, fromValue, belowArea, toValue, aboveArea)
     }
     if (options?.allowUpgrades.get()) {
       if (diagnostics["cannot-upgrade"]) {
@@ -118,10 +119,10 @@ export function mapPasteConflictsToDiagnostics(
     }
   }
   if (conflicts.itemRequestChanges) {
-    for (const { below, above } of conflicts.itemRequestChanges) {
+    for (const { below, above, fromValue, toValue } of conflicts.itemRequestChanges) {
       const belowArea = getSourceArea(below)
       const aboveArea = getAssemblyArea(above)
-      addDiagnostic(diagnostics, ItemsIgnored, below, belowArea, above, aboveArea)
+      addDiagnostic(diagnostics, ItemsIgnored, fromValue, belowArea, above.name, toValue, aboveArea)
     }
   }
   if (conflicts.flippedUndergrounds) {

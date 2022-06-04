@@ -1,8 +1,7 @@
 import { L_B2p2 } from "../locale"
-import { Entity } from "./entity"
 
-export function describeEntity(entity: Entity): LocalisedString {
-  return ["", [L_B2p2.EntityPicture, entity.name], ["entity-name." + entity.name]]
+export function describeEntity(entityName: string): LocalisedString {
+  return ["", [L_B2p2.EntityPicture, entityName], ["entity-name." + entityName]]
 }
 
 export function describeItems(items: Record<string, number> | undefined): LocalisedString {

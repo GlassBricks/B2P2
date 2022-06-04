@@ -12,7 +12,7 @@ import {
   ReferenceEntity,
   UpdateablePasteEntity,
 } from "../entity/entity"
-import { applyEntityPaste, isCompatibleEntity } from "../entity/entity-paste"
+import { applyEntityPaste, isCompatibleEntity, ItemsChange, Upgrade } from "../entity/entity-paste"
 import { Classes, Mutable, nilIfEmpty, shallowCopy } from "../lib"
 import { BBox, bbox, pos, Position } from "../lib/geometry"
 import { add as mapAdd, get, Map2D, MutableMap2D } from "../lib/map2d"
@@ -70,14 +70,10 @@ export class PartialBlueprint {
 
 export interface BlueprintPasteConflicts {
   readonly overlaps?: FullEntity[]
-  readonly upgrades?: EntityPair[]
-  readonly itemRequestChanges?: EntityPair[]
+  readonly upgrades?: Upgrade[]
+  readonly itemRequestChanges?: ItemsChange[]
   readonly lostReferences?: ReferenceEntity[]
   readonly flippedUndergrounds?: FullEntity[]
-}
-export interface EntityPair {
-  readonly below: FullEntity
-  readonly above: PasteEntity
 }
 
 /**
@@ -106,8 +102,8 @@ export function pasteAndFindConflicts(
   const pasteLocation = floor(pasteBounds.left_top)
   const relativePasteLocation = pos.sub(pasteLocation, areaTopLeft)
 
-  const upgrades: EntityPair[] = []
-  const itemRequestChanges: EntityPair[] = []
+  const upgrades: Upgrade[] = []
+  const itemRequestChanges: ItemsChange[] = []
 
   const unaccountedEntities = new LuaSet<UpdateablePasteEntity>()
 
@@ -127,11 +123,11 @@ export function pasteAndFindConflicts(
       continue
     }
     // this entity has matching entity
-    const [upgraded, itemsChanged] = applyEntityPaste(belowEntity, contentEntity)
-    if (itemsChanged) {
-      itemRequestChanges.push({ below: belowEntity, above: contentEntity })
+    const [upgrade, itemChange] = applyEntityPaste(belowEntity, contentEntity)
+    if (itemChange) {
+      itemRequestChanges.push(itemChange)
     }
-    if (upgraded) {
+    if (upgrade) {
       // try fast replace to upgrade
       const worldPosition = add(pasteLocation, contentEntityPos)
       const direction = contentEntity.direction
@@ -143,7 +139,7 @@ export function pasteAndFindConflicts(
           force: "player",
         })
       ) {
-        upgrades.push({ below: belowEntity, above: contentEntity })
+        upgrades.push(upgrade)
         surface.create_entity({
           name: contentEntity.name,
           position: worldPosition,

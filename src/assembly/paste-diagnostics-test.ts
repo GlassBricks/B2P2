@@ -72,10 +72,12 @@ test.each([false, true], "upgrade, allowed: %s", (allowed) => {
       {
         below: entity1,
         above: entity2,
+        fromValue: entity1.name,
+        toValue: entity2.name,
       },
     ],
   }
-  const expected = CannotUpgrade.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
+  const expected = CannotUpgrade.create(entity1.name, entity1SourceLocation, entity2.name, entity2AssemblyLocation)
   const diagnostics = assertSingleDiagnostic(conflict, expected, { allowUpgrades: state(allowed) })
   assert.equal(allowed || undefined, diagnostics["cannot-upgrade"]!.highlightOnly)
   const diagnostic = diagnostics[expected.id]![0]
@@ -89,10 +91,18 @@ test("items", () => {
       {
         below: entity1,
         above: entity2,
+        fromValue: entity1.items,
+        toValue: entity2.items,
       },
     ],
   }
-  const expected = ItemsIgnored.create(entity1, entity1SourceLocation, entity2, entity2AssemblyLocation)
+  const expected = ItemsIgnored.create(
+    entity1.items,
+    entity1SourceLocation,
+    entity2.name,
+    entity2.items,
+    entity2AssemblyLocation,
+  )
   const conflicts = assertSingleDiagnostic(conflict, expected)
   const diagnostic = conflicts[expected.id]![0]
   assert.same(diagnostic.location, entity2AssemblyLocation)

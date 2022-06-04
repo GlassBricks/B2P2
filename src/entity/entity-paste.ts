@@ -1,4 +1,4 @@
-import { deepCompare, Mutable, PRecord, shallowCompareRecords, shallowCopy } from "../lib"
+import { deepCompare, Mutable, PRecord, RRecord, shallowCompareRecords, shallowCopy } from "../lib"
 import { pos, Position, UP } from "../lib/geometry"
 import {
   Entity,
@@ -6,6 +6,7 @@ import {
   FullEntity,
   IgnoredProps,
   PartialEntity,
+  PasteEntity,
   ReferenceEntity,
   UpdateablePasteEntity,
   UpdateableProp,
@@ -24,8 +25,21 @@ export function isCompatibleEntity(a: Entity, b: Entity, bPosition: Position = b
 
 const IgnoredPropsAsRecord: Record<string, true> = IgnoredProps
 
+export function createReferenceOnlyEntity(entity: Entity): ReferenceEntity {
+  const result = shallowCopy(entity) as Mutable<ReferenceEntity>
+  result.changedProps = new LuaSet<UpdateableProp>()
+  return result
+}
+export interface EntityChanged<T> {
+  readonly below: FullEntity
+  readonly above: PasteEntity
+  readonly fromValue: T
+  readonly toValue: T
+}
+export type Upgrade = EntityChanged<string>
+export type ItemsChange = EntityChanged<RRecord<string, number> | undefined>
 /**
- * Performance critical!
+ * Performance hotspot
  *
  * This does several functions in one, for efficiency:
  *
@@ -36,12 +50,27 @@ const IgnoredPropsAsRecord: Record<string, true> = IgnoredProps
 export function applyEntityPaste(
   below: PartialEntity,
   above: UpdateablePasteEntity,
-): LuaMultiReturn<[upgraded: boolean, itemsChanged: boolean]> {
+): LuaMultiReturn<[upgrade?: Upgrade, itemsChange?: ItemsChange]> {
   const { changedProps } = above
 
-  const upgraded = (changedProps === undefined || changedProps.has("name")) && above.name !== below.name
-  const itemsChanged =
+  const upgraded: Upgrade | undefined =
+    (changedProps === undefined || changedProps.has("name")) && above.name !== below.name
+      ? {
+          below,
+          above,
+          fromValue: below.name,
+          toValue: above.name,
+        }
+      : undefined
+  const itemsChanged: ItemsChange | undefined =
     (changedProps === undefined || changedProps.has("items")) && !shallowCompareRecords(above.items, below.items)
+      ? {
+          below,
+          above,
+          fromValue: below.items,
+          toValue: above.items,
+        }
+      : undefined
 
   for (const [prop, belowValue] of pairs(below)) {
     if (IgnoredPropsAsRecord[prop] === undefined) {
@@ -150,10 +179,4 @@ function compareConnectionData(
     }
   }
   return result[0] && result
-}
-
-export function createReferenceOnlyEntity(entity: Entity): ReferenceEntity {
-  const result = shallowCopy(entity) as Mutable<ReferenceEntity>
-  result.changedProps = new LuaSet<UpdateableProp>()
-  return result
 }

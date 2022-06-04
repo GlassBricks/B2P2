@@ -77,8 +77,28 @@ describe("applyEntityPaste", () => {
   }
 
   function testEntityPair(below: FullEntity, above: FullEntity, expected: [boolean, boolean]) {
-    const pEntity = toPartialEntity(below)
-    assert.same(expected, applyEntityPaste(pEntity, above))
+    const pEntity: PartialEntity = (below as PartialEntity).isPartialEntity
+      ? (below as PartialEntity)
+      : toPartialEntity(below)
+    const expectedResult = [
+      expected[0]
+        ? {
+            below: pEntity,
+            above,
+            fromValue: below.name,
+            toValue: above.name,
+          }
+        : undefined,
+      expected[1]
+        ? {
+            below: pEntity,
+            above,
+            fromValue: below.items,
+            toValue: above.items,
+          }
+        : undefined,
+    ]
+    assert.same(expectedResult, applyEntityPaste(pEntity, above))
     assertEntitiesSame(pEntity, above)
   }
 
@@ -129,7 +149,7 @@ describe("applyEntityPaste", () => {
     const entity1 = getEntitySample("assembling-machine-1")
     const entity2 = { ...getEntitySample("assembling-machine-2"), position: entity1.position }
     const emptyReferenceEntity = createReferenceOnlyEntity(entity2)
-    assert.same([false, false], applyEntityPaste(toPartialEntity(entity1), emptyReferenceEntity))
+    testEntityPair(entity1, emptyReferenceEntity, [false, false])
     assertEntitiesSame(entity1, emptyReferenceEntity)
   })
 
@@ -137,7 +157,7 @@ describe("applyEntityPaste", () => {
     const entity1 = getEntitySample("assembling-machine-1")
     const partialEntity = toPartialEntity(entity1)
     const entity2 = { ...getEntitySample("assembling-machine-2"), position: entity1.position }
-    assert.same([true, false], applyEntityPaste(partialEntity, entity2))
+    testEntityPair(partialEntity, entity2, [true, false])
     assertEntitiesSame(entity2, partialEntity)
   })
 
@@ -156,7 +176,7 @@ describe("applyEntityPaste", () => {
       isPartialEntity: true,
     }
     const pEntity = toPartialEntity(entity1)
-    assert.same([false, false], applyEntityPaste(pEntity, refEntity))
+    assert.same([], applyEntityPaste(pEntity, refEntity))
     assert.same(expectedBelow, pEntity)
     assert.equal(entity1.name, refEntity.name)
   })
@@ -169,8 +189,8 @@ describe("applyEntityPaste", () => {
       changedProps: new LuaSet("name"),
     }
     const [upgraded, itemsChanged] = applyEntityPaste(toPartialEntity(assemblingMachine), updatedAssemblingMachine)
-    assert.true(upgraded)
-    assert.false(itemsChanged)
+    assert.truthy(upgraded)
+    assert.falsy(itemsChanged)
 
     const updatedAssemblingMachine2: ReferenceEntity = {
       ...assemblingMachine,
@@ -178,8 +198,8 @@ describe("applyEntityPaste", () => {
       changedProps: new LuaSet("items"),
     }
     const [upgraded2, itemsChanged2] = applyEntityPaste(toPartialEntity(assemblingMachine), updatedAssemblingMachine2)
-    assert.false(upgraded2)
-    assert.true(itemsChanged2)
+    assert.falsy(upgraded2)
+    assert.truthy(itemsChanged2)
   })
 
   test("updates other props even if there is conflict", () => {
@@ -191,8 +211,8 @@ describe("applyEntityPaste", () => {
       changedProps: new LuaSet("name"), // recipe not considered
     }
     const [upgraded, itemsChanged] = applyEntityPaste(toPartialEntity(assemblingMachine), updatedAssemblingMachine)
-    assert.true(upgraded)
-    assert.false(itemsChanged)
+    assert.truthy(upgraded)
+    assert.falsy(itemsChanged)
 
     assert.same(
       {

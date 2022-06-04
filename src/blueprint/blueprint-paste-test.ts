@@ -1,5 +1,5 @@
 import { FullEntity, ReferenceEntity } from "../entity/entity"
-import { createReferenceOnlyEntity } from "../entity/entity-paste"
+import { createReferenceOnlyEntity, EntityChanged } from "../entity/entity-paste"
 import { assertNever, mutableShallowCopy } from "../lib"
 import { bbox, BoundingBoxClass, pos, Position } from "../lib/geometry"
 import { get } from "../lib/map2d"
@@ -9,7 +9,6 @@ import { getWorkingArea1 } from "../test/misc"
 import { createEntityPositionMap } from "./Blueprint"
 import {
   BlueprintPasteConflicts,
-  EntityPair,
   findCompatibleEntity,
   PartialBlueprint,
   pasteAndFindConflicts,
@@ -264,7 +263,7 @@ describe("pasteAndFindConflicts", () => {
       return result
     }
 
-    function normalizeConflict(this: unknown, conflict: EntityPair) {
+    function normalizeConflict(this: unknown, conflict: EntityChanged<any>) {
       return {
         ...conflict,
         below: "below" as any,
@@ -368,11 +367,18 @@ describe("pasteAndFindConflicts", () => {
       }
     } else if (expected.type === "upgrade") {
       expectedConflict = {
-        upgrades: [{ below: belowEntity, above: aboveEntity }],
+        upgrades: [{ below: belowEntity, above: aboveEntity, fromValue: belowEntity.name, toValue: aboveEntity.name }],
       }
     } else if (expected.type === "items") {
       expectedConflict = {
-        itemRequestChanges: [{ below: belowEntity, above: aboveEntity }],
+        itemRequestChanges: [
+          {
+            below: belowEntity,
+            above: aboveEntity,
+            fromValue: belowEntity.items,
+            toValue: aboveEntity.items,
+          },
+        ],
       }
     } else {
       assertNever(expected.type)
