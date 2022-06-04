@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.4.3
 Date: ????
-  Changes:
+  Bugfixes:
+    - Fix crash when pasting blueprints, when an entity is invalidated after pasted/revived.
 ---------------------------------------------------------------------------------------------------
 Version: 0.4.2
 Date: 2022-06-04

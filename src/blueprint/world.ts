@@ -127,12 +127,12 @@ export function pasteBlueprint(
       resultEntities.push(entity)
     }
   }
-  for (const entity of attemptReRevive) {
-    const revived = reviveGhost(entity)
+  for (const ghost of attemptReRevive) {
+    const revived = reviveGhost(ghost)
     if (revived) {
       resultEntities.push(revived)
-    } else {
-      resultEntities.push(entity)
+    } else if (ghost.valid) {
+      resultEntities.push(ghost)
     }
   }
   return resultEntities

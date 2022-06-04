@@ -163,6 +163,7 @@ export function pasteAndFindConflicts(
   const flippedUndergrounds: FullEntity[] = []
   // find pasted blueprint entities
   for (const pastedEntity of pastedEntities) {
+    if (!pastedEntity.valid) continue
     const relativeLocation = sub(pastedEntity.position, pasteLocation)
     const refEntity: Mutable<Entity> = {
       name: pastedEntity.type === "entity-ghost" ? pastedEntity.ghost_name : pastedEntity.name,
