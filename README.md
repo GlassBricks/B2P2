@@ -1,5 +1,5 @@
-# B2P2
-A factorio mod for designing 100% speedrun blueprints.
+## See newer version here: https://github.com/GlassBricks/bp100
 
-Note: this is no longer in development.
-View the progress of v3 here: https://github.com/GlassBricks/Blueprinting3
+# B2P2
+
+A factorio mod for designing 100% speedrun blueprints.
